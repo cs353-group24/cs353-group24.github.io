@@ -33,5 +33,7 @@ client.on("connect", () =>{
 client.connect();
 
 //-------------------- ROUTES-------------------//
+/*
 const patientRouter = require('./routes/patientRoute.js');
 app.use('/patient', patientRouter);
+*/
