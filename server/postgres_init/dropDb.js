@@ -27,18 +27,18 @@ client.connect();
 
 
 //query to database functions
-
+/*
 client.query(sql_init, (err, res ) => {
     if(err){ throw err;}
 });
+*/
 
 
-/*
 client.query(sql_drop, (err, res ) => {
     if(err){ throw err;}
 });
 
-
+/*
 client.query(sql_pop, (err, res ) => {
     if(err){ throw err;}
 });

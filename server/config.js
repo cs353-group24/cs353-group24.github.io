@@ -1,5 +1,6 @@
 const express = require('express');
 const {Client} = require('pg');
+const bodyParser = require('body-parser');
 
 const app = express();
 
@@ -15,17 +16,20 @@ let port = (process.env.PORT || 8079);
 server.listen(port, () => console.log('listening on port ' + port));
 
 // home router
+
 app.get('/', function(req, res){
-    let q = `SELECT * FROM trial`
+    let q = `SELECT * FROM person`
     client.query( q, (err, result) =>{
         if(err){
-            console.log(err);
+            res.send(err);
+            console.log("safafgag");
             return;
         }else {
             res.send(result);
         }
     })
 });
+
 
 const client = new Client({
     host: "163.172.25.36",
@@ -45,3 +49,23 @@ client.connect();
 const patientRouter = require('./routes/patientRoute.js');
 app.use('/patient', patientRouter);
 */
+// for login national_id and password are used
+app.post('/login', (req,res,next)=>{
+    // res.send("At login");
+    q = `SELECT * FROM person WHERE national_id=$1`
+
+    client.query(q, [req.body.id], (err, result)=>{
+        if (err){
+            return res.send(error);
+        }
+        else{
+            // res.send(result);
+            if(result.rows[0].password === req.body.password){
+                return res.status(200).send(result.rows[0])
+            }
+            else{
+                return res.status(404).send('Not found')
+            }
+        }
+    });
+});
