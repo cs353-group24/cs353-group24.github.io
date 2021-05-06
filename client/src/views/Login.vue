@@ -2,8 +2,9 @@
   <v-app>
     <v-main class="">
       <v-app-bar flat color="F7FAFB" class="mb-16">
-        <!-- <v-spacer></v-spacer> -->
         <v-app-bar-title>Hospital Database Management System</v-app-bar-title>
+        <!-- <v-spacer></v-spacer> -->
+        
       </v-app-bar>
       <v-container class="pt-4 px-auto mx-auto">
         <v-row>
@@ -49,9 +50,10 @@
                     </v-col> -->
                     <v-col>
                       <v-text-field
+                        required
                         outlined
                         clearable
-                        name="password"
+                        v-model="password"
                         :rules="passRules"
                         label="Enter password"
                         :prepend-inner-icon="'mdi-form-textbox-password'"
@@ -66,7 +68,7 @@
                       <v-btn width="100%" height="100%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Login</v-btn>
                     </v-col>
                     <v-col class="d-flex justify-center">
-                      <v-btn width="100%" large class="rounded-lg font-weight-bold" outlined color="#5080DE">Signup</v-btn>
+                      <v-btn @click="goToSignup" width="100%" large class="rounded-lg font-weight-bold" outlined color="#5080DE">Signup</v-btn>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -94,6 +96,11 @@
       ],
       value: String,
     }),
+    methods: {
+      goToSignup() {
+        this.$router.push({name:'Signup'});
+      }
+    }
   }
 </script>
 
