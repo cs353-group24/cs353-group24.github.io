@@ -4,7 +4,7 @@
       <v-app-bar flat color="F7FAFB" class="mb-16">
         <v-app-bar-title>Hospital Database Management System</v-app-bar-title>
         <v-spacer></v-spacer>
-        <router-link to="/auth">Auth</router-link>
+        <router-link to="/test">Test</router-link>
       </v-app-bar>
       <v-container class="pt-4 px-auto mx-auto">
         <v-row>
