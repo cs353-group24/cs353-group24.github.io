@@ -16,7 +16,15 @@ server.listen(port, () => console.log('listening on port ' + port));
 
 // home router
 app.get('/', function(req, res){
-    return res.status(200).send("CS353");
+    let q = `SELECT * FROM trial`
+    client.query( q, (err, result) =>{
+        if(err){
+            console.log(err);
+            return;
+        }else {
+            res.send(result);
+        }
+    })
 });
 
 const client = new Client({

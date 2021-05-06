@@ -7,8 +7,8 @@ const fs = require('fs');
 //sql queries toString
 const sql_init = fs.readFileSync(__dirname + '/init.sql').toString();
 //const sql_pop;
-//const sql_delete;
-console.log(sql_init);
+const sql_drop = fs.readFileSync(__dirname + '/dropTables.sql').toString();
+// console.log(sql_init);
 
 
 //database connection
@@ -31,4 +31,8 @@ client.connect();
 client.query(sql_init, (err, res ) => {
     if(err){ throw err;}
 });
-
+/*
+client.query(sql_drop, (err, res ) => {
+    if(err){ throw err;}
+});
+*/
