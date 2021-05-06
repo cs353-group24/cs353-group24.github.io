@@ -32,6 +32,11 @@ const routes = [
     path: '/auth',
     name: 'Auth',
     component: () => import('../views/Twofactorauth.vue')                                           
+  },
+  {
+    path: '/test',
+    name: 'Test',
+    component: () => import('../views/Test.vue')                                           
   }
 ]
 
