@@ -3,8 +3,8 @@
     <v-main class="">
       <v-app-bar flat color="F7FAFB" class="mb-16">
         <v-app-bar-title>Hospital Database Management System</v-app-bar-title>
-        <v-spacer></v-spacer>
-        <router-link to="/auth">Auth</router-link>
+        <!-- <v-spacer></v-spacer> -->
+        
       </v-app-bar>
       <v-container class="pt-4 px-auto mx-auto">
         <v-row>
@@ -24,10 +24,13 @@
               <v-form v-model="valid">
                 <v-card flat class="align-center d-flex flex-row justify-center">
                   <v-card-title class="blue--text text--darken-3 text-h4 font-weight-black mb-3">
-                    Login
+                    Authentication
                   </v-card-title>
                 </v-card>
                 <v-container>
+                    <v-row class="d-flex justify-center blue--text text--darken-3 mt-4">
+                        <label>Please Enter Your National ID</label>
+                    </v-row>
                   <v-row class="mt-4">
                     <!-- <v-col class="col-auto d-flex flex-column justify-center">
                       <v-icon color="#558EFE" class="">mdi-email</v-icon>
@@ -35,40 +38,18 @@
                     <v-col>
                       <v-text-field
                         outlined
-                        v-model="email"
+                        v-model="id"
                         clearable
-                        :prepend-inner-icon="'mdi-email'"
-                        :rules="emailRules"
-                        label="Email"
+                        :prepend-inner-icon="'mdi-account-outline'"
+                        :rules="idRules"
+                        label="National ID"
                         required
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                  <v-row class="mt-n7">
-                    <!-- <v-col class="col-auto d-flex flex-column justify-center">
-                      <v-icon color="#558EFE" >mdi-form-textbox-password</v-icon>
-                    </v-col> -->
-                    <v-col>
-                      <v-text-field
-                        required
-                        outlined
-                        clearable
-                        v-model="password"
-                        :rules="passRules"
-                        label="Enter password"
-                        :prepend-inner-icon="'mdi-form-textbox-password'"
-                        :append-icon="value ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
-                        @click:append="() => (value = !value)"
-                        :type="value ? 'password' : 'text'"
                       ></v-text-field>
                     </v-col>
                   </v-row>
                   <v-row>
                     <v-col class="d-flex justify-center">
-                      <v-btn width="100%" height="100%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Login</v-btn>
-                    </v-col>
-                    <v-col class="d-flex justify-center">
-                      <v-btn @click="goToSignup" width="100%" large class="rounded-lg font-weight-bold" outlined color="#5080DE">Signup</v-btn>
+                      <v-btn large width="50%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Login</v-btn>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -85,21 +66,13 @@
   export default {
     data: () => ({
       valid: false,
-      email: '',
-      password: '',
-      passRules: [
-        v => !!v || 'Password is required'
+      id: '',
+      idRules: [
+        v => !!v || 'National ID is required'
       ],
-      emailRules: [
-        v => !!v || 'Email is required',
-        v => /.+@.+/.test(v) || 'E-mail must be valid',
-      ],
-      value: String,
     }),
     methods: {
-      goToSignup() {
-        this.$router.push({name:'Signup'});
-      }
+      
     }
   }
 </script>

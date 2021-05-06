@@ -45,10 +45,10 @@
                 </v-dialog>
           </v-row>
         <v-row>
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="5">
             <v-card flat>
               <v-card-title class="v-card-title mt-16 mb-1">
-                Getting to Know You!
+                Last Couple of Things...
               </v-card-title>
             </v-card>
           </v-col>
@@ -69,11 +69,11 @@
                     <v-col>
                       <v-text-field
                         outlined
-                        v-model="id"
+                        v-model="name"
                         clearable
                         :prepend-inner-icon="'mdi-account-outline'"
                         :rules="idRules"
-                        label="National ID"
+                        label="First Name"
                         required
                       ></v-text-field>
                     </v-col>
@@ -85,11 +85,11 @@
                     <v-col>
                       <v-text-field
                         outlined
-                        v-model="email"
+                        v-model="surname"
                         clearable
-                        :prepend-inner-icon="'mdi-email'"
-                        :rules="emailRules"
-                        label="Email"
+                        :prepend-inner-icon="'mdi-account-outline'"
+                        :rules="idRules"
+                        label="Last Name"
                         required
                       ></v-text-field>
                     </v-col>
@@ -103,26 +103,75 @@
                         required
                         outlined
                         clearable
-                        v-model="password"
-                        :rules="passRules"
-                        label="Enter password"
-                        :prepend-inner-icon="'mdi-form-textbox-password'"
-                        :append-icon="value ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
-                        @click:append="() => (value = !value)"
-                        :type="value ? 'password' : 'text'"
+                        :rules="phoneRules"
+                        v-model="phone"
+                        label="Phone"
+                        :prepend-inner-icon="'mdi-phone'"
                       ></v-text-field>
                     </v-col>
+                    <v-col>
+                      <v-menu
+                        outlined
+                        ref="menu"
+                        v-model="menu"
+                        :close-on-content-click="false"
+                        :return-value.sync="date"
+                        transition="scale-transition"
+                        offset-y
+                        min-width="auto"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-text-field
+                            outlined
+                            v-model="dob"
+                            label="DOB"
+                            prepend-inner-icon="mdi-calendar"
+                            readonly
+                            v-bind="attrs"
+                            v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-date-picker
+                          v-model="dob"
+                          no-title
+                          reactive
+                          @click:date="$refs.menu.save(date)"
+                        >
+                          <v-spacer></v-spacer>
+                          <v-btn
+                            text
+                            color="primary"
+                            @click="menu = false"
+                          >
+                            Cancel
+                          </v-btn>
+                          <v-btn
+                            text
+                            color="primary"
+                            @click="$refs.menu.save(date)"
+                          >
+                            OK
+                          </v-btn>
+                        </v-date-picker>
+                      </v-menu>
+                    </v-col>
                   </v-row>
+                  <!-- <v-row class="mt-n7">
+                    <v-col class="col-auto d-flex flex-column justify-center">
+                      <v-icon color="#558EFE" >mdi-form-textbox-password</v-icon>
+                    </v-col>
+                    
+                  </v-row> -->
                   <v-row>
                     <v-col class="d-flex justify-center">
-                      <v-btn outlined color="#5080DE" width="100%" large class="rounded-lg font-weight-bold" @click="goToLogin" >
+                      <v-btn outlined color="#5080DE" width="100%" large class="rounded-lg font-weight-bold" @click.stop="dialog = true" >
                         <v-icon left>
                             mdi-keyboard-backspace
                         </v-icon>
                           Login</v-btn>
                     </v-col>
                     <v-col class="d-flex justify-center">
-                      <v-btn @click="signupNext" width="100%" height="100%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Next</v-btn>
+                      <v-btn @click="signupNext" width="100%" height="100%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Signup</v-btn>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -140,38 +189,29 @@
     data: () => ({
       valid: false,
       dialog: false,
-      email: '',
-      id: '',
-      password: '',
+      name: '',
+      surname: '',
+      phone: '',
+      dob: '',
+      menu: false,
       idRules: [
-        v => !!v || 'National ID is required'
-      ],
-      passRules: [
-        v => !!v || 'Password is required',
-        v => v.length >= 8 || 'Password should be at least 8 characters'
+        v => !!v || 'Name is required'
       ],
       emailRules: [
         v => !!v || 'Email is required',
         v => /.+@.+/.test(v) || 'E-mail must be valid',
       ],
+      phoneRules: [
+        v => !!v || 'Phone is required',
+        v => /^\d+$/.test(v) || 'Numbers only'
+      ],
+      dobRules: [
+        v => !!v || 'DOB is required'
+      ],
       value: String,
     }),
     methods: {
-      goToLogin() {
-        this.$refs.form.validate();
-        if(!this.valid){
-            this.$router.push({name:'Login'});
-        }
-        else{
-            this.dialog = true;
-        }
-      },
-      signupNext(){
-          this.$refs.form.validate();
-          if (this.valid) {
-              this.$router.push({name:'Signup2'});
-          }
-      }
+      
     }
   }
 </script>
