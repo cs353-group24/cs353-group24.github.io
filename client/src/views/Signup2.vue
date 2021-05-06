@@ -106,7 +106,7 @@
                         :rules="phoneRules"
                         v-model="phone"
                         label="Phone"
-                        :prepend-inner-icon="'mdi-form-textbox-password'"
+                        :prepend-inner-icon="'mdi-phone'"
                       ></v-text-field>
                     </v-col>
                     <v-col>
