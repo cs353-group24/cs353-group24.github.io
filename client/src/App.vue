@@ -1,16 +1,19 @@
 <template>
   <v-app>
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+    <SideBar />
+    <v-main>
+      <router-view></router-view>
+    </v-main>
   </v-app>
 </template>
 
 <script>
-  export default {
-  // name and components go here
+import SideBar from "./components/SideBar";
+export default {
+  name: 'App',
+  components: {
+    SideBar,
+  },
   data: () => ({
     //
   }),
