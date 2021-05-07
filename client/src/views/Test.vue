@@ -1,6 +1,17 @@
 <template>
   <v-main class="pa-16">
-      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo"></PaginationTable>
+      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader">
+          <template #buttons="{item}">
+            <v-row>
+            <v-col class="d-flex justify-center">
+                <v-btn @click="console(item.name)" width="100%" height="100%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Name</v-btn>
+            </v-col>
+            <v-col class="d-flex justify-center">
+                <v-btn @click="console(item.calories)" width="100%" large class="rounded-lg font-weight-bold" outlined color="#5080DE">Calories</v-btn>
+            </v-col>
+            </v-row>
+          </template>
+      </PaginationTable>
   </v-main>
 </template>
 
@@ -9,6 +20,7 @@ import PaginationTable from "@/components/PaginationTable";
 export default {
     data() {
         return{
+            buttonHeader: 'actions',
             headers: [
             {
                 text: 'Dessert (100g serving)',
@@ -22,6 +34,7 @@ export default {
             { text: 'Carbs (g)', value: 'carbs' },
             { text: 'Protein (g)', value: 'protein' },
             { text: 'Iron (%)', value: 'iron' },
+            { text: 'Actions', value: 'actions', sortable: false },
             ],
             items: [
             {
@@ -110,10 +123,24 @@ export default {
                 itemsKey: 'name',
                 itemsPerPage: 5,
             },
+            // color: [{ //can be used to pass colors to coloumns based on computations
+            //     name: 'calories',
+            //     color: ''
+            // },]
         };
     },
     components:{
         PaginationTable,
+    },
+    methods: {
+        console: function(value) {
+            console.log(value);
+        },
+        // getColor: function(value){
+        //     if (value > 400) this.color.color = 'red'
+        //     else if (value > 200) this.color.color = 'orange'
+        //     else this.color.color = 'green'
+        // }
     }
 }
 </script>

@@ -37,6 +37,31 @@ const routes = [
     path: '/test',
     name: 'Test',
     component: () => import('../views/Test.vue')                                           
+  },
+  {
+    path: '/patient',
+    name: 'Patient',
+    component: () => import('../views/Patient.vue')                                           
+  },
+  {
+    path: '/patient/past-appointments',
+    name: 'Past-Appointments',
+    component: () => import('../views/PastAppointments.vue')                                           
+  },
+  {
+    path: '/patient/appointments',
+    name: 'Appointments',
+    component: () => import('../views/Appointments.vue')                                           
+  },
+  {
+    path: '/patient/tests',
+    name: 'Tests',
+    component: () => import('../views/Tests.vue')                                           
+  },
+  {
+    path: '/patient/prescriptions',
+    name: 'Precriptions',
+    component: () => import('../views/Prescriptions.vue')                                           
   }
 ]
 
