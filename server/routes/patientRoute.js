@@ -14,8 +14,8 @@ const client = new Client({
  * */
 router.route('/').get((req, res) =>{
     //query string
-    let q = `SELECT * FROM Patients`
-    client.query( q, [req.body.id], (err, result) =>{
+    let q = `SELECT * FROM jhkj`
+    client.query( q, (err, result) =>{
         if(err){
             return res.send(err);
         }else {
