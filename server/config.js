@@ -52,8 +52,8 @@ app.use('/patient', patientRouter);
 */
 // for login national_id and password are used
 app.post('/login', (req,res,next)=>{
-    let q = 'SELECT * FROM person WHERE national_id=$1'
-    let params =   [req.body.national_id]
+    let q = 'SELECT * FROM person WHERE email=$1'
+    let params =   [req.body.email]
 
     client.query(q, params,(err, result)=>{
         if (err){
