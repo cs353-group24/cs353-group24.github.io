@@ -5,6 +5,7 @@
         <v-app-bar-title>Hospital Database Management System</v-app-bar-title>
         <v-spacer></v-spacer>
         <router-link to="/test">Test</router-link>
+        <router-link class="ml-5" to="/patient">Patient</router-link>
       </v-app-bar>
       <v-container class="pt-4 px-auto mx-auto">
         <v-row>

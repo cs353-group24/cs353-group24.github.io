@@ -1,6 +1,6 @@
 <template>
   <nav>
-    <v-navigation-drawer v-model="drawer" dark app permanent >
+    <v-navigation-drawer v-model="drawer" app permanent >
       <v-list>
         <v-list-item>
           <v-list-item-icon>
@@ -42,16 +42,16 @@
 export default {
   //change
   name: "SideBar",
+  props:{
+    items: {
+      type: Array,
+      default: function() {
+        return [];
+      },
+    }
+  },
   data: () =>({
     drawer: true,
-    items: [
-      { title: 'Home', icon: 'fas fa-home', route: '/'},
-      { title: 'New Appointment', icon: 'far fa-calendar-plus', route: '/about'},
-      { title: 'Past Appointments', icon: 'fas fa-history', route: '/about'},
-      { title: 'Appointments', icon: 'far fa-calendar-alt', route: '/about'},
-      { title: 'Tests', icon: 'fas fa-flask', route: '/about'},
-      { title: 'Prescriptions', icon: 'fas fa-file-medical', route: '/about'}
-    ]
   })
 }
 </script>
