@@ -2,13 +2,16 @@
   <v-app>
     <v-container class="">
       <v-row>
-        <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Welcome {{patientName}}</h1>
+        <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Prescriptions</h1>
       </v-row>
-      <v-row>
-        <h4 class="ml-6 blue--text text--lighten-3">You have {{upcoming}} upcoming appointments</h4>
-      </v-row>
-       <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
-          
+      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
+          <template #buttons="{item}">
+            <v-row>
+            <v-col class="d-flex justify-center mx-n5">
+                <v-btn @click="console(item.name)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">View Details</v-btn>
+            </v-col>
+            </v-row>
+          </template>
       </PaginationTable>
     </v-container>
   </v-app>
@@ -22,9 +25,7 @@ export default {
   },
 
   data: () => ({
-    patientName: 'Abdul',
-    upcoming: 5,
-    buttonHeader: 'actions',
+    buttonHeader: 'details',
     headers: [
     {
         text: 'Appointment ID',
@@ -34,10 +35,11 @@ export default {
         value: 'name',
         class: 'datatablefontcolor--text'
     },
-    { text: 'Doctor Name', value: 'calories', class: 'datatablefontcolor--text' },
-    { text: 'Date', value: 'fat', class: 'datatablefontcolor--text' },
-    { text: 'Time', value: 'carbs', class: 'datatablefontcolor--text' },
-    { text: 'Department', value: 'protein', class: 'datatablefontcolor--text' },
+    { text: 'Prescription No', value: 'calories', class: 'datatablefontcolor--text' },
+    { text: 'Prescription Type', value: 'fat', class: 'datatablefontcolor--text' },
+    { text: 'Pharmacist', value: 'carbs', class: 'datatablefontcolor--text' },
+    { text: 'Date', value: 'protein', class: 'datatablefontcolor--text' },
+    { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
     items: [
     {
@@ -67,7 +69,7 @@ export default {
     
     ],
     tableInfo: {
-        tableTitle: 'Upcoming',
+        tableTitle: 'Prescriptions',
         itemsKey: 'name',
         itemsPerPage: 6,
     },

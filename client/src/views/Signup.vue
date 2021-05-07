@@ -1,11 +1,6 @@
 <template>
   <v-app>
-    <v-main class="">
-      <v-app-bar flat color="F7FAFB" class="mb-16">
-        <v-app-bar-title>Hospital Database Management System</v-app-bar-title>
-        <!-- <v-spacer></v-spacer> -->
-        
-      </v-app-bar>
+    <v-main class="mt-n2">
       <v-container class="pt-4 px-auto mx-auto">
           <v-row>
               <v-dialog
