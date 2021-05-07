@@ -10,6 +10,7 @@ app.use(function(req, res, next) {
     next();
 });
 app.use(express.json())
+app.use(bodyParser.urlencoded({ extended: true }));
 let server = require('http').Server(app);
 
 let port = (process.env.PORT || 8079);
@@ -51,16 +52,17 @@ app.use('/patient', patientRouter);
 */
 // for login national_id and password are used
 app.post('/login', (req,res,next)=>{
-    // res.send("At login");
-    q = `SELECT * FROM person WHERE national_id=$1`
+    let q = 'SELECT * FROM person WHERE national_id=$1'
+    let params =   [req.body.national_id]
 
-    client.query(q, [req.body.id], (err, result)=>{
+    client.query(q, params,(err, result)=>{
         if (err){
             return res.send(error);
         }
         else{
             // res.send(result);
-            if(result.rows[0].password === req.body.password){
+           // console.log(JSON.parse(JSON.stringify(result)))
+            if(result.rows[0].password.toString() === req.body.password.toString()){
                 return res.status(200).send(result.rows[0])
             }
             else{
@@ -69,3 +71,9 @@ app.post('/login', (req,res,next)=>{
         }
     });
 });
+
+app.get('/logout', (req, res)=>{
+    res.redirect('/');
+});
+
+//
