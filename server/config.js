@@ -76,4 +76,18 @@ app.get('/logout', (req, res)=>{
     res.redirect('/');
 });
 
-//
+//sign up
+
+app.post('/signup', (req,res)=>{
+    let q = `INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES 
+    ($1, $2, $3, $4, $5, $6, $7, $8);`
+    let params = Object.values(req.body)
+    console.log(params)
+    client.query(q, params,(err, result)=>{
+        if (err){
+            return res.send(error).send({"message": "insertion unsuccessful"});
+        }
+        return res.status(200).send({"message": "insertion successful"})
+    });
+})
+
