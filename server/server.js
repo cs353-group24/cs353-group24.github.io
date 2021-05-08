@@ -51,7 +51,7 @@ const patientRouter = require('./routes/patientRoute.js');
 app.use('/patient', patientRouter);
 */
 // for login national_id and password are used
-app.post('/login', (req,res,next)=>{
+app.post('/login1', (req,res,next)=>{
     let q = 'SELECT * FROM person WHERE email=$1'
     let params =   [req.body.email]
 
@@ -68,6 +68,20 @@ app.post('/login', (req,res,next)=>{
             else{
                 return res.status(404).send('Not found')
             }
+        }
+    });
+});
+
+app.post('/login2', (req,res,next)=>{
+    let q = 'SELECT * FROM person WHERE national_id=$1'
+    let params =   [req.body.national_id]
+
+    client.query(q, params,(err, result)=>{
+        if (err){
+            return res.send(error);
+        }
+        else{
+            return res.status(200).send(result.rows[0])
         }
     });
 });
