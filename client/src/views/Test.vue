@@ -1,6 +1,6 @@
 <template>
   <v-main class="pa-16">
-      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader">
+        <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader">
           <template #buttons="{item}">
             <v-row>
              <v-col class="d-flex justify-start mr-n2">
@@ -11,45 +11,17 @@
             </v-col>
             </v-row>
           </template>
-      </PaginationTable>
-      <Dialog :dialog="dialog" :dialogMode="'cols'" :title="'Symptoms'" @close="dialog=false">
-          <template #topButtons>
-              <v-row class="d-flex justify-end align-center">
-                  <v-btn icon @click="dialog=false" color="datatablefontcolor"><v-icon>mdi-close</v-icon></v-btn>
-              </v-row>
+        </PaginationTable>
+        <Dialog :tableData="group" :item="item" :dialog="dialog" :dialogMode="'cols'" :title="'Symptoms'" @close="dialog=false">
+            <template #tableActions>
+                <v-btn class="rounded-pill font-weight-bold" outlined color="#5080DE">Dummy</v-btn>
+            </template>
+        </Dialog>
+        <Dialog :tableData="group" :dialog="dialog2" :title="'Component: Urea'" :subtitle="'Expected Interval: 16.6- 48.5'" @close="dialog2=false">
+          <template #tableActions class="datatablecolor">
+            <v-btn class="rounded-pill font-weight-bold" outlined color="#5080DE">Dummy</v-btn>
           </template>
-          <template #leftCol class="datatablecolor">
-            <div v-for="(value, name) in item" :key="value" class="mt-6 ml-6">
-                <v-row align="start">
-                    <span class="text-h6 datatablefontcolor--text font-weight-bold">{{headers[headers.findIndex(x => x.value === name)].text}}:</span>
-                </v-row>
-                <v-row align="start">
-                    <span class="text-subtitle-1 datatablefontcolor--text">{{value}}</span>
-                </v-row>
-            </div>
-          </template>
-          <template #righttCol class="datatablecolor">
-            <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader">
-                <template #buttons>
-                    <v-btn class="rounded-pill font-weight-bold" outlined color="#5080DE">Dummy</v-btn>
-                </template>
-            </PaginationTable>
-          </template>
-      </Dialog>
-      <Dialog :dialog="dialog2" :title="'Component: Urea'" :subtitle="'Expected Interval: 16.6- 48.5'" @close="dialog=false">
-          <template #topButtons>
-              <v-row class="d-flex justify-end align-center">
-                  <v-btn icon @click="dialog2=false" color="datatablefontcolor"><v-icon>mdi-close</v-icon></v-btn>
-              </v-row>
-          </template>
-          <template #table class="datatablecolor">
-            <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader">
-                <template #buttons>
-                    <v-btn class="rounded-pill font-weight-bold" outlined color="#5080DE">Dummy</v-btn>
-                </template>
-            </PaginationTable>
-          </template>
-      </Dialog>
+        </Dialog>
   </v-main>
 </template>
 
@@ -59,6 +31,12 @@ import Dialog from "@/components/Dialog";
 export default {
     data() {
         return{
+            group: {
+                items:'',
+                headers:'',
+                tableInfo:'',
+                buttonHeader: ''
+            },
             item: {},
             item2: {},
             dialog: false,
@@ -186,6 +164,7 @@ export default {
         //     else this.color.color = 'green'
         // }
         handleDialog1: function(item){
+            // console.log(this.group);
             this.item = item;
             this.dialog = true;
         },
@@ -193,6 +172,12 @@ export default {
             this.item2 = item;
             this.dialog2 = true;
         },
+    },
+    created: function() {
+        this.group.items = this.items
+        this.group.headers = this.headers
+        this.group.tableInfo = this.tableInfo
+        this.group.buttonHeader = this.buttonHeader
     }
 }
 </script>
