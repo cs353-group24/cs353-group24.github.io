@@ -1,5 +1,5 @@
 <template>
-      <v-card class="rounded-md" color="datatablecolor" style="color:#4874C8">
+      <v-card class="rounded-md elevation-2" style="color:#4874C8">
         <v-card-title>
         {{tableInfo.tableTitle}}
         <v-spacer></v-spacer>
@@ -17,7 +17,7 @@
         :items="items"
         :item-key="tableInfo.itemsKey"
         :items-per-page="tableInfo.itemsPerPage"
-        class="elevation-1 datatablecolor datatablefontcolor--text"
+        class="elevation-1 datatablefontcolor--text"
         :page.sync="page"
         :search="search"
         :hide-default-footer="true"
