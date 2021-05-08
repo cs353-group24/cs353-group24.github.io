@@ -1,14 +1,47 @@
 <template>
   <v-main class="pa-16">
-      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo"></PaginationTable>
+        <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader">
+          <template #buttons="{item}">
+            <v-row>
+             <v-col class="d-flex justify-start mr-n2">
+                <v-btn @click.stop="handleDialog1(item)" large class="rounded-pill font-weight-bold" outlined color="#5080DE">Dialog 1</v-btn>
+            </v-col>
+            <v-col class="d-flex justify-start ml-n16">
+                <v-btn @click.stop="handleDialog2(item)" large class="rounded-pill font-weight-bold" outlined color="#5080DE">Dialog 2</v-btn>
+            </v-col>
+            </v-row>
+          </template>
+        </PaginationTable>
+        <Dialog :tableData="group" :item="item" :dialog="dialog" :dialogMode="'cols'" :title="'Symptoms'" @close="dialog=false">
+            <template #tableActions>
+                <v-btn class="rounded-pill font-weight-bold" outlined color="#5080DE">Dummy</v-btn>
+            </template>
+        </Dialog>
+        <Dialog :tableData="group" :dialog="dialog2" :title="'Component: Urea'" :subtitle="'Expected Interval: 16.6- 48.5'" @close="dialog2=false">
+          <template #tableActions class="datatablecolor">
+            <v-btn class="rounded-pill font-weight-bold" outlined color="#5080DE">Dummy</v-btn>
+          </template>
+        </Dialog>
   </v-main>
 </template>
 
 <script>
 import PaginationTable from "@/components/PaginationTable";
+import Dialog from "@/components/Dialog";
 export default {
     data() {
         return{
+            group: {
+                items:'',
+                headers:'',
+                tableInfo:'',
+                buttonHeader: ''
+            },
+            item: {},
+            item2: {},
+            dialog: false,
+            dialog2: false,
+            buttonHeader: 'actions',
             headers: [
             {
                 text: 'Dessert (100g serving)',
@@ -16,12 +49,14 @@ export default {
                 sortable: false,
                 // filterable: false,
                 value: 'name',
+                class: 'datatablefontcolor--text'
             },
-            { text: 'Calories', value: 'calories' },
-            { text: 'Fat (g)', value: 'fat' },
-            { text: 'Carbs (g)', value: 'carbs' },
-            { text: 'Protein (g)', value: 'protein' },
-            { text: 'Iron (%)', value: 'iron' },
+            { text: 'Calories', value: 'calories', class: 'datatablefontcolor--text'},
+            { text: 'Fat (g)', value: 'fat', class: 'datatablefontcolor--text'},
+            { text: 'Carbs (g)', value: 'carbs', class: 'datatablefontcolor--text'},
+            { text: 'Protein (g)', value: 'protein', class: 'datatablefontcolor--text'},
+            { text: 'Iron (%)', value: 'iron', class: 'datatablefontcolor--text'},
+            { text: 'Actions', value: 'actions', sortable: false, class: 'datatablefontcolor--text'},
             ],
             items: [
             {
@@ -108,12 +143,41 @@ export default {
             tableInfo: {
                 tableTitle: 'My Paginator',
                 itemsKey: 'name',
-                itemsPerPage: 5,
+                itemsPerPage: 6,
             },
+            // color: [{ //can be used to pass colors to coloumns based on computations
+            //     name: 'calories',
+            //     color: ''
+            // },]
         };
     },
     components:{
-        PaginationTable,
+        PaginationTable, Dialog
+    },
+    methods: {
+        console: function(value) {
+            console.log(value);
+        },
+        // getColor: function(value){
+        //     if (value > 400) this.color.color = 'red'
+        //     else if (value > 200) this.color.color = 'orange'
+        //     else this.color.color = 'green'
+        // }
+        handleDialog1: function(item){
+            // console.log(this.group);
+            this.item = item;
+            this.dialog = true;
+        },
+        handleDialog2: function(item){
+            this.item2 = item;
+            this.dialog2 = true;
+        },
+    },
+    created: function() {
+        this.group.items = this.items
+        this.group.headers = this.headers
+        this.group.tableInfo = this.tableInfo
+        this.group.buttonHeader = this.buttonHeader
     }
 }
 </script>

@@ -1,9 +1,10 @@
 <template>
-      <v-card>
+      <v-card class="rounded-md elevation-2" style="color:#4874C8">
         <v-card-title>
         {{tableInfo.tableTitle}}
         <v-spacer></v-spacer>
         <v-text-field
+            color="datatablefontcolor"
             v-model="search"
             append-icon="mdi-magnify"
             label="Search"
@@ -16,7 +17,7 @@
         :items="items"
         :item-key="tableInfo.itemsKey"
         :items-per-page="tableInfo.itemsPerPage"
-        class="elevation-1"
+        class="elevation-1 datatablefontcolor--text"
         :page.sync="page"
         :search="search"
         :hide-default-footer="true"
@@ -26,19 +27,29 @@
       >
         <!-- :custom-filter="filterOnlyCapsText" can be used to implement a filter if needed, check data-table in vuetify -->
         <!-- Use below if u wanna color some stuff -->
-        <!-- <template v-slot:item.calories="{ item }"> 
+        <template v-slot:[`item.${col.name}`]="{ item }" v-for="col in color"> 
         <v-chip
-            :color="getColor(item.calories)"
+            v-if="(!!color)"
+            :key="col.name"
+            :color="getColor(item[`${col.name}`])"
             dark
+            :text-color="'white'"
         >
-            {{ item.calories }}
+            {{ item[`${col.name}`] }}
         </v-chip>
-        </template> -->
+        <template v-else>
+            {{ item[`${col.name}`] }}
+        </template>
+        </template>
+        <template v-slot:[`item.${buttonHeader}`]={item}>
+            <slot name="buttons" :item="item"></slot>
+        </template>
         <template v-slot:footer>
             <v-pagination
                 v-model="page"
-                class="my-5 pb-5"
+                color="#4874C8"
                 :length="pageCount"
+                class="pb-3"
             ></v-pagination>
         </template>
       </v-data-table>
@@ -62,9 +73,19 @@ export default {
             },
         },
         tableInfo: {
-            type: Array,
+            type: Object,
             default: function() {
                 return {tableTitle: 'Empty Table'};
+            },
+        },
+        buttonHeader: {
+            type: String,
+            default: ''
+        },
+        color: {
+            type: Array,
+            default: function() {
+                return null;
             },
         },
     },
@@ -76,11 +97,10 @@ export default {
         };
     },
     methods: {
-      getColor (calories) {
-        if (calories > 400) return 'red'
-        else if (calories > 200) return 'orange'
-        else return 'green'
-      },
+      getColor: function(itemColVal) {
+          this.$emit('get-color', itemColVal);
+          return this.color.color;
+      }
     },
 }
 </script>
