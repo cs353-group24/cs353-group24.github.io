@@ -8,23 +8,40 @@
           <template #buttons="{item}">
             <v-row>
             <v-col class="d-flex justify-center mx-n8">
-                <v-btn @click="console(item.calories)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">See Components</v-btn>
+                <v-btn @click="handleDialog1(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">See Components</v-btn>
             </v-col>
             </v-row>
           </template>
       </PaginationTable>
+      <Dialog :tableData="group" :dialog="dialog1" :title="item.calories" @close="dialog1=false">
+        <template #tableActions="{item}">
+            <v-btn @click="handleDialog2(item)" class="rounded-pill font-weight-bold" outlined color="#5080DE">History</v-btn>
+        </template>
+      </Dialog>
+      <Dialog :tableData="group" back @back="handleBack" :dialog="dialog2" :title="item1.name" @close="dialog2=false"></Dialog>
     </v-container>
   </v-app>
 </template>
 
 <script>
 import PaginationTable from "@/components/PaginationTable";
+import Dialog from "@/components/Dialog"
 export default {
   components: {
-    PaginationTable
+    PaginationTable, Dialog
   },
 
   data: () => ({
+    item:{},
+    item1:{},
+    group: {
+        items:'',
+        headers:'',
+        tableInfo:'',
+        buttonHeader: ''
+    },
+    dialog1:false,
+    dialog2:false,
     buttonHeader: 'details',
     headers: [
     {
@@ -38,6 +55,8 @@ export default {
     { text: 'Test Name', value: 'calories', class: 'datatablefontcolor--text' },
     { text: 'Date', value: 'fat', class: 'datatablefontcolor--text' },
     { text: 'Laboratorian', value: 'carbs', class: 'datatablefontcolor--text' },
+    { text: 'Extra', value: 'protein', class: 'datatablefontcolor--text' },
+    { text: 'ExtraToo', value: 'iron', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
     items: [
@@ -193,6 +212,28 @@ export default {
         itemsPerPage: 6,
     },
   }),
+  methods: {
+        handleBack: function(){
+            this.dialog2 = false;
+            this.dialog1 = true;
+        },
+        handleDialog1: function(item){
+            // console.log(this.group);
+            this.item = item;
+            this.dialog1 = true;
+        },
+        handleDialog2: function(item){
+            this.item1 = item;
+            this.dialog1 = false;
+            this.dialog2 = true;
+        },
+    },
+    created: function() {
+        this.group.items = this.items
+        this.group.headers = this.headers
+        this.group.tableInfo = this.tableInfo
+        this.group.buttonHeader = this.buttonHeader
+    }
 };
 </script>
 

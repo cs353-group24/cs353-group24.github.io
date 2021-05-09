@@ -6,7 +6,7 @@
               <v-dialog
                 persistent
                 v-model="dialog"
-                max-width="290"
+                max-width="50vw"
                 >
                 <v-card>
                     <v-card-title class="headline">
@@ -105,20 +105,18 @@
                       ></v-text-field>
                     </v-col>
                     <v-col>
-                      <v-menu
-                        outlined
-                        ref="menu"
-                        v-model="menu"
-                        :close-on-content-click="false"
+                      <v-dialog
+                        ref="dialog"
+                        v-model="modal"
                         :return-value.sync="dob"
-                        transition="scale-transition"
-                        offset-y
-                        min-width="auto"
+                        persistent
+                        width="25vw"
                       >
                         <template v-slot:activator="{ on, attrs }">
                           <v-text-field
                             outlined
                             v-model="dob"
+                            :rules="dobRules"
                             label="DOB"
                             prepend-inner-icon="mdi-calendar"
                             readonly
@@ -127,28 +125,29 @@
                           ></v-text-field>
                         </template>
                         <v-date-picker
+                          class="pt-10"
+                          :max="toIsoString(new Date).substr(0, 10)"
                           v-model="dob"
                           no-title
-                          reactive
-                          @click:date="$refs.menu.save(date)"
+                          scrollable
                         >
                           <v-spacer></v-spacer>
                           <v-btn
                             text
                             color="primary"
-                            @click="menu = false"
+                            @click="modal = false"
                           >
                             Cancel
                           </v-btn>
                           <v-btn
                             text
                             color="primary"
-                            @click="$refs.menu.save(date)"
+                            @click="$refs.dialog.save(dob)"
                           >
                             OK
                           </v-btn>
                         </v-date-picker>
-                      </v-menu>
+                      </v-dialog>
                     </v-col>
                   </v-row>
                   <!-- <v-row class="mt-n7">
@@ -188,7 +187,7 @@
       surname: '',
       phone: '',
       dob: '',
-      menu: false,
+      modal: false,
       idRules: [
         v => !!v || 'Name is required'
       ],
@@ -206,6 +205,7 @@
       value: String,
     }),
     methods: {
+      
       
     }
   }

@@ -8,35 +8,51 @@
           <template #buttons="{item}">
             <v-row>
             <v-col class="d-flex justify-center mx-n5">
-                <v-btn @click="console(item.name)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Symptoms</v-btn>
+                <v-btn @click.stop="handleDialog1(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Symptoms</v-btn>
             </v-col>
             <v-col class="d-flex justify-center ml-n8">
-                <v-btn @click="console(item.calories)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Diagnosis</v-btn>
+                <v-btn @click.stop="handleDialog2(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Diagnosis</v-btn>
             </v-col>
             <v-col class="d-flex justify-center ml-n10">
-                <v-btn @click="console(item.name)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Prescription</v-btn>
+                <v-btn @click.stop="handleDialog3(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Prescription</v-btn>
             </v-col>
             </v-row>
           </template>
       </PaginationTable>
+      <Dialog :tableData="group" :item="item1" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog1" :title="'Symptoms'" @close="dialog1=false"></Dialog>
+      <Dialog :tableData="group" :item="item2" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog2" :title="'Diagnosis'" @close="dialog2=false"></Dialog>
+      <Dialog :tableData="group" :item="item3" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog3" :title="'Prescription'" @close="dialog3=false"></Dialog>
     </v-container>
   </v-app>
 </template>
 
 <script>
 import PaginationTable from "@/components/PaginationTable";
+import Dialog from "@/components/Dialog"
 export default {
   components: {
-    PaginationTable
+    PaginationTable, Dialog
   },
 
   data: () => ({
+    item1:{},
+    item2:{},
+    item3:{},
+    group: {
+        items:'',
+        headers:'',
+        tableInfo:'',
+        buttonHeader: ''
+    },
+    dialog1: false,
+    dialog2: false,
+    dialog3: false,
     buttonHeader: 'details',
     headers: [
     {
         text: 'Appointment ID',
         align: 'start',
-        // sortable: false,
+        sortable: false,
         // filterable: false,
         value: 'name',
         class: 'datatablefontcolor--text'
@@ -45,6 +61,7 @@ export default {
     { text: 'Date', value: 'fat', class: 'datatablefontcolor--text' },
     { text: 'Time', value: 'carbs', class: 'datatablefontcolor--text' },
     { text: 'Department', value: 'protein', class: 'datatablefontcolor--text' },
+    { text: 'Iron', value: 'iron', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
     items: [
@@ -80,6 +97,27 @@ export default {
         itemsPerPage: 6,
     },
   }),
+  methods: {
+      handleDialog1: function(item){
+          // console.log(this.group);
+          this.item1 = item;
+          this.dialog1 = true;
+      },
+      handleDialog2: function(item){
+          this.item2 = item;
+          this.dialog2 = true;
+      },
+      handleDialog3: function(item){
+          this.item3 = item;
+          this.dialog3 = true;
+      },
+  },
+  created: function() {
+      this.group.items = this.items
+      this.group.headers = this.headers
+      this.group.tableInfo = this.tableInfo
+      this.group.buttonHeader = this.buttonHeader
+  }
 };
 </script>
 

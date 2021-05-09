@@ -8,23 +8,33 @@
           <template #buttons="{item}">
             <v-row>
             <v-col class="d-flex justify-center mx-n5">
-                <v-btn @click="console(item.name)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">View Details</v-btn>
+                <v-btn @click="handleDialog1(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">View Details</v-btn>
             </v-col>
             </v-row>
           </template>
       </PaginationTable>
+      <Dialog :tableData="group" :item="item" :itemHeader="headers" :dialog="dialog" :dialogMode="'cols'" :title="'Prescriptions'" @close="dialog=false"></Dialog>
     </v-container>
   </v-app>
 </template>
 
 <script>
 import PaginationTable from "@/components/PaginationTable";
+import Dialog from "@/components/Dialog"
 export default {
   components: {
-    PaginationTable
+    PaginationTable, Dialog
   },
 
   data: () => ({
+    item:{},
+    group: {
+        items:'',
+        headers:'',
+        tableInfo:'',
+        buttonHeader: ''
+    },
+    dialog: false,
     buttonHeader: 'details',
     headers: [
     {
@@ -39,6 +49,7 @@ export default {
     { text: 'Prescription Type', value: 'fat', class: 'datatablefontcolor--text' },
     { text: 'Pharmacist', value: 'carbs', class: 'datatablefontcolor--text' },
     { text: 'Date', value: 'protein', class: 'datatablefontcolor--text' },
+    { text: 'Extra', value: 'iron', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
     items: [
@@ -74,6 +85,19 @@ export default {
         itemsPerPage: 6,
     },
   }),
+  methods: {
+      handleDialog1: function(item){
+          // console.log(this.group);
+          this.item = item;
+          this.dialog = true;
+      },
+  },
+  created: function() {
+      this.group.items = this.items
+      this.group.headers = this.headers
+      this.group.tableInfo = this.tableInfo
+      this.group.buttonHeader = this.buttonHeader
+  }
 };
 </script>
 
