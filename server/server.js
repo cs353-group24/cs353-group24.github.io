@@ -46,6 +46,9 @@ client.on("connect", () =>{
 client.connect();
 
 //-------------------- ROUTES-------------------//
+
+//add triggers to database
+
 /*
 const patientRouter = require('./routes/patientRoute.js');
 app.use('/patient', patientRouter);
@@ -112,8 +115,12 @@ app.post('/signup', (req,res)=>{
 
 
 //patient routes
+// /patient/:id/...
 
 
+//order by date
+
+// ask what info is necessary in the json
 //homepage all patient apointments
 app.get('/patient/:id/homepage', (req, res) =>{
     let q = ` SELECT tracking_number, date
@@ -155,7 +162,7 @@ app.get('/patient/:id/appointment', (req,res)=>{
 // how to do edit
 app.post('/patient/:id/appointment/edit', (req,res)=>{
 
-    let q = ` SELECT tracking_number, date
+    let q = ` SELECT tracking_number, date, status
             FROM appointment 
             WHERE appointment.patient_id = $1 `
 
@@ -171,12 +178,12 @@ app.post('/patient/:id/appointment/edit', (req,res)=>{
 })
 
 
-
+//appointment cancel
 app.post('/patient/:id/appointment/cancel', (req,res)=>{
 
     let q = ` DELETE FROM appointment WHERE appointment.tracking_number = $1`
 
-    let params = Object.values(req.params)
+    let params = Object.values(req.params) // will get id
     console.log(params)
     client.query(q, params, (err, result) =>{
         if(err){
@@ -195,10 +202,10 @@ app.post('/patient/:id/appointment/newappointment', (req,res)=>{
     let q = ` INSERT INTO appointment (tracking_number, date,  patient_id, doctor_id) VALUES
                ($1, $2,  $3, $4) `
 
-    let params1 = Object.values(req.params)
-    let params2 = Object.values(req.body)
+    let params1 = Object.values(req.params) // will give national id
+    let params2 = Object.values(req.body) //
 
-    client.query(q, params1.splice(2,0,params2), (err, result) =>{
+    client.query(q, params2.splice(2,0,params1), (err, result) =>{
         if(err){
             return res.send(error).send({"message": "no appointment found"})
         }
@@ -208,6 +215,7 @@ app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
 })
 
+//new appointment get departments
 app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
 
     let q = ` SELECT name FROM department  `
@@ -223,6 +231,9 @@ app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
 
 })
 
+
+//department value will be passed by the client side
+//new appointment get doctor
 app.post('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 
     let q = ` SELECT *
@@ -231,7 +242,7 @@ app.post('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 
               WHERE department = $1 AND person.national_id = doctor.national_id  `
 
-    let params = Object.values(req.body)
+    let params = Object.values(req.params)
 
     client.query(q, params, (err, result) =>{
         if(err){
@@ -243,6 +254,8 @@ app.post('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 
 })
 
+
+//time will be implemented according to the feedback
 /*
 app.post('/patient/:id/appointment/newappointment/time', (req,res)=>{
 
@@ -264,10 +277,39 @@ app.post('/patient/:id/appointment/newappointment/time', (req,res)=>{
 */
 
 
-//add routes for necessary operations as wellee
+//add routes for necessary operations as well
 
 
 //doctor routes
+
+// /doctor/:id/...
+
+
+//list all the appointments for the entire month
+app.get('/doctor/:id/appointments', (req,res)=>{
+    let q = ` SELECT *
+               FROM appointment
+                WHERE doctor_id = $1 and EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM current_date)`
+    let params = Object.values(req.params)
+    console.log(params)
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401).send({"message": "no appointment found"})
+        }
+        return res.status(200).send(result.rows)
+    })
+})
+
+
+//manage days of -> need database changes
+
+//write sysptoms
+
+//ask for tests -> will be ssigned to a random lab technician
+
+//diagnose the patient
+
 
 
 

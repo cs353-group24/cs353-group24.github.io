@@ -12,9 +12,6 @@ INSERT INTO department (name, date_est, building) VALUES
 INSERT INTO pharmacist (national_id) VALUES
 (2);
 
-INSERT INTO patient (national_id) VALUES
-(1),
-(3);
 
 INSERT INTO doctor (national_id, room_no, department) VALUES
 (2, 489, 'Computer Science');
@@ -51,15 +48,15 @@ INSERT INTO prescribed_by (prescription_no, apt_tracking_no) VALUES
     (2, 2);
 
 INSERT INTO result (test_name, comp_name, result_id, result_date, tracking_number, test_comp_value, test_comp_result, status) VALUES
-    ('blood', 'calcium', 1, '2021-04-02 00:08:11', 1, '5', 'Normal', 'approved'),
-    ('blood', 'Iron', 2, '2021-04-02 00:08:47', 1, '5', 'Normal', 'approved'),
-    ('blood', 'type', 3, '2021-04-02 00:09:21', 1, 'A-', NULL, 'approved'),
-    ('stones', 'blood in urine', 4, '2021-04-02 00:10:02', 1, '5', 'High', 'approved'),
-    ('stones', 'protien', 5, '2021-04-02 00:10:26', 1, '35', 'You should be dead', 'approved'),
-    ('x-ray', 'x-ray', 6, '2021-04-02 00:10:44', 1, 'Clean', NULL, 'approved'),
-    ('blood', 'calcium', 7, '2021-04-02 00:11:14', 2, '15', 'High', 'approved'),
-    ('blood', 'Iron', 8, '2021-04-02 00:11:39', 2, '35', 'You should be dead', 'approved'),
-    ('blood', 'type', 9, '2021-04-02 00:11:51', 2, 'A-', NULL, 'approved');
+    ('blood', 'calcium', 1, '2021-04-02 00:08:11', 1, '5', 'Normal', 'finalized'),
+    ('blood', 'Iron', 2, '2021-04-02 00:08:47', 1, '5', 'Normal', 'finalized'),
+    ('blood', 'type', 3, '2021-04-02 00:09:21', 1, 'A-', NULL, 'finalized'),
+    ('stones', 'blood in urine', 4, '2021-04-02 00:10:02', 1, '5', 'High', 'finalized'),
+    ('stones', 'protien', 5, '2021-04-02 00:10:26', 1, '35', 'You should be dead', 'finalized'),
+    ('x-ray', 'x-ray', 6, '2021-04-02 00:10:44', 1, 'Clean', NULL, 'finalized'),
+    ('blood', 'calcium', 7, '2021-04-02 00:11:14', 2, '15', 'High', 'finalized'),
+    ('blood', 'Iron', 8, '2021-04-02 00:11:39', 2, '35', 'You should be dead', 'finalized'),
+    ('blood', 'type', 9, '2021-04-02 00:11:51', 2, 'A-', NULL, 'finalized');
 
 
 INSERT INTO test_performed_by (apt_tracking_no, laboratorian_id, test_name) VALUES

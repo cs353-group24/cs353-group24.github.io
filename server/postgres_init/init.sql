@@ -1,11 +1,19 @@
 
+--types
+CREATE TYPE test_status AS ENUM ('assigned', 'preparing', 'finalized');
+CREATE TYPE app_status AS ENUM ( 'upcoming','waiting-tests', 'finalized');
+CREATE TYPE person_type as ENUM ('patient', 'doctor', 'laboratorian','pharmacist' );
+
+-- create enums for doctors, laboratorians -> depratment -> room no will be incremented
+
+--tables
 CREATE TABLE person (
     national_id int ,
     name varchar ,
     surname varchar ,
     email varchar ,
     password int ,
-    person_type varchar ,
+    person_type person_type,
     phone varchar ,
     birthday date ,
     PRIMARY KEY (national_id)
@@ -22,7 +30,7 @@ CREATE TABLE doctor (
 CREATE TABLE appointment (
   tracking_number serial ,
   date date ,
-  status varchar ,
+  status app_status DEFAULT 'waiting-tests',
   patient_id int ,
   doctor_id int ,
   PRIMARY KEY (tracking_number)
@@ -126,7 +134,7 @@ CREATE TABLE result (
   tracking_number int ,
   test_comp_value varchar ,
   test_comp_result varchar DEFAULT NULL,
-  status varchar ,
+  status test_status DEFAULT 'assigned',
   PRIMARY KEY (result_id)
   );
 
@@ -149,7 +157,7 @@ CREATE TABLE test_performed_by (
   );
 
 
-
+--- foreign-key constraints
 ALTER TABLE doctor
     ADD CONSTRAINT doctor_person FOREIGN KEY (national_id) REFERENCES person (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT doctor_department FOREIGN KEY (department) REFERENCES department (name) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -203,4 +211,53 @@ ALTER TABLE test_performed_by
     ADD CONSTRAINT test_performed_by_laboratorian FOREIGN KEY (laboratorian_id) REFERENCES laboratorian (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT test_performed_by_test FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- COMMIT;
+
+
+
+/*
+create triggers and functions for insertion into patient, doctor, laboratorian and pharmacist  tables
+to make insert additional values
+*/
+--- functions
+CREATE or REPLACE FUNCTION insert1()
+returns trigger
+as $$
+BEGIN
+
+    IF NEW.person_type = 'patient' THEN
+    INSERT INTO patient  (national_id)
+     VALUES (NEW.national_id);
+    END IF;
+/*
+     IF NEW.person_type = 'doctor' THEN
+    INSERT INTO doctor  (national_id)
+     VALUES (NEW.national_id);
+    END IF;
+
+    IF NEW.person_type = 'laboratorian' THEN
+        INSERT INTO laboratorian  (national_id)
+     VALUES (NEW.national_id);
+    END IF;
+
+    IF NEW.person_type = 'pharmacist' THEN
+   INSERT INTO pharmacist (national_id)
+     VALUES (NEW.national_id);
+    END IF;
+*/
+RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+
+--- trigers
+
+CREATE TRIGGER  addition
+    AFTER INSERT ON person
+    FOR EACH  ROW
+    EXECUTE PROCEDURE insert1();
+
+
+    /*
+
+     */

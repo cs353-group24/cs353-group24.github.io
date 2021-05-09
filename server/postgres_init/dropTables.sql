@@ -19,3 +19,12 @@ result,
 symptom,
 test,
 test_performed_by;
+
+DROP  type
+app_status,
+test_status,
+person_type;
+
+drop function insert1();
+
+DROP TRIGGER  IF EXISTS  addition ON person
