@@ -156,6 +156,11 @@ CREATE TABLE test_performed_by (
   PRIMARY KEY (apt_tracking_no,laboratorian_id,test_name)
   );
 
+CREATE TABLE doctor_off_days (
+    doctor_id int,
+    date date,
+    PRIMARY KEY (doctor_id,date)
+);
 
 --- foreign-key constraints
 ALTER TABLE doctor
@@ -212,7 +217,8 @@ ALTER TABLE test_performed_by
     ADD CONSTRAINT test_performed_by_test FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE;
 
 
-
+ALTER TABLE doctor_off_days
+    ADD CONSTRAINT doctor_off_days_doctor FOREIGN KEY (doctor_id) REFERENCES doctor (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 /*
 create triggers and functions for insertion into patient, doctor, laboratorian and pharmacist  tables
@@ -228,6 +234,7 @@ BEGIN
     INSERT INTO patient  (national_id)
      VALUES (NEW.national_id);
     END IF;
+
 /*
      IF NEW.person_type = 'doctor' THEN
     INSERT INTO doctor  (national_id)
@@ -244,11 +251,11 @@ BEGIN
      VALUES (NEW.national_id);
     END IF;
 */
+
 RETURN NEW;
 END;
 $$
 LANGUAGE 'plpgsql';
-
 
 --- trigers
 

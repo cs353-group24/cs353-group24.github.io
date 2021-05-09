@@ -125,7 +125,7 @@ app.post('/signup', (req,res)=>{
 app.get('/patient/:id/homepage', (req, res) =>{
     let q = ` SELECT tracking_number, date
             FROM appointment 
-            WHERE appointment.patient_id = $1 `
+            WHERE appointment.patient_id = $1; `
 
     let params = Object.values(req.params)
     console.log(params)
@@ -144,7 +144,7 @@ app.get('/patient/:id/appointment', (req,res)=>{
 
     let q = ` SELECT tracking_number, date
             FROM appointment 
-            WHERE appointment.patient_id = $1 `
+            WHERE appointment.patient_id = $1; `
 
     let params = Object.values(req.params)
     console.log(params)
@@ -164,7 +164,7 @@ app.post('/patient/:id/appointment/edit', (req,res)=>{
 
     let q = ` SELECT tracking_number, date, status
             FROM appointment 
-            WHERE appointment.patient_id = $1 `
+            WHERE appointment.patient_id = $1; `
 
     let params = Object.values(req.params)
     console.log(params)
@@ -181,7 +181,7 @@ app.post('/patient/:id/appointment/edit', (req,res)=>{
 //appointment cancel
 app.post('/patient/:id/appointment/cancel', (req,res)=>{
 
-    let q = ` DELETE FROM appointment WHERE appointment.tracking_number = $1`
+    let q = ` DELETE FROM appointment WHERE appointment.tracking_number = $1;`
 
     let params = Object.values(req.params) // will get id
     console.log(params)
@@ -200,7 +200,7 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
 app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
     let q = ` INSERT INTO appointment (tracking_number, date,  patient_id, doctor_id) VALUES
-               ($1, $2,  $3, $4) `
+               ($1, $2,  $3, $4); `
 
     let params1 = Object.values(req.params) // will give national id
     let params2 = Object.values(req.body) //
@@ -218,7 +218,7 @@ app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 //new appointment get departments
 app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
 
-    let q = ` SELECT name FROM department  `
+    let q = ` SELECT name FROM department;  `
     // let params = Object.values(req.body)
 
     client.query(q,  (err, result) =>{
@@ -234,13 +234,13 @@ app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
 
 //department value will be passed by the client side
 //new appointment get doctor
-app.post('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
+app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 
     let q = ` SELECT *
 
               FROM doctor, person
 
-              WHERE department = $1 AND person.national_id = doctor.national_id  `
+              WHERE department = $1 AND person.national_id = doctor.national_id;  `
 
     let params = Object.values(req.params)
 
@@ -286,10 +286,10 @@ app.post('/patient/:id/appointment/newappointment/time', (req,res)=>{
 
 
 //list all the appointments for the entire month
-app.get('/doctor/:id/appointments', (req,res)=>{
+app.get('/doctor/:id/homepage', (req,res)=>{
     let q = ` SELECT *
                FROM appointment
-                WHERE doctor_id = $1 and EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM current_date)`
+                WHERE doctor_id = $1 and EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM current_date);`
     let params = Object.values(req.params)
     console.log(params)
 
@@ -302,11 +302,46 @@ app.get('/doctor/:id/appointments', (req,res)=>{
 })
 
 
-//manage days of -> need database changes
 
+
+//manage days of -> need database changes
+//add off day
+
+app.get('/doctor/:id/off_days', (req,res)=>{
+
+    let q = ` SELECT *
+              FROM doctor_off_days
+              WHERE doctor_id = $1 ;  `
+    let params = Object.values(req.params)
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401).send({"message": "no appointment found"})
+        }
+        return res.status(200).send(result.rows)
+    })
+})
+
+
+app.post('/doctor/:id/create_off_days', (req,res)=>{
+
+    let q = `INSERT INTO doctor_off_days (doctor_id, date ) VALUES ($1, $2); `
+
+    let params1 = Object.values(req.body) //date
+    let params2 = Object.values(req.params) //id
+    let params = params2.concat(params1)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send({"message":"successful insertion"})
+    })
+})
 //write sysptoms
 
+
 //ask for tests -> will be ssigned to a random lab technician
+
 
 //diagnose the patient
 
