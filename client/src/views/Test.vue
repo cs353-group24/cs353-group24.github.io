@@ -12,7 +12,7 @@
             </v-row>
           </template>
         </PaginationTable>
-        <Dialog :tableData="group" :item="item" :dialog="dialog" :dialogMode="'cols'" :title="'Symptoms'" @close="dialog=false">
+        <Dialog :tableData="group" :item="item" :itemHeader="headers" :dialog="dialog" :dialogMode="'cols'" :title="'Symptoms'" @close="dialog=false">
             <template #tableActions>
                 <v-btn class="rounded-pill font-weight-bold" outlined color="#5080DE">Dummy</v-btn>
             </template>

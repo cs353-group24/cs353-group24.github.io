@@ -23,9 +23,9 @@
             </v-card-subtitle>
 
             <v-card-text>
-                <PaginationTable :items="tableData.items" :headers="tableData.headers" :tableInfo="tableData.tableInfo" :buttonHeader="tableData.buttonHeader">
-                    <template #buttons>
-                        <slot name="tableActions"></slot>
+                <PaginationTable class="mb-5" :items="tableData.items" :headers="tableData.headers" :tableInfo="tableData.tableInfo" :buttonHeader="tableData.buttonHeader">
+                    <template #buttons={item}>
+                        <slot name="tableActions" :item="item"></slot>
                     </template>
                 </PaginationTable>
             </v-card-text>
@@ -55,9 +55,9 @@
                 <v-col cols="3" class="">
                     <div v-for="(value, name) in item" :key="value" class="mt-6 ml-6">
                         <v-row align="start">
-                            <span class="text-h6 datatablefontcolor--text font-weight-bold">{{tableData.headers[tableData.headers.findIndex(x => x.value === name)].text}}:</span>
+                            <span class="text-h6 datatablefontcolor--text font-weight-bold">{{itemHeader[itemHeader.findIndex(x => x.value === name)].text}}:</span>
                         </v-row>
-                        <v-row align="start">
+                        <v-row align="start mb-5">
                             <span class="text-subtitle-1 datatablefontcolor--text">{{value}}</span>
                         </v-row>
                     </div>
@@ -81,6 +81,12 @@
 import PaginationTable from "@/components/PaginationTable";
 export default {
     props:{
+        itemHeader: {
+            type: Array,
+            default: function() {
+                return null;
+            }
+        },
         item:{
             type: Object,
             default: function() {

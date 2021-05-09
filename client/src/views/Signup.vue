@@ -6,7 +6,7 @@
               <v-dialog
                 persistent
                 v-model="dialog"
-                max-width="290"
+                max-width="50vw"
                 >
                 <v-card>
                     <v-card-title class="headline">
