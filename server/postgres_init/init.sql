@@ -28,12 +28,12 @@ CREATE TABLE doctor (
     );
 
 CREATE TABLE appointment (
-  tracking_number serial ,
+  appointment_id serial ,
   date date ,
   status app_status DEFAULT 'waiting-tests',
   patient_id int ,
   doctor_id int ,
-  PRIMARY KEY (tracking_number)
+  PRIMARY KEY (appointment_id)
 
   );
 
@@ -131,7 +131,7 @@ CREATE TABLE result (
   comp_name varchar ,
   result_id serial ,
   result_date timestamp  DEFAULT current_timestamp,
-  tracking_number int ,
+  appointment_id int ,
   test_comp_value varchar ,
   test_comp_result varchar DEFAULT NULL,
   status test_status DEFAULT 'assigned',
@@ -175,7 +175,7 @@ ALTER TABLE component
     ADD CONSTRAINT component_test FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE diagnosis
-    ADD CONSTRAINT diagnosis_appointment FOREIGN KEY (apt_tracking_no) REFERENCES appointment (tracking_number) ON DELETE CASCADE ON UPDATE CASCADE,
+    ADD CONSTRAINT diagnosis_appointment FOREIGN KEY (apt_tracking_no) REFERENCES appointment (appointment_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT diagnosis_disease FOREIGN KEY (disease_name) REFERENCES disease (name) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE disease_symptoms
@@ -193,14 +193,14 @@ ALTER TABLE patient
     ADD CONSTRAINT patient_person FOREIGN KEY (national_id) REFERENCES person (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE patient_symptoms
-    ADD CONSTRAINT patient_symptoms_appointment FOREIGN KEY (apt_tracking_no) REFERENCES appointment (tracking_number) ON DELETE CASCADE ON UPDATE CASCADE,
+    ADD CONSTRAINT patient_symptoms_appointment FOREIGN KEY (apt_tracking_no) REFERENCES appointment (appointment_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT patient_symptoms_symptom FOREIGN KEY (symptom_name) REFERENCES symptom (name) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE pharmacist
     ADD CONSTRAINT pharmacist_person FOREIGN KEY (national_id) REFERENCES person (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE prescribed_by
-    ADD CONSTRAINT prescribed_by_appointment FOREIGN KEY (apt_tracking_no) REFERENCES appointment (tracking_number) ON DELETE CASCADE ON UPDATE CASCADE,
+    ADD CONSTRAINT prescribed_by_appointment FOREIGN KEY (apt_tracking_no) REFERENCES appointment (appointment_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT prescribed_by_prescription FOREIGN KEY (prescription_no) REFERENCES prescription (prescription_no) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE prescribed_in
@@ -209,10 +209,10 @@ ALTER TABLE prescribed_in
 
 ALTER TABLE result
     ADD CONSTRAINT result_component FOREIGN KEY (test_name,comp_name) REFERENCES component (test_name, comp_name) ON DELETE CASCADE ON UPDATE CASCADE,
-    ADD CONSTRAINT result_appointment FOREIGN KEY (tracking_number) REFERENCES appointment (tracking_number) ON DELETE CASCADE ON UPDATE CASCADE;
+    ADD CONSTRAINT result_appointment FOREIGN KEY (appointment_id) REFERENCES appointment (appointment_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE test_performed_by
-    ADD CONSTRAINT test_performed_by_appointment FOREIGN KEY (apt_tracking_no) REFERENCES appointment (tracking_number) ON DELETE CASCADE ON UPDATE CASCADE,
+    ADD CONSTRAINT test_performed_by_appointment FOREIGN KEY (apt_tracking_no) REFERENCES appointment (appointment_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT test_performed_by_laboratorian FOREIGN KEY (laboratorian_id) REFERENCES laboratorian (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT test_performed_by_test FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE;
 

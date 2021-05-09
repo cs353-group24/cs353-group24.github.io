@@ -29,7 +29,7 @@ INSERT INTO prescription (prescription_no, prescription_type, date) VALUES
 (2, 'B', '2021-04-01');
 
 
-INSERT INTO appointment (tracking_number, date,  patient_id, doctor_id) VALUES
+INSERT INTO appointment (appointment_id, date,  patient_id, doctor_id) VALUES
     (1, '2021-04-01',  1, 2),
     (2, '2021-04-01',  1, 2),
     (3, '2021-04-01',  3, 2);
@@ -47,7 +47,7 @@ INSERT INTO prescribed_by (prescription_no, apt_tracking_no) VALUES
     (1, 1),
     (2, 2);
 
-INSERT INTO result (test_name, comp_name, result_id, result_date, tracking_number, test_comp_value, test_comp_result, status) VALUES
+INSERT INTO result (test_name, comp_name, result_id, result_date, appointment_id, test_comp_value, test_comp_result, status) VALUES
     ('blood', 'calcium', 1, '2021-04-02 00:08:11', 1, '5', 'Normal', 'finalized'),
     ('blood', 'Iron', 2, '2021-04-02 00:08:47', 1, '5', 'Normal', 'finalized'),
     ('blood', 'type', 3, '2021-04-02 00:09:21', 1, 'A-', NULL, 'finalized'),

@@ -123,7 +123,7 @@ app.post('/signup', (req,res)=>{
 // ask what info is necessary in the json
 //homepage all patient apointments
 app.get('/patient/:id/homepage', (req, res) =>{
-    let q = ` SELECT tracking_number, date
+    let q = ` SELECT appointment_id, date
             FROM appointment 
             WHERE appointment.patient_id = $1; `
 
@@ -142,7 +142,7 @@ app.get('/patient/:id/homepage', (req, res) =>{
 //appointments
 app.get('/patient/:id/appointment', (req,res)=>{
 
-    let q = ` SELECT tracking_number, date
+    let q = ` SELECT appointment_id, date
             FROM appointment 
             WHERE appointment.patient_id = $1; `
 
@@ -162,7 +162,7 @@ app.get('/patient/:id/appointment', (req,res)=>{
 // how to do edit
 app.post('/patient/:id/appointment/edit', (req,res)=>{
 
-    let q = ` SELECT tracking_number, date, status
+    let q = ` SELECT appointment_id, date, status
             FROM appointment 
             WHERE appointment.patient_id = $1; `
 
@@ -181,7 +181,7 @@ app.post('/patient/:id/appointment/edit', (req,res)=>{
 //appointment cancel
 app.post('/patient/:id/appointment/cancel', (req,res)=>{
 
-    let q = ` DELETE FROM appointment WHERE appointment.tracking_number = $1;`
+    let q = ` DELETE FROM appointment WHERE appointment.appointment_id = $1;`
 
     let params = Object.values(req.params) // will get id
     console.log(params)
@@ -199,7 +199,7 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
 //new appointment
 app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
-    let q = ` INSERT INTO appointment (tracking_number, date,  patient_id, doctor_id) VALUES
+    let q = ` INSERT INTO appointment (appointment_id, date,  patient_id, doctor_id) VALUES
                ($1, $2,  $3, $4); `
 
     let params1 = Object.values(req.params) // will give national id
@@ -259,7 +259,7 @@ app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 /*
 app.post('/patient/:id/appointment/newappointment/time', (req,res)=>{
 
-    let q = ` INSERT INTO appointment (tracking_number, date,  patient_id, doctor_id) VALUES
+    let q = ` INSERT INTO appointment (appointment_id, date,  patient_id, doctor_id) VALUES
                ($1, $2,  $3, $4) `
 
     let params1 = Object.values(req.params)
@@ -338,6 +338,8 @@ app.post('/doctor/:id/create_off_days', (req,res)=>{
     })
 })
 //write sysptoms
+
+
 
 
 //ask for tests -> will be ssigned to a random lab technician
