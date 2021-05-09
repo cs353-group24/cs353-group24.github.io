@@ -338,10 +338,43 @@ app.post('/doctor/:id/create_off_days', (req,res)=>{
     })
 })
 //write sysptoms
+app.post('/doctor/:id/add_symptoms', (req,res)=>{
+
+    let q = `INSERT INTO diagnosis (apt_tracking_no, disease_name, description) VALUES ($1, $2, $3)`
+    let params = Object.values(req.body)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send({"message":"successful insertion"})
+    })
+})
 
 
+app.get('/doctor/:id/get_test_types',(req,res)=>{
+    let q = ` SELECT * FROM test  `
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
 
 
+app.post('/doctor/:id/ask_for_tests',(req,res)=>{
+
+
+})
+
+
+app.get('/doctor/:id/get_disease_types', (req,res)=>{
+
+})
+
+app.post('/doctor/:id/make_diagnosis', (req,res)=>{
+
+})
 //ask for tests -> will be ssigned to a random lab technician
 
 
