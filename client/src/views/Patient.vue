@@ -188,7 +188,9 @@ export default {
     },
     resetValidation () {
       this.dialog=true;
-      this.$refs.form.resetValidation()
+      if(this.$refs.form) {
+          this.$refs.form.resetValidation()   
+      }
     }
   },
   created: function(){
