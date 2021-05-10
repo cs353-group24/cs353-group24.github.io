@@ -77,7 +77,28 @@ const routes = [
     path: '/doctor/plans',
     name: 'Doctor Plans',
     component: () => import('../views/DoctorPlans.vue')                                           
-  }
+  },
+  {
+    path: '/laboratorian',
+    name: 'Laboratorian',
+    component: () => import('../views/Laboratorian.vue')
+  },
+  {
+    path: '/laboratorian/edit/:id',
+    name: 'Edit',
+    component: () => import('../views/TestEdit.vue')
+  },
+  {
+    path: '/laboratorian/tests',
+    name: 'Laboratorian Tests',
+    component: () => import('../views/LabTests.vue')
+  },
+  {
+    path: '/laboratorian/prev-tests',
+    name: 'Laboratorian Prev-Tests',
+    component: () => import('../views/LabPrevTests.vue')
+  },
+
 ]
 
 const router = new VueRouter({
