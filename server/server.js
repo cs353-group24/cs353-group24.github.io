@@ -431,7 +431,7 @@ app.post('/doctor/:id/create_off_days', (req,res)=>{
 /*
 /doctor/:id/make_diagnosis
     {
-        "apt_tracking_no" : "$",
+        "appointment_id" : "$",
         "disease_name": "$",
         "description":"$"
     }
@@ -441,7 +441,7 @@ app.post('/doctor/:id/create_off_days', (req,res)=>{
 //Make diagnosis
 app.post('/doctor/:id/make_diagnosis', (req,res)=>{
 
-    let q = `INSERT INTO diagnosis (apt_tracking_no, disease_name, description) VALUES ($1, $2, $3)`
+    let q = `INSERT INTO diagnosis (appointment_id, disease_name, description) VALUES ($1, $2, $3)`
     let params = Object.values(req.body)
     client.query(q, params, (err, result) =>{
         if(err){
@@ -495,14 +495,14 @@ app.get('/doctor/:id/get_disease_names', (req,res)=>{
 /*
 /doctor/:id/insert_patient_symptoms
     {
-        "apt_tracking_no" : "$",
+        "appointment_id" : "$",
         "symptom_name": "$"
     }
        $ is the required info(s) that will provided by client side,
      naming conventions presented above should be followed
  */
 app.post('/doctor/:id/insert_patient_symptoms', (req,res)=>{
-let q = `INSERT INTO patient_symptoms (apt_tracking_no, symptom_name) VALUES ($1, $2)`
+let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1, $2)`
 
     let params = Object.values(req.body)
     client.query(q, params, (err,result)=>{
@@ -523,6 +523,15 @@ let q = `INSERT INTO patient_symptoms (apt_tracking_no, symptom_name) VALUES ($1
 //laboratorian routes
 
 
+/*
+    /laboratorian/:id/get_tests:
+    /laboratorian/$/get_tests
+ */
+app.get('/laboratorian/:id/get_tests', (req,res)=>{
+
+    let q = ' '
+
+} )
 
 
 //pharmacist routes

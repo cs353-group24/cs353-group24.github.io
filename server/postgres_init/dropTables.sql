@@ -19,7 +19,7 @@ result,
 symptom,
 test,
 test_performed_by,
-doctor_off_days    ;
+doctor_off_days  ;
 
 DROP  type
 app_status,

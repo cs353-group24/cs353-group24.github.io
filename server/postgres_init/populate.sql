@@ -43,7 +43,7 @@ INSERT INTO component (test_name, comp_name, upper_normality_interval, lower_nor
     ('x-ray', 'x-ray', NULL, NULL);
 
 
-INSERT INTO prescribed_by (prescription_no, apt_tracking_no) VALUES
+INSERT INTO prescribed_by (prescription_no, appointment_id) VALUES
     (1, 1),
     (2, 2);
 
@@ -59,7 +59,7 @@ INSERT INTO result (test_name, comp_name, result_id, result_date, appointment_id
     ('blood', 'type', 9, '2021-04-02 00:11:51', 2, 'A-', NULL, 'finalized');
 
 
-INSERT INTO test_performed_by (apt_tracking_no, laboratorian_id, test_name) VALUES
+INSERT INTO test_performed_by (appointment_id, laboratorian_id, test_name) VALUES
     (1, 3, 'blood'),
     (1, 3, 'stones'),
     (1, 3, 'x-ray'),
