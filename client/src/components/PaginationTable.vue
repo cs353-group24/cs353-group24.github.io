@@ -12,6 +12,7 @@
             hide-details
         ></v-text-field>
         </v-card-title>
+       <!-- can have no data text--> 
       <v-data-table
         :headers="headers"
         :items="items"

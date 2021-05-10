@@ -108,11 +108,11 @@
       <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
           <template #buttons="{item}">
             <v-row>
-            <v-col class="d-flex justify-center mx-n5">
-                <v-btn @click="editApt(item)" width="70%" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Edit</v-btn>
+            <v-col class="d-flex justify-center mx-n6">
+                <v-btn icon @click="editApt(item)" color="datatablefontcolor"><v-icon>mdi-pencil-outline</v-icon></v-btn>
             </v-col>
             <v-col class="d-flex justify-center ml-n8">
-                <v-btn @click="deleteApt(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Cancel</v-btn>
+                <v-btn icon @click="deleteApt(item)" color="datatablefontcolor"><v-icon>mdi-delete</v-icon></v-btn>
             </v-col>
             </v-row>
           </template>
@@ -219,7 +219,9 @@ export default {
       console.log('valid')
       this.edit = false;
       this.dialog=true;
-      this.$refs.form.resetValidation()
+      if(this.$refs.form) {
+          this.$refs.form.resetValidation()   
+      }
     }
   },
   created: function(){
