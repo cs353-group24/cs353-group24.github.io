@@ -33,6 +33,16 @@
                   label="Department"
                   outlined
                 ></v-select>
+                <v-select
+                  v-model="appointment.doctor"
+                  :disabled="(!!appointment.department) ? false: true"
+                  clearable
+                  :rules="[v => !!v || 'Doctor is required']"
+                  prepend-inner-icon="mdi-doctor"
+                  :items="doctors"
+                  label="Doctor"
+                  outlined
+                ></v-select>
                 <v-dialog
                   ref="dialog"
                   v-model="modal"
@@ -44,7 +54,7 @@
                     <v-text-field
                       outlined
                       v-model="appointment.date"
-                      :disabled="!!appointment.department ? false: true"
+                      :disabled="(!!appointment.department && !!appointment.doctor) ? false: true"
                       :rules="[v => !!v || 'Appointment Date is required']"
                       label="Appointment Date"
                       prepend-inner-icon="mdi-calendar"
@@ -76,16 +86,6 @@
                     </v-btn>
                   </v-date-picker>
                 </v-dialog>
-                <v-select
-                  v-model="appointment.doctor"
-                  :disabled="(!!appointment.department && !!appointment.date) ? false: true"
-                  clearable
-                  :rules="[v => !!v || 'Doctor is required']"
-                  prepend-inner-icon="mdi-doctor"
-                  :items="doctors"
-                  label="Doctor"
-                  outlined
-                ></v-select>
                 </v-form>
               </v-card-text>
               <v-card-actions>
