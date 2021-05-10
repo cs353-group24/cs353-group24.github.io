@@ -27,7 +27,7 @@ app_status,
 test_status,
 person_type;
 
-drop function insert1(), insert2();
+drop function insert1(), insert2(), insert3();
 
 DROP TRIGGER  IF EXISTS  addition1 ON person;
 DROP TRIGGER  IF EXISTS  addition2 ON test_assigned_to;

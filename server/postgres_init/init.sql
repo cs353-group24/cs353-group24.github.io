@@ -305,7 +305,10 @@ returns trigger
 as $$
 BEGIN
 
-INSERT INTO comp_result ()
+INSERT INTO comp_result (result_id, comp_name)
+    SELECT t.result_id, c.comp_name
+        FROM test_result t, component c
+            WHERE result_id = NEW.result_id and t.test_name = c.test_name;
 
 RETURN NEW;
 END;
@@ -325,4 +328,7 @@ CREATE TRIGGER  addition2
     FOR EACH  ROW
     EXECUTE PROCEDURE insert2();
 
-
+CREATE TRIGGER addition3
+     AFTER INSERT ON test_result
+    FOR EACH  ROW
+    EXECUTE PROCEDURE insert3();
