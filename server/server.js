@@ -529,7 +529,11 @@ let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1,
  */
 app.get('/laboratorian/:id/get_tests', (req,res)=>{
 
-    let q = ' '
+    let q = `SELECT *
+             FROM test_performed_by, result 
+             WHERE test_performed_by.appointment_id = result.appointment_id and laboratorian_id = $1  `
+
+
 
 } )
 

@@ -15,7 +15,7 @@ CREATE TABLE person (
     password int ,
     person_type person_type,
     phone varchar ,
-    birthday date ,
+    birthday date  ,
     PRIMARY KEY (national_id)
 );
 
@@ -37,13 +37,6 @@ CREATE TABLE appointment (
 
   );
 
-CREATE TABLE component (
-  test_name varchar ,
-  comp_name varchar ,
-  upper_normality_interval int DEFAULT NULL,
-  lower_normality_interval int DEFAULT NULL,
-  PRIMARY KEY (test_name,comp_name)
-  );
 
 CREATE TABLE department (
   name varchar ,
@@ -113,6 +106,7 @@ CREATE TABLE prescribed_by (
 
 CREATE TABLE prescribed_in (
   prescription_no int ,
+  pharmacist_id int,
   med_name varchar ,
   qty int ,
   usage_method text ,
@@ -126,17 +120,32 @@ CREATE TABLE prescription (
   PRIMARY KEY (prescription_no)
 );
 
-CREATE TABLE result (
+CREATE TABLE test_result (
   test_name varchar ,
-  comp_name varchar ,
   result_id serial ,
   result_date timestamp  DEFAULT current_timestamp,
   appointment_id int ,
-  test_comp_value varchar ,
-  test_comp_result varchar DEFAULT NULL,
   status test_status DEFAULT 'assigned',
   PRIMARY KEY (result_id)
   );
+
+CREATE TABLE comp_result (
+    result_id int,
+    comp_name varchar,
+    comp_value varchar,
+    comp_result varchar DEFAULT NULL,
+    status test_status  DEFAULT 'assigned',
+    PRIMARY KEY (result_id, comp_name)
+);
+
+CREATE TABLE component (
+   test_name varchar,
+   comp_name varchar UNIQUE ,
+   upper_normality_interval int DEFAULT NULL,
+   lower_normality_interval int DEFAULT NULL,
+   PRIMARY KEY (test_name,comp_name)
+);
+
 
 CREATE TABLE symptom (
   name varchar ,
@@ -146,13 +155,15 @@ CREATE TABLE symptom (
 
 CREATE TABLE test (
   test_name varchar ,
+  department varchar,
   PRIMARY KEY (test_name)
 );
 
-CREATE TABLE test_performed_by (
+CREATE TABLE test_assigned_to (
   appointment_id int ,
   laboratorian_id int ,
   test_name varchar ,
+  date date DEFAULT current_date,
   PRIMARY KEY (appointment_id,laboratorian_id,test_name)
   );
 
@@ -161,6 +172,7 @@ CREATE TABLE doctor_off_days (
     date date,
     PRIMARY KEY (doctor_id,date)
 );
+
 
 --- foreign-key constraints
 ALTER TABLE doctor
@@ -205,25 +217,39 @@ ALTER TABLE prescribed_by
 
 ALTER TABLE prescribed_in
     ADD CONSTRAINT prescribed_in_medicine FOREIGN KEY (med_name) REFERENCES medicine (name) ON DELETE CASCADE ON UPDATE CASCADE,
+    ADD CONSTRAINT prescribed_in_pharmacist FOREIGN KEY (pharmacist_id) REFERENCES pharmacist (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT prescribed_in_prescription FOREIGN KEY (prescription_no) REFERENCES prescription (prescription_no) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE result
-    ADD CONSTRAINT result_component FOREIGN KEY (test_name,comp_name) REFERENCES component (test_name, comp_name) ON DELETE CASCADE ON UPDATE CASCADE,
+ALTER TABLE test_result
+    ADD CONSTRAINT result_component FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT result_appointment FOREIGN KEY (appointment_id) REFERENCES appointment (appointment_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE test_performed_by
-    ADD CONSTRAINT test_performed_by_appointment FOREIGN KEY (appointment_id) REFERENCES appointment (appointment_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    ADD CONSTRAINT test_performed_by_laboratorian FOREIGN KEY (laboratorian_id) REFERENCES laboratorian (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    ADD CONSTRAINT test_performed_by_test FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE test_assigned_to
+    ADD CONSTRAINT test_assigned_to_appointment FOREIGN KEY (appointment_id) REFERENCES appointment (appointment_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    ADD CONSTRAINT test_assigned_to_laboratorian FOREIGN KEY (laboratorian_id) REFERENCES laboratorian (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    ADD CONSTRAINT test_assigned_to_test FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE;
 
 
 ALTER TABLE doctor_off_days
     ADD CONSTRAINT doctor_off_days_doctor FOREIGN KEY (doctor_id) REFERENCES doctor (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
+ALTER TABLE test
+    ADD CONSTRAINT test_department FOREIGN KEY (department) REFERENCES department (name) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE comp_result
+    ADD CONSTRAINT comp_name FOREIGN KEY (comp_name) REFERENCES component (comp_name) ON DELETE CASCADE ON UPDATE CASCADE,
+     ADD CONSTRAINT comp_result_id FOREIGN KEY (result_id) REFERENCES test_result (result_id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
 /*
 create triggers and functions for insertion into patient, doctor, laboratorian and pharmacist  tables
 to make insert additional values
 */
+
+/*
+    -> When a test added to test_assigned_to relation add create a test result
+    for it in the test result relationship and create component results for its components
+ */
 --- functions
 CREATE or REPLACE FUNCTION insert1()
 returns trigger
@@ -257,14 +283,46 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+
+
+
+CREATE or REPLACE FUNCTION insert2()
+returns trigger
+as $$
+BEGIN
+
+    INSERT INTO test_result (test_name, appointment_id)
+    VALUES (NEW.test_name, NEW.appointment_id);
+
+RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+
+CREATE or REPLACE FUNCTION insert3()
+returns trigger
+as $$
+BEGIN
+
+INSERT INTO comp_result ()
+
+RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+
 --- trigers
 
-CREATE TRIGGER  addition
+CREATE TRIGGER  addition1
     AFTER INSERT ON person
     FOR EACH  ROW
     EXECUTE PROCEDURE insert1();
 
+CREATE TRIGGER  addition2
+    AFTER INSERT ON test_assigned_to
+    FOR EACH  ROW
+    EXECUTE PROCEDURE insert2();
 
-    /*
 
-     */

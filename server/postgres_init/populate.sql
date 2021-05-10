@@ -47,6 +47,15 @@ INSERT INTO prescribed_by (prescription_no, appointment_id) VALUES
     (1, 1),
     (2, 2);
 
+
+INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_name) VALUES
+    (1, 3, 'blood'),
+    (1, 3, 'stones'),
+    (1, 3, 'x-ray'),
+    (2, 3, 'blood');
+
+/*
+
 INSERT INTO result (test_name, comp_name, result_id, result_date, appointment_id, test_comp_value, test_comp_result, status) VALUES
     ('blood', 'calcium', 1, '2021-04-02 00:08:11', 1, '5', 'Normal', 'finalized'),
     ('blood', 'Iron', 2, '2021-04-02 00:08:47', 1, '5', 'Normal', 'finalized'),
@@ -58,9 +67,4 @@ INSERT INTO result (test_name, comp_name, result_id, result_date, appointment_id
     ('blood', 'Iron', 8, '2021-04-02 00:11:39', 2, '35', 'You should be dead', 'finalized'),
     ('blood', 'type', 9, '2021-04-02 00:11:51', 2, 'A-', NULL, 'finalized');
 
-
-INSERT INTO test_performed_by (appointment_id, laboratorian_id, test_name) VALUES
-    (1, 3, 'blood'),
-    (1, 3, 'stones'),
-    (1, 3, 'x-ray'),
-    (2, 3, 'blood');
+ */
