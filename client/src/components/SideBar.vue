@@ -61,8 +61,16 @@ export default {
     drawer: true,
     selectedItem: '',
   }),
-  created: function() {
-    this.selectedItem = this.items.findIndex(x => x.route === this.$router.currentRoute.path)
+  methods:{
+    
+  },
+  created(){
+    this.selectedItem = this.items.findIndex((x) => x.route === this.$router.currentRoute.path)
+  },
+  watch: {
+    $route (){
+        this.selectedItem = this.items.findIndex((x) => x.route === this.$router.currentRoute.path)
+    }
   }
 }
 </script>
