@@ -74,7 +74,7 @@ app.post('/login_first', (req,res,next)=>{
 
     client.query(q, [params.email],(err, result)=>{
         if (err){
-            return res.send(error);
+            return res.send(err);
         }
         else{
             // res.send(result);
@@ -107,7 +107,7 @@ app.post('/login_second', (req,res,next)=>{
 
     client.query(q, [params.national_id],(err, result)=>{
         if (err){
-            return res.send(error);
+            return res.send(err);
         }
         else{
             return res.status(200).send(result.rows[0])
@@ -160,7 +160,7 @@ app.post('/signup', (req,res)=>{
 
     client.query(q, params,(err, result)=>{
         if (err){
-            return res.send(error).send({"message": "insertion unsuccessful"});
+            return res.send(err).send({"message": "insertion unsuccessful"});
         }
         return res.status(200).send({"message": "insertion successful"})
     });
@@ -302,7 +302,7 @@ app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
 
     client.query(q,  (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no department found"})
+            return res.send(err).send({"message": "no department found"})
         }
         return res.status(200).send(result.rows)
     })
@@ -333,7 +333,7 @@ app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no doctor"})
+            return res.send(err).send({"message": "no doctor"})
         }
         return res.status(200).send(result.rows)
     })

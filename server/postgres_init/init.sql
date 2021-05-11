@@ -32,8 +32,9 @@ CREATE TABLE appointment (
   status app_status DEFAULT 'upcoming',
   patient_id int ,
   doctor_id int ,
-  PRIMARY KEY (appointment_id)
-
+  PRIMARY KEY (appointment_id) ,
+  UNIQUE (date, patient_id) ,
+  UNIQUE (date, doctor_id)
   );
 
 
@@ -181,7 +182,11 @@ ALTER TABLE doctor
 ALTER TABLE appointment
     ADD CONSTRAINT appointment_doctor FOREIGN KEY (doctor_id) REFERENCES doctor (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT appointment_patient FOREIGN KEY (patient_id) REFERENCES patient (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
-
+ /*
+ALTER TABLE appointment
+    ADD UNIQUE (date, patient_id)
+    ADD UNIQUE (date, doctor_id)
+ */
 ALTER TABLE component
     ADD CONSTRAINT component_test FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE;
 
