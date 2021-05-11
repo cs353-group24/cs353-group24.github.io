@@ -7,7 +7,7 @@
             <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Welcome {{patientName}}</h1>
           </v-row>
           <v-row>
-            <h4 class="ml-6 blue--text text--lighten-3">You have {{upcoming}} upcoming appointments</h4>
+            <h4 class="ml-6 blue--text text--lighten-3">You have {{items.length}} upcoming appointments</h4>
           </v-row>
         </v-col>
         <v-col class="d-flex justify-end mt-16 pt-5">
@@ -110,7 +110,7 @@
           <v-btn @click.stop="resetValidation" outlined color="#5080DE" class="mr-5 font-weight-bold"><v-icon left>mdi-calendar-plus</v-icon>New Appointment</v-btn>
         </v-col>
       </v-row>
-       <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
+      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
           
       </PaginationTable>
     </v-container>

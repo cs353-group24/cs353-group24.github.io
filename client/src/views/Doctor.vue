@@ -28,6 +28,7 @@
             @removePres="removePres($event)"
             @addPres="addPres($event)"
             @validateForm="validateForm"
+            @diagnosis="diagnosis"
             @close="dialog=false"
         >
         </AppointmentDetails>
@@ -79,6 +80,7 @@ export default {
             testsList: ['Blood Test', 'X-Ray', 'Ultrasound', 'MRI'],
             compList: [],
             labsList: ['Sunny', 'Mohi', 'Atakan', 'Arnissa'], 
+            diseaseList: ['Malaria', 'HIV', 'Crabs', 'Chlamydia' ],
         },
         appointment: {
             id: '',
@@ -217,6 +219,11 @@ export default {
             this.appointment.age= this.rnd(0, 100)
             this.dialog = true
         },
+        diagnosis({disease, details}){
+            console.log(disease)
+            console.log(details)
+
+        }
     },
     mounted() {
         this.getItemsData()
