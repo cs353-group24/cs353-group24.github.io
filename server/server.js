@@ -243,13 +243,13 @@ app.get('/patient/:id/appointments', (req,res)=>{
 //appointment cancel
 app.post('/patient/:id/appointment/cancel', (req,res)=>{
 
-    let q = ` DELETE FROM appointment WHERE appointment.appointment_id = $1;`
+    let q = ` DELETE FROM appointment WHERE appointment_id = $1;`
 
     let params = Object.values(req.body) // will get id
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "cancelation error"})
+            return res.send(err).send({"message": "cancelation error"})
         }
         return res.status(200).send({"message": "deleted successfully"})
     })
