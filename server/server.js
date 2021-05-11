@@ -192,7 +192,7 @@ app.get('/patient/:id/homepage', (req, res) =>{
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"error": "error"})
+            return res.send(err).send({"error": "error"})
         }
         return res.status(200).send(result.rows)
     })
@@ -221,7 +221,7 @@ app.get('/patient/:id/appointments', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no appointment found"})
+            return res.send(err).send({"message": "no appointment found"})
         }
         return res.status(200).send(result.rows)
     })
