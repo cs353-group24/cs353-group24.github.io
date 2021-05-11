@@ -68,7 +68,7 @@
                         clearable
                         :prepend-inner-icon="'mdi-account-outline'"
                         :rules="idRules"
-                        label="First Name"
+                        label="Name"
                         required
                       ></v-text-field>
                     </v-col>
@@ -84,7 +84,7 @@
                         clearable
                         :prepend-inner-icon="'mdi-account-outline'"
                         :rules="idRules"
-                        label="Last Name"
+                        label="Surname"
                         required
                       ></v-text-field>
                     </v-col>
