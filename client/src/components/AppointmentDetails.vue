@@ -63,7 +63,7 @@
                                         </v-col>
                                         <v-spacer></v-spacer>
                                         <v-col class="d-flex justify-end mr-7">
-                                            <v-btn color="#5080DE" outlined large class="rounded-pill font-weight-bold mt-n3">Diagnose</v-btn>
+                                            <v-btn @click="diagDialog = true" :disabled="checkDisabled" color="#5080DE" outlined large class="rounded-pill font-weight-bold mt-n3">Diagnose</v-btn>
                                         </v-col>
                                     </v-row>
                                 </v-card-text>
@@ -185,7 +185,7 @@
                                                             outlined
                                                             v-model="qty"
                                                             clearable
-                                                            :rules="[v => /^\d+$/.test(v) || 'Numbers only, details can be given in usage']"
+                                                            :rules="[v => v.length <=10 || 'Give further details in usage section', v => !!v || 'Quantity to prescribe is required']"
                                                             label="Quantity"
                                                             required
                                                         ></v-text-field>
@@ -233,6 +233,59 @@
                     </v-tabs-items>
                 </v-card>
             </v-dialog>
+            <v-dialog
+                v-model="diagDialog"
+                persistent
+                max-width="70vw"
+            >
+                <v-card>
+                <v-card-title class="headline datatablefontcolor--text text-center">
+                    Diagnosis
+                    <v-row>
+                        <v-col class="d-flex justify-end">
+                            <v-btn icon @click="diagDialog = false" color="datatablefontcolor" class="mt-2 mr-2"><v-icon>mdi-close</v-icon></v-btn>
+                        </v-col>
+                    </v-row>
+                </v-card-title>
+                <v-card-text class="mt-4">
+                    <!-- maybe use cached items prop -->
+                    <v-form ref="form1" v-model="valid1">
+                        <v-autocomplete :rules="[v => !!v.length > 0 || 'Disease is required']" outlined return-object item-text="name" clearable prepend-inner-icon="fas fa-disease" v-model="disease" :items="lists.diseaseList" label="Disease" multiple>
+                        </v-autocomplete>
+                        <v-row class="mt-n4">
+                            <v-col>
+                            <v-textarea
+                                outlined
+                                v-model="deets"
+                                label="Details"
+                                clearable
+                                rows="4"
+                                :rules="[v => !!v || 'Provide some context on the diagnosis']"
+                                requred
+                                ></v-textarea>
+                            </v-col>
+                        </v-row>
+                    </v-form>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                    color="datatablefontcolor"
+                    text
+                    @click="diaDialog=false"
+                    >
+                    Cancel
+                    </v-btn>
+                    <v-btn
+                    color="datatablefontcolor"
+                    text
+                    @click="validatedisease"
+                    >
+                    Save
+                    </v-btn>
+                </v-card-actions>
+                </v-card>
+            </v-dialog>
         </v-container>
     </v-app>
 </template>
@@ -241,9 +294,13 @@
 import PaginationTable from "@/components/PaginationTable"
 export default {
     data:()=>({
+        disease: [],
+        diagDialog: false,
         qty: '',
         usage: '',
         valid: false,
+        valid1: false,
+        deets: '',
         dialog:false,
         symptoms: null,
         pres: null,
@@ -337,17 +394,35 @@ export default {
             this.$refs.form.validate()
             if (this.valid) {
                 this.$emit('validateForm', {pres: this.pres, qty: this.qty, usage: this.usage})
+                this.dialog = false;
+                this.pres = null
+                this.qty = ''
+                this.usage = ''
             }
-            this.dialog = false;
-            this.pres = null
-            this.qty = ''
-            this.usage = ''
+        },
+        validatedisease(){
+            this.$refs.form1.validate()
+            if (this.valid1) {
+                this.$emit('diagnosis', {disease: this.disease, details: this.deets})
+                this.diagDialog=false
+                this.disease = [],
+                this.deets = ''
+            }
         }
     },
     computed:{
         getModel(){
             return this.model
         },
+        checkDisabled(){
+            let temp = this.tableInfo.testItems.filter(x => x.status !== 'Finalised')
+            if (temp.length === 0) {
+                return false
+            }
+            else{
+                return true
+            }
+        }
     }
 }
 </script>

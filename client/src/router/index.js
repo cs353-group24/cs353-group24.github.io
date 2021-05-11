@@ -84,21 +84,60 @@ const routes = [
     component: () => import('../views/Laboratorian.vue')
   },
   {
-    path: '/laboratorian/edit/:id',
-    name: 'Edit',
-    component: () => import('../views/TestEdit.vue')
-  },
-  {
-    path: '/laboratorian/tests',
+    path: '/laboratorian/prep-tests',
     name: 'Laboratorian Tests',
     component: () => import('../views/LabTests.vue')
   },
   {
-    path: '/laboratorian/prev-tests',
-    name: 'Laboratorian Prev-Tests',
-    component: () => import('../views/LabPrevTests.vue')
+    path: '/laboratorian/done-tests',
+    name: 'Laboratorian Done-Tests',
+    component: () => import('../views/LabDoneTests.vue')
   },
-
+  {
+    path: '/pharmacist',
+    name: 'Pharmacist',
+    component: () => import('../views/Pharmacist.vue')
+  },
+  {
+    path: '/pharmacist/prescriptions',
+    name: 'Pharmacist Prescriptions',
+    component: () => import('../views/PharmacistPres.vue')
+  },
+  {
+    path: '/pharmacist/inventory',
+    name: 'Pharmacist Inventory',
+    component: () => import('../views/PharmacistInventory.vue')
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('../views/Admin.vue')
+  },
+  {
+    path: '/admin/tests',
+    name: 'Admin Tests',
+    component: () => import('../views/AdminTests.vue')
+  },
+  {
+    path: '/admin/diseases',
+    name: 'Admin Diseases',
+    component: () => import('../views/AdminDiseases.vue')
+  },
+  {
+    path: '/admin/symptoms',
+    name: 'Admin Symptoms',
+    component: () => import('../views/AdminSymptoms.vue')
+  },
+  {
+    path: '/admin/medicine',
+    name: 'Admin Medicine',
+    component: () => import('../views/AdminMedicine.vue')
+  },
+  {
+    path: '/admin/components',
+    name: 'Admin Components',
+    component: () => import('../views/AdminComponents.vue')
+  },
 ]
 
 const router = new VueRouter({

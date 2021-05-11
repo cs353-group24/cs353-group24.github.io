@@ -65,8 +65,8 @@
                 <!-- <v-spacer></v-spacer> -->
                 <v-col>
                     <PaginationTable :items="tableData.items" :headers="tableData.headers" :tableInfo="tableData.tableInfo" :buttonHeader="tableData.buttonHeader">
-                        <template #buttons>
-                            <slot name="tableActions"></slot>
+                        <template #buttons={item}>
+                            <slot name="tableActions" :item="item"></slot>
                         </template>
                     </PaginationTable>
                 </v-col>
