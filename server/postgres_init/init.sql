@@ -78,6 +78,7 @@ CREATE TABLE medicine (
   name varchar ,
   manufacturer varchar ,
   pharmacist_id int ,
+  stock int DEFAULT 0,
   PRIMARY KEY (name)
   );
 
@@ -105,7 +106,6 @@ CREATE TABLE prescribed_by (
 
 CREATE TABLE prescribed_in (
   prescription_no int ,
-  pharmacist_id int,
   med_name varchar ,
   qty int ,
   usage_method text ,
@@ -216,7 +216,6 @@ ALTER TABLE prescribed_by
 
 ALTER TABLE prescribed_in
     ADD CONSTRAINT prescribed_in_medicine FOREIGN KEY (med_name) REFERENCES medicine (name) ON DELETE CASCADE ON UPDATE CASCADE,
-    ADD CONSTRAINT prescribed_in_pharmacist FOREIGN KEY (pharmacist_id) REFERENCES pharmacist (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT prescribed_in_prescription FOREIGN KEY (prescription_no) REFERENCES prescription (prescription_no) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE test_result
