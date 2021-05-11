@@ -2,15 +2,15 @@
 CREATE TYPE test_status AS ENUM ('assigned', 'preparing', 'finalized');
 CREATE TYPE app_status AS ENUM ( 'upcoming','waiting-tests', 'finalized');
 CREATE TYPE person_type as ENUM ('patient', 'doctor', 'laboratorian','pharmacist' );
-
--- create enums for doctors, laboratorians -> depratment -> room no will be incremented
+CREATE TYPE presc_type as ENUM ('waiting', 'filled');
+-- create enums for doctors, laboratorians -> department -> room no will be incremented
 
 --tables
 CREATE TABLE person (
     national_id int ,
     name varchar ,
     surname varchar ,
-    email varchar ,
+    email varchar UNIQUE ,
     password int ,
     person_type person_type,
     phone varchar ,
@@ -24,12 +24,12 @@ CREATE TABLE doctor (
     department varchar ,
     PRIMARY KEY (national_id)
 
-    );
+ );
 
 CREATE TABLE appointment (
   appointment_id serial ,
-  date date ,
-  status app_status DEFAULT 'waiting-tests',
+  date date CHECK (date >= current_date ) DEFAULT current_date ,
+  status app_status DEFAULT 'upcoming',
   patient_id int ,
   doctor_id int ,
   PRIMARY KEY (appointment_id)
@@ -71,7 +71,6 @@ CREATE TABLE laboratorian (
   national_id int ,
   department varchar ,
   PRIMARY KEY (national_id)
-
   );
 
 CREATE TABLE medicine (
@@ -116,6 +115,7 @@ CREATE TABLE prescription (
   prescription_no serial ,
   prescription_type varchar ,
   date date ,
+  status presc_type DEFAULT 'waiting',
   PRIMARY KEY (prescription_no)
 );
 
@@ -324,6 +324,20 @@ $$
 LANGUAGE 'plpgsql';
 
 
+CREATE or REPLACE FUNCTION update1()
+returns trigger
+as $$
+BEGIN
+
+UPDATE medicine
+SET stock = stock - NEW.qty
+WHERE name = NEW.med_name;
+
+RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
 --- trigers
 
 CREATE TRIGGER  addition1
@@ -345,3 +359,8 @@ CREATE TRIGGER deletion1
     BEFORE DELETE ON test_assigned_to
     FOR EACH  ROW
     EXECUTE PROCEDURE delete1();
+
+CREATE TRIGGER update1
+    BEFORE UPDATE ON prescribed_in
+    FOR EACH  ROW
+    EXECUTE PROCEDURE update1();

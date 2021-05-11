@@ -1,9 +1,9 @@
 
 
 INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES
-(1, 'mannan', 'abdul', 'mannan@gmail.com', 225588, 'patient', '+905536644231', '2021-03-01'),
-(2, 'mohlaroyim', 'raupova', 'mohi@sucks.com', 336699, 'doctor', '+925984569115', '2021-02-01'),
-(3, 'arnisa', 'fazla', 'fazla@gmail.com', 112233, 'patient', '+905536644233', '2020-12-01');
+(1, 'mannan', 'abdul', 'mannan@gmail.com', 225588, 'patient', '+905536644231', '2021-07-01'),
+(2, 'mohlaroyim', 'raupova', 'mohi@sucks.com', 336699, 'doctor', '+925984569115', '2021-07-01'),
+(3, 'arnisa', 'fazla', 'fazla@gmail.com', 112233, 'patient', '+905536644233', '2021-12-01');
 
 INSERT INTO department (name, date_est, building) VALUES
 ('Computer Science','2021-03-01', 'A' );

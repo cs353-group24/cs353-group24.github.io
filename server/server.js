@@ -184,20 +184,21 @@ app.post('/signup', (req,res)=>{
      naming conventions presented above should be followed
  */
 app.get('/patient/:id/homepage', (req, res) =>{
-    let q = ` SELECT appointment_id, date
-            FROM appointment 
-            WHERE appointment.patient_id = $1 
-            ORDER BY  date DESC ; `
+    let q = `SELECT a.appointment_id, p.name, p.surname, a.date, d.department
+             FROM appointment as  a, doctor as d, person as p
+             WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id and a.status = 'upcoming'
+             ORDER BY  date DESC ; `
 
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no appointment found"})
+            return res.send(error).send({"error": "error"})
         }
         return res.status(200).send(result.rows)
     })
 
 })
+
 
 
 //appointments
@@ -209,11 +210,12 @@ app.get('/patient/:id/homepage', (req, res) =>{
     $ is the required info(s) that will provided by client side,
      naming conventions presented above should be followed
  */
-app.get('/patient/:id/appointment', (req,res)=>{
+app.get('/patient/:id/appointments', (req,res)=>{
 
-    let q = ` SELECT appointment_id, date
-            FROM appointment 
-            WHERE appointment.patient_id = $1; `
+    let q = ` SELECT a.appointment_id, p.name, p.surname, a.date, d.department, a.status
+              FROM appointment as  a, doctor as d, person as p
+              WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id 
+              ORDER BY  date DESC ; `
 
     let params = Object.values(req.params)
 
@@ -262,7 +264,6 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
 /patient/:id/appointment/newappointment:
 /patient/$/appointment/newappointment
     {
-        "appointment_id": "$",
         "date": "$",
         "doctor_id": "$"
 
@@ -273,16 +274,16 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
  */
 app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
-    let q = ` INSERT INTO appointment (appointment_id, date,  patient_id, doctor_id) VALUES
-               ($1, $2,  $3, $4); `
+    let q = ` INSERT INTO appointment ( date,  patient_id, doctor_id) VALUES
+               ( $1,  $2, $3); `
 
     let params1 = req.params // will give national id
     let params2 = req.body //
-    let params = [params1.appointment_id, params1.date, req.params, params2.doctor_id]
+    let params = [ params2.date, params1, params2.doctor_id]
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no appointment found"})
+            return res.send({"error": "error"})
         }
         return res.status(200).send(result.rows)
     })
