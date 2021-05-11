@@ -466,12 +466,34 @@ app.get('/doctor/:id/get_test_types',(req,res)=>{
 })
 
 
-//how doctor will ask tests ??
-//apt_tracking no and testname should be selected
+
+
 // laboratorian will be selected randomly a routed needed to pass required laboratorian types ???
 //ask for tests -> will be ssigned to a random lab technician
-app.post('/doctor/:id/ask_for_tests',(req,res)=>{
 
+
+/*
+/doctor/:id/ask_for_tests
+    {
+        "appointment_id" : "$",
+        "laboratorian_id": "$",
+        "test_name": "$"
+    }
+       $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+ */
+app.post('/doctor/:id/ask_for_tests',(req,res)=>{
+    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_nam) 
+VALUES ($1, $2, $3) `
+    let par = req.body
+    let params = [par.appointment_id, par.laboratorian_id, par.test_name]
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send({"message":"successful insertion"})
+    })
 
 
 })
@@ -530,12 +552,29 @@ let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1,
 app.get('/laboratorian/:id/get_tests', (req,res)=>{
 
     let q = `SELECT *
-             FROM test_performed_by, result 
-             WHERE test_performed_by.appointment_id = result.appointment_id and laboratorian_id = $1  `
+             FROM test_assigned_to
+             WHERE laboratorian_id = $1  `
+    let params = Object.values(req.params)
 
-
-
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send(result.rows)
+    })
 } )
+
+
+//get components with result_id
+app.get('/laboratorian/:id/get_comp', (req,res)=>{
+
+})
+
+
+// assign scores to components
+app.post ('/laboratorian/:id/post_comp_results', (req, res)=>{
+
+})
 
 
 //pharmacist routes
