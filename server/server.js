@@ -184,20 +184,21 @@ app.post('/signup', (req,res)=>{
      naming conventions presented above should be followed
  */
 app.get('/patient/:id/homepage', (req, res) =>{
-    let q = ` SELECT appointment_id, date
-            FROM appointment 
-            WHERE appointment.patient_id = $1 
-            ORDER BY  date DESC ; `
+    let q = `SELECT a.appointment_id, p.name, p.surname, a.date, d.department
+             FROM appointment as  a, doctor as d, person as p
+             WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id and a.status = 'upcoming'
+             ORDER BY  date DESC ; `
 
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no appointment found"})
+            return res.send(error).send({"error": "error"})
         }
         return res.status(200).send(result.rows)
     })
 
 })
+
 
 
 //appointments
@@ -209,11 +210,12 @@ app.get('/patient/:id/homepage', (req, res) =>{
     $ is the required info(s) that will provided by client side,
      naming conventions presented above should be followed
  */
-app.get('/patient/:id/appointment', (req,res)=>{
+app.get('/patient/:id/appointments', (req,res)=>{
 
-    let q = ` SELECT appointment_id, date
-            FROM appointment 
-            WHERE appointment.patient_id = $1; `
+    let q = ` SELECT a.appointment_id, p.name, p.surname, a.date, d.department, a.status
+              FROM appointment as  a, doctor as d, person as p
+              WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id 
+              ORDER BY  date DESC ; `
 
     let params = Object.values(req.params)
 
@@ -241,13 +243,13 @@ app.get('/patient/:id/appointment', (req,res)=>{
 //appointment cancel
 app.post('/patient/:id/appointment/cancel', (req,res)=>{
 
-    let q = ` DELETE FROM appointment WHERE appointment.appointment_id = $1;`
+    let q = ` DELETE FROM appointment WHERE appointment_id = $1;`
 
     let params = Object.values(req.body) // will get id
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "cancelation error"})
+            return res.send(err).send({"message": "cancelation error"})
         }
         return res.status(200).send({"message": "deleted successfully"})
     })
@@ -262,7 +264,6 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
 /patient/:id/appointment/newappointment:
 /patient/$/appointment/newappointment
     {
-        "appointment_id": "$",
         "date": "$",
         "doctor_id": "$"
 
@@ -273,16 +274,16 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
  */
 app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
-    let q = ` INSERT INTO appointment (appointment_id, date,  patient_id, doctor_id) VALUES
-               ($1, $2,  $3, $4); `
+    let q = ` INSERT INTO appointment ( date,  patient_id, doctor_id) VALUES
+               ( $1,  $2, $3); `
 
     let params1 = req.params // will give national id
     let params2 = req.body //
-    let params = [params1.appointment_id, params1.date, req.params, params2.doctor_id]
+    let params = [ params2.date, params1, params2.doctor_id]
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no appointment found"})
+            return res.send({"error": "error"})
         }
         return res.status(200).send(result.rows)
     })
@@ -466,12 +467,34 @@ app.get('/doctor/:id/get_test_types',(req,res)=>{
 })
 
 
-//how doctor will ask tests ??
-//apt_tracking no and testname should be selected
+
+
 // laboratorian will be selected randomly a routed needed to pass required laboratorian types ???
 //ask for tests -> will be ssigned to a random lab technician
-app.post('/doctor/:id/ask_for_tests',(req,res)=>{
 
+
+/*
+/doctor/:id/ask_for_tests
+    {
+        "appointment_id" : "$",
+        "laboratorian_id": "$",
+        "test_name": "$"
+    }
+       $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+ */
+app.post('/doctor/:id/ask_for_tests',(req,res)=>{
+    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_nam) 
+VALUES ($1, $2, $3) `
+    let par = req.body
+    let params = [par.appointment_id, par.laboratorian_id, par.test_name]
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send({"message":"successful insertion"})
+    })
 
 
 })
@@ -530,12 +553,29 @@ let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1,
 app.get('/laboratorian/:id/get_tests', (req,res)=>{
 
     let q = `SELECT *
-             FROM test_performed_by, result 
-             WHERE test_performed_by.appointment_id = result.appointment_id and laboratorian_id = $1  `
+             FROM test_assigned_to
+             WHERE laboratorian_id = $1  `
+    let params = Object.values(req.params)
 
-
-
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send(result.rows)
+    })
 } )
+
+
+//get components with result_id
+app.get('/laboratorian/:id/get_comp', (req,res)=>{
+
+})
+
+
+// assign scores to components
+app.post ('/laboratorian/:id/post_comp_results', (req, res)=>{
+
+})
 
 
 //pharmacist routes

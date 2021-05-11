@@ -1,9 +1,9 @@
 
 
 INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES
-(1, 'mannan', 'abdul', 'mannan@gmail.com', 225588, 'patient', '+905536644231', '2021-03-01'),
-(2, 'mohlaroyim', 'raupova', 'mohi@sucks.com', 336699, 'doctor', '+925984569115', '2021-02-01'),
-(3, 'arnisa', 'fazla', 'fazla@gmail.com', 112233, 'patient', '+905536644233', '2020-12-01');
+(1, 'mannan', 'abdul', 'mannan@gmail.com', 225588, 'patient', '+905536644231', '2021-07-01'),
+(2, 'mohlaroyim', 'raupova', 'mohi@sucks.com', 336699, 'doctor', '+925984569115', '2021-07-01'),
+(3, 'arnisa', 'fazla', 'fazla@gmail.com', 112233, 'patient', '+905536644233', '2021-12-01');
 
 INSERT INTO department (name, date_est, building) VALUES
 ('Computer Science','2021-03-01', 'A' );
@@ -30,9 +30,9 @@ INSERT INTO prescription (prescription_no, prescription_type, date) VALUES
 
 
 INSERT INTO appointment (appointment_id, date,  patient_id, doctor_id) VALUES
-    (1, '2021-04-01',  1, 2),
-    (2, '2021-04-01',  1, 2),
-    (3, '2021-04-01',  3, 2);
+    (1, '2030-04-01',  1, 2),
+    (2, '2030-04-01',  1, 2),
+    (3, '2030-04-01',  3, 2);
 
 INSERT INTO component (test_name, comp_name, upper_normality_interval, lower_normality_interval) VALUES
     ('blood', 'calcium', 0, 25),

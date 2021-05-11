@@ -34,6 +34,7 @@ client.query(sql_init, (err, res ) => {
 
 
 /*
+
 client.query(sql_drop, (err, res ) => {
     if(err){ throw err;}
 });
