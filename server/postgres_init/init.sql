@@ -1,4 +1,3 @@
-
 --types
 CREATE TYPE test_status AS ENUM ('assigned', 'preparing', 'finalized');
 CREATE TYPE app_status AS ENUM ( 'upcoming','waiting-tests', 'finalized');
@@ -266,12 +265,10 @@ BEGIN
     INSERT INTO doctor  (national_id)
      VALUES (NEW.national_id);
     END IF;
-
     IF NEW.person_type = 'laboratorian' THEN
         INSERT INTO laboratorian  (national_id)
      VALUES (NEW.national_id);
     END IF;
-
     IF NEW.person_type = 'pharmacist' THEN
    INSERT INTO pharmacist (national_id)
      VALUES (NEW.national_id);
@@ -315,6 +312,18 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+CREATE or REPLACE FUNCTION delete1()
+returns trigger
+as $$
+BEGIN
+
+DELETE FROM test_result
+    WHERE appointment_id = OLD.appointment_id and test_name = OLD.test_name;
+RETURN OLD;
+END;
+$$
+LANGUAGE 'plpgsql';
+
 
 --- trigers
 
@@ -332,3 +341,8 @@ CREATE TRIGGER addition3
      AFTER INSERT ON test_result
     FOR EACH  ROW
     EXECUTE PROCEDURE insert3();
+
+CREATE TRIGGER deletion1
+    BEFORE DELETE ON test_assigned_to
+    FOR EACH  ROW
+    EXECUTE PROCEDURE delete1();
