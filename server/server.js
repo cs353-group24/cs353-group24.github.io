@@ -527,22 +527,19 @@ let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1,
 
 
 
-
-
-
-
 //laboratorian routes
 
-
 /*
-    /laboratorian/:id/get_tests:
-    /laboratorian/$/get_tests
+    /laboratorian/:id/homepage:
+    /laboratorian/$/homepage
  */
-app.get('/laboratorian/:id/get_tests', (req,res)=>{
+app.get('/laboratorian/:id/homepage', (req,res)=>{
 
     let q = `SELECT *
-             FROM test_assigned_to
-             WHERE laboratorian_id = $1  `
+             FROM test_assigned_to ta NATURAL JOIN test_result tr
+             WHERE laboratorian_id = $1 and test_status = 'assigned' 
+             and EXTRACT(MONTH FROM ta.date) = EXTRACT(MONTH FROM current_date)
+             and ta.date >= current_date;  `
     let params = Object.values(req.params)
 
     client.query(q, params, (err, result) =>{
@@ -553,17 +550,85 @@ app.get('/laboratorian/:id/get_tests', (req,res)=>{
     })
 } )
 
+/*
+    /laboratorian/:id/get_tests:
+    /laboratorian/$/get_tests
+ */
+app.get('/laboratorian/:id/get_tests', (req,res)=>{
+
+    let q = `SELECT *
+             FROM test_assigned_to NATURAL JOIN test_result
+             WHERE laboratorian_id = $1;  `
+    let params = Object.values(req.params)
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
+/*
+    /laboratorian/:id/get_spec_comps:
+    /laboratorian/$/get_spec_comps
+    {
+        "result_id" : "$"
+    }
+ */
+app.get('/laboratorian/:id/get_spec_comps', (req,res)=>{
+    let q = `SELECT *
+             FROM test_result NATURAL JOIN comp_result
+             WHERE result_id = $1;  `
+
+    let params = Object.values(req.body)
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
 
 //get components with result_id
-app.get('/laboratorian/:id/get_comp', (req,res)=>{
-
+app.get('/laboratorian/:id/get_all_comp', (req,res)=>{
+    let q = 'SELECT * FROM test_assigned_to NATURAL JOIN test_result NATURAL JOIN comp_result WHERE laboratorian_id = $1;'
+    let params = Object.values(req.params)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send(result.rows)
+    })
 })
 
+/*
+    /laboratorian/:id/post_spec_comps:
+    /laboratorian/$/post_spec_comps
+    {
+        "result_id" : "$",
+        "comp_name" : "$",
+        "comp_value": "$",
+        "comp_result" : "$",
+        "comp_status" : "$"
+    }
+ */
+app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
+    let q = `UPDATE comp_result
+             SET  comp_value = $1, comp_result = $2, comp_status = $3
+             WHERE result_id = $4 and comp_name = $5;  `
 
-// assign scores to components
-app.post ('/laboratorian/:id/post_comp_results', (req, res)=>{
+    let re = req.body
+    let params = [re.comp_value, re.comp_result, re.comp_status, re.result_id, re.comp_name]
 
-})
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send({"MESSAGE" : "successfull"})
+    })
+} )
 
 
 //pharmacist routes
