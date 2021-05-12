@@ -82,7 +82,7 @@ INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES
 ('2', 'chronic cough'),
 ('1', 'nausea');
 
-INSERT INTO doctor_off_day (doctor_id, date) VALUES
+INSERT INTO doctor_off_days (doctor_id, date) VALUES
 ('2', '2021-05-18')
 /*
 

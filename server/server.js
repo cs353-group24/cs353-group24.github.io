@@ -54,7 +54,7 @@ client.connect();
 //req.params
 // for get use req.query
 // for post use req.body
-//-------------------- ROUTES-------------------//
+//-------------------------------------------- ROUTES-------------------------------------------------//
 
 //add triggers to database
 
@@ -173,14 +173,13 @@ app.post('/signup', (req,res)=>{
     });
 })
 
+//--------------------------------------------PATIENT ROUTES-------------------------------------------------//
+
 
 /* -----------------------------------------------------------------------------------------------------
     /user_type/:id
     the id will be passed by the client side always when calling these type of routes
 ----------------------------------------------------------------------------------------------------- */
-
-//order by date
-
 
 /*
     /patient/:id/homepage :
@@ -493,15 +492,11 @@ app.get('/patient/:id/see_app_diag', (req,res)=>{
     })
 } )
 
-
-
-
-
 // /patient/:id/prescriptions
 // /patient/:id/tests
 // /patient/:id/diagnosis ?
 
-//doctor routes
+//--------------------------------------------DOCTOR ROUTES-------------------------------------------------//
 
 // /doctor/:id/...
 
@@ -665,11 +660,20 @@ app.get('/doctor/:id/get_test_types',(req,res)=>{
     })
 })
 
-
-
-// laboratorian will be selected randomly a routed needed to pass required laboratorian types ???
-//ask for tests -> will be ssigned to a random lab technician
-
+/*
+    /doctor/:id/get_laboratorians
+    no info required
+    returns all the laboratorians, choose one with same department in frontend
+ */
+app.get('/doctor/:id/get_laboratorians',(req,res)=>{
+    let q = ` SELECT * FROM laboratorian; `
+    client.query(q,  (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
 
 /*
 /doctor/:id/ask_for_tests
@@ -693,10 +697,24 @@ VALUES ($1, $2, $3) `
         }
         return res.status(200).send({"message":"successful insertion"})
     })
-
-
 })
 
+/*
+    /doctor/:id/:aid/see_tests
+    id: doctor_id, aid: appointment_id
+    save the test_name's and use them to see components, test_results etc.
+ */
+app.get('/doctor/:id/:aid/see_tests', (req,res)=>{
+    let q = ` SELECT * FROM test_assigned_to WHERE appointment_id = $1;`
+    let re = req.params
+    let params = [re.aid]
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
 
 /*
 /doctor/:id/get_disease_names
@@ -749,10 +767,7 @@ let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1,
     })
 })
 
-
-
-
-//laboratorian routes
+//--------------------------------------------LABORATORIAN ROUTES-------------------------------------------------//
 
 /*
     /laboratorian/:id/homepage:
@@ -856,12 +871,12 @@ app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
 } )
 
 
-//pharmacist routes
+//--------------------------------------------PHARMACIST ROUTES-------------------------------------------------//
 
 
 
 
-//admin routes
+//--------------------------------------------ADMIN ROUTES-------------------------------------------------//
 
 
 /*
