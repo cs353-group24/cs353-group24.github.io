@@ -1,14 +1,17 @@
 const express = require('express');
 const {Client} = require('pg');
 const bodyParser = require('body-parser');
-
+const cors = require('cors');
 const app = express();
+
+app.use(cors())
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
+
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }));
 let server = require('http').Server(app);
@@ -74,16 +77,16 @@ app.post('/login_first', (req,res,next)=>{
 
     client.query(q, [params.email],(err, result)=>{
         if (err){
-            return res.sendStatus(404).send(err);
+            return res.status(404).send(err);
         }
         else{
             // res.send(result);
            // console.log(JSON.parse(JSON.stringify(result)))
             if(result.rows[0].password.toString() === params.password.toString()){
-                return res.sendStatus(200).send(result.rows[0])
+                return res.status(200).send(result.rows[0])
             }
             else{
-                return res.sendStatus(404).send(err)
+                return res.status(404).send(err)
             }
         }
     });
@@ -107,10 +110,10 @@ app.post('/login_second', (req,res,next)=>{
 
     client.query(q, [params.national_id],(err, result)=>{
         if (err){
-            return res.sendStatus(404).send(err);
+            return res.status(404).send(err);
         }
         else{
-            return res.sendStatus(200).send(result.rows[0])
+            return res.status(200).send(result.rows[0])
         }
     });
 });
@@ -157,9 +160,9 @@ app.post('/signup', (req,res)=>{
 
     client.query(q, params,(err, result)=>{
         if (err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send({"message": "insertion successful"})
+        return res.status(200).send({"message": "insertion successful"})
     });
 })
 
@@ -189,9 +192,9 @@ app.get('/patient/:id/homepage', (req, res) =>{
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 
 })
@@ -216,9 +219,9 @@ app.get('/patient/:id/appointments', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 
 
@@ -244,10 +247,10 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
 
     client.query(person_q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
         else {
-            return res.sendStatus(200).send({"message": "deleted successfully"})
+            return res.status(200).send({"message": "deleted successfully"})
         }
     })
 })
@@ -278,9 +281,9 @@ app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 
 
@@ -297,9 +300,9 @@ app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
 
     client.query(q,  (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -322,9 +325,9 @@ app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 
 
@@ -358,9 +361,9 @@ app.get('/doctor/:id/homepage', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -384,9 +387,9 @@ app.get('/doctor/:id/off_days', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -411,9 +414,9 @@ app.post('/doctor/:id/create_off_days', (req,res)=>{
     let params = [params1, params2]
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send({"message":"successful insertion"})
+        return res.status(200).send({"message":"successful insertion"})
     })
 })
 
@@ -434,9 +437,9 @@ app.post('/doctor/:id/make_diagnosis', (req,res)=>{
     let params = Object.values(req.body)
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send({"message":"successful insertion"})
+        return res.status(200).send({"message":"successful insertion"})
     })
 })
 
@@ -448,9 +451,9 @@ app.get('/doctor/:id/get_test_types',(req,res)=>{
     let q = ` SELECT * FROM test  `
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -478,9 +481,9 @@ VALUES ($1, $2, $3) `
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send({"message":"successful insertion"})
+        return res.status(200).send({"message":"successful insertion"})
     })
 
 
@@ -495,9 +498,9 @@ app.get('/doctor/:id/get_disease_names', (req,res)=>{
     let q = `SELECT * FROM diseases `
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -517,9 +520,9 @@ let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1,
     let params = Object.values(req.body)
     client.query(q, params, (err,result)=>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send({"message":"successful insertion"})
+        return res.status(200).send({"message":"successful insertion"})
     })
 })
 
@@ -543,9 +546,9 @@ app.get('/laboratorian/:id/homepage', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 } )
 
@@ -562,9 +565,9 @@ app.get('/laboratorian/:id/get_tests', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 } )
 
@@ -584,9 +587,9 @@ app.get('/laboratorian/:id/get_spec_comps', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 } )
 
@@ -596,9 +599,9 @@ app.get('/laboratorian/:id/get_all_comp', (req,res)=>{
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send(result.rows)
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -623,9 +626,9 @@ app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(404).send(err)
+            return res.status(404).send(err)
         }
-        return res.sendStatus(200).send({"MESSAGE" : "successfull"})
+        return res.status(200).send({"MESSAGE" : "successfull"})
     })
 } )
 
@@ -663,7 +666,7 @@ app.post('/admin/add_staff', (req,res)=>{
 
     client.query(q, params,(err, result)=>{
         if (err){
-            return res.sendStatus(404).send(err);
+            return res.status(404).send(err);
         }
         else {
             if (re.person_type === 'doctor') {
@@ -683,9 +686,9 @@ app.post('/admin/add_staff', (req,res)=>{
             }
             client.query(q, params, (err, result) => {
                 if (err) {
-                    return res.sendStatus(404).send(err);
+                    return res.status(404).send(err);
                 }
-                return res.sendStatus(200).send({"message": "insertion successful"})
+                return res.status(200).send({"message": "insertion successful"})
             });
         }
     });
