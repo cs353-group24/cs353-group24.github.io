@@ -14,7 +14,7 @@ CREATE TABLE person (
     password int ,
     person_type person_type,
     phone varchar ,
-    birthday date  ,
+    birthday date CHECK (birthday <= current_date ) DEFAULT current_date ,
     PRIMARY KEY (national_id)
 );
 
@@ -40,7 +40,7 @@ CREATE TABLE appointment (
 
 CREATE TABLE department (
   name varchar ,
-  date_est date ,
+  date_est date CHECK (date_est <= current_date ) DEFAULT current_date ,
   building varchar ,
   PRIMARY KEY (name)
 );

@@ -153,14 +153,14 @@ app.get('/logout', (req, res)=>{
 
  */
 app.post('/signup', (req,res)=>{
-    let q = `INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES 
+    let q = `INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES
     ($1, $2, $3, $4, $5, $6, $7, $8);`
     let re = req.body
-    let params = [re.national_id,re.name,re.surname, re.email, re.password, re.person_type, re.phone, re.birthday]
+    let params = [re.national_id,re.name,re.surname, re.email, re.password, 'patient', re.phone, re.birthday]
 
     client.query(q, params,(err, result)=>{
         if (err){
-            return res.send(err).send({"message": "insertion unsuccessful"});
+            return res.send(err).send({"message": "insertion unsuccessful"})
         }
         return res.status(200).send({"message": "insertion successful"})
     });
@@ -243,11 +243,11 @@ app.get('/patient/:id/appointments', (req,res)=>{
 //appointment cancel
 app.post('/patient/:id/appointment/cancel', (req,res)=>{
 
-    let q = ` DELETE FROM appointment WHERE appointment_id = $1;`
+    let person_q = ` DELETE FROM appointment WHERE appointment_id = $1;`
 
     let params = Object.values(req.body) // will get id
 
-    client.query(q, params, (err, result) =>{
+    client.query(person_q, params, (err, result) =>{
         if(err){
             return res.send(err).send({"message": "cancelation error"})
         }
@@ -283,7 +283,7 @@ app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send({"error": "error"})
+            return res.send(err).send({"error": "error"})
         }
         return res.status(200).send(result.rows)
     })
@@ -584,3 +584,57 @@ app.post ('/laboratorian/:id/post_comp_results', (req, res)=>{
 
 
 //admin routes
+
+
+/*
+/admin/add_staff
+    {
+        "national_id" : "$",
+        "person_type" : "$",
+        "email" : "$",
+        "password" : "$",
+        "name" : "$",
+        "surname" : "$",
+        "phone" : "$",
+        "birthday" : "$",
+        "room_no" : "$"     // optional
+        "department": "$"   // optional
+    }
+       $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+ */
+app.post('/admin/add_staff', (req,res)=>{
+    let q = `INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES 
+    ($1, $2, $3, $4, $5, $6, $7, $8);`
+    let re = req.body
+    let params = [re.national_id,re.name,re.surname, re.email, re.password, re.person_type, re.phone, re.birthday]
+
+    client.query(q, params,(err, result)=>{
+        if (err){
+            return res.send(err).send({"message": "person insertion unsuccessful"});
+        }
+        else {
+            if (re.person_type === 'doctor') {
+                q = `INSERT INTO doctor (national_id, room_no, department)
+                          VALUES ($1, $2, $3);`
+                params = [re.national_id, re.room_no, re.department]
+            } else if (re.person_type === 'pharmacist') {
+                q = `INSERT INTO pharmacist (national_id)
+                          VALUES ($1)`
+                params = [re.national_id]
+            } else if (re.person_type === 'laboratorian') {
+                q = `INSERT INTO laboratorian (national_id, department)
+                          VALUES ($1, $2);`
+                params = [re.national_id, re.department]
+            } else {
+                return res.send({"message": "invalid person type"})
+            }
+            client.query(q, params, (err, result) => {
+                if (err) {
+                    return res.send(err).send({"message": "doctor, lab or pharmacist insertion unsuccessful"});
+                }
+                return res.status(200).send({"message": "insertion successful"})
+            });
+        }
+    });
+})

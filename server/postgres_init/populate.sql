@@ -1,16 +1,19 @@
 
 
 INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES
-(1, 'mannan', 'abdul', 'mannan@gmail.com', 225588, 'patient', '+905536644231', '2021-07-01'),
-(2, 'mohlaroyim', 'raupova', 'mohi@sucks.com', 336699, 'doctor', '+925984569115', '2021-07-01'),
-(3, 'arnisa', 'fazla', 'fazla@gmail.com', 112233, 'patient', '+905536644233', '2021-12-01');
+(1, 'mannan', 'abdul', 'mannan@gmail.com', 225588, 'patient', '+905536644231', '2000-07-01'),
+(2, 'mohlaroyim', 'raupova', 'mohi@sucks.com', 336699, 'doctor', '+925984569115', '2000-07-01'),
+(3, 'arnisa', 'fazla', 'fazla@gmail.com', 112233, 'patient', '+905536644233', '2000-12-01'),
+(4, 'atakan', 'aray', 'atakan@gmail.com', 445566, 'doctor', '+905325425145', '2000-12-01'),
+(5, 'joyner', 'lucas', 'joyner@outlook.com', 556677, 'pharmacist', '+906451354875', '2000-12-01');
 
 INSERT INTO department (name, date_est, building) VALUES
-('Computer Science','2021-03-01', 'A' );
+('Computer Science','2021-03-01', 'A' ),
+('Cardiology','2021-03-01', 'B' );
 
 
 INSERT INTO pharmacist (national_id) VALUES
-(2);
+(5);
 
 
 INSERT INTO doctor (national_id, room_no, department) VALUES
@@ -31,8 +34,8 @@ INSERT INTO prescription (prescription_no, prescription_type, date) VALUES
 
 INSERT INTO appointment (appointment_id, date,  patient_id, doctor_id) VALUES
     (1, '2030-04-01',  1, 2),
-    (2, '2030-04-01',  1, 2),
-    (3, '2030-04-01',  3, 2);
+    (2, '2030-04-02',  1, 2),
+    (3, '2030-04-03',  3, 2);
 
 INSERT INTO component (test_name, comp_name, upper_normality_interval, lower_normality_interval) VALUES
     ('blood', 'calcium', 0, 25),
