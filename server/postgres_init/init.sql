@@ -59,6 +59,7 @@ CREATE TABLE disease (
   PRIMARY KEY (name)
 );
 
+
 CREATE TABLE disease_symptoms (
   disease_name varchar ,
   symptom_name varchar ,
@@ -169,7 +170,7 @@ CREATE TABLE test_assigned_to (
 
 CREATE TABLE doctor_off_days (
     doctor_id int,
-    date date,
+    date date CHECK (date <= current_date ) DEFAULT current_date ,
     PRIMARY KEY (doctor_id,date)
 );
 
