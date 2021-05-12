@@ -86,7 +86,7 @@ app.post('/login_first', (req,res,next)=>{
                 return res.status(200).send(result.rows[0])
             }
             else{
-                return res.status(404).send(err)
+                return res.status(403).send(err)
             }
         }
     });
