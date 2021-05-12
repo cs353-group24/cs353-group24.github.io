@@ -71,7 +71,7 @@ app.use('/patient', patientRouter);
         naming conventions presented above should be followed
      */
 
-app.post('/login_first', (req,res,next)=>{
+app.get('/login_first', (req,res,next)=>{
     let q = 'SELECT * FROM person WHERE email=$1'
     let params =   req.body
 
@@ -104,7 +104,7 @@ app.post('/login_first', (req,res,next)=>{
 
 
 
-app.post('/login_second', (req,res,next)=>{
+app.get('/login_second', (req,res,next)=>{
     let q = 'SELECT * FROM person WHERE national_id=$1'
     let params =   req.body
 
