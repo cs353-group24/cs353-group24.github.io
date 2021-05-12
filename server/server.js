@@ -456,7 +456,6 @@ app.get('/doctor/:id/get_test_types',(req,res)=>{
 
 
 
-
 // laboratorian will be selected randomly a routed needed to pass required laboratorian types ???
 //ask for tests -> will be ssigned to a random lab technician
 
