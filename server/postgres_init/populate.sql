@@ -51,6 +51,9 @@ INSERT INTO prescribed_by (prescription_no, appointment_id) VALUES
     (1, 1),
     (2, 2);
 
+INSERT INTO symptom (name, description) VALUES
+('chronic cough', 'can be result of: smoking, chronic bronchitis, common colds, flu, emphysema, dry mouth, asthma, allergies.'),
+('heartburn', 'Heartburn occurs when stomach acid backs up into the tube that carries food from your mouth to your stomach (esophagus).');
 
 INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_name) VALUES
 (1, 3, 'blood'),

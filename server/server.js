@@ -301,8 +301,6 @@ app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
         }
         return res.status(200).send(result.rows)
     })
-
-
 })
 
 /*
@@ -349,9 +347,9 @@ app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
      naming conventions presented above should be followed
  */
 
-// returns patient_id, save it and then give it as a parameter in the following three requests as pid.
+// returns appointment_id, save it and then give it as a parameter in the following three requests as aid.
 app.get('/doctor/:id/homepage', (req,res)=>{
-    let q = ` SELECT appointment_id, P.name, P.surname, patient_id, date
+    let q = ` SELECT appointment_id, P.name, P.surname, date
                FROM appointment, person as P 
                 WHERE doctor_id = $1 and EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM current_date)
                 and P.national_id = patient_id and status = 'upcoming'
@@ -366,10 +364,6 @@ app.get('/doctor/:id/homepage', (req,res)=>{
     })
 })
 
-// /doctor/:id/homepage/:pid/symptoms
-
-// /doctor/:id/homepage/:pid/diagnosis
-// /doctor/:id/homepage/:pid/prescription
 
 //manage days off -> need database changes
 //add off day
