@@ -11,7 +11,7 @@ CREATE TABLE person (
     name varchar ,
     surname varchar ,
     email varchar UNIQUE ,
-    password int ,
+    password varchar ,
     person_type person_type,
     phone varchar ,
     birthday date CHECK (birthday <= current_date ) DEFAULT current_date ,
