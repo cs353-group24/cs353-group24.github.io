@@ -164,7 +164,10 @@
       signupNext(){
           this.$refs.form.validate();
           if (this.valid) {
-              this.$router.push({name:'Signup2'});
+            let temp = {email: this.email, id: this.id, password: this.password}
+            let parsed = JSON.stringify(temp)
+            localStorage.setItem('signup', parsed)
+            this.$router.push({name:'Signup2'});
           }
       }
     }
