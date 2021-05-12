@@ -306,6 +306,7 @@ app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
     })
 })
 
+
 /*
     /patient/:id/appointment/newappointment/doctor
     {
@@ -330,8 +331,168 @@ app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
         return res.status(200).send(result.rows)
     })
 
-
 })
+
+/*
+    this function returns a patient to their all tests
+    /patient/:id/see_all_tests:
+        /patient/$/see_all_tests
+      $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+ */
+
+app.get('/patient/:id/see_all_tests', (req,res)=>{
+    let q = `SELECT *
+             FROM appointment NATURAL JOIN test_result 
+             WHERE patient_id = $1 ; `
+    let params = Object.values(req.params)
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
+/*
+    this function returns a patient to their all test components
+    /patient/:id/see_all_comps:
+        /patient/$/see_all_comps
+      $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+ */
+app.get('/patient/:id/see_all_comps', (req,res)=>{
+    let q = `SELECT *
+             FROM appointment NATURAL JOIN test_result NATURAL JOIN comp_result
+             WHERE patient_id = $1 ; `
+    let params = Object.values(req.params)
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
+
+/*
+     this function returns a patient to their test results for an appointment
+      /patient/:id/see_app_tests:
+        /patient/$/see_app_tests
+
+        {
+            "assignment_id":"$"
+        }
+
+      $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+
+ */
+app.get('/patient/:id/see_app_tests', (req,res)=>{
+    let q = `SELECT *
+             FROM appointment NATURAL JOIN test_result 
+             WHERE patient_id = $1 and appointment_id = $2 ; `
+    let params1 = req.params
+    let params2 = req.body
+    let params = [params1.id, params2.appointment_id]
+
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
+
+/*
+     this function returns a patient to their test results along with components for an appointment
+      /patient/:id/see_app_comps:
+        /patient/$/see_app_comps
+
+        {
+            "assignment_id":"$"
+        }
+
+      $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+
+ */
+app.get('/patient/:id/see_app_comps', (req,res)=>{
+    let q = `SELECT *
+             FROM appointment NATURAL JOIN test_result NATURAL JOIN comp_result
+             WHERE patient_id = $1 and appointment_id = $2 ; `
+    let params1 = req.params
+    let params2 = req.body
+    let params = [params1.id, params2.appointment_id]
+
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
+/*
+    this function returns a patient to their all diagnoses
+    /patient/:id/see_all_diag:
+        /patient/$/see_all_diag
+      $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+ */
+
+app.get('/patient/:id/see_all_diag', (req,res)=>{
+    let q = `SELECT *
+             FROM appointment NATURAL JOIN diagnosis
+             WHERE patient_id = $1 ; `
+    let params = Object.values(req.params)
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
+/*
+    this function returns a patient to their diagnosis for a specific apointment
+    /patient/:id/see_all_diag:
+        /patient/$/see_all_diag
+
+           {
+            "assignment_id":"$"
+        }
+
+      $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+ */
+
+app.get('/patient/:id/see_app_diag', (req,res)=>{
+    let q = `SELECT *
+             FROM appointment NATURAL JOIN diagnosis
+             WHERE patient_id = $1 and appointment_id = $2 ; `
+    let params1 = req.params
+    let params2 = req.body
+    let params = [params1.id, params2.appointment_id]
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
+
+
+
+
 // /patient/:id/prescriptions
 // /patient/:id/tests
 // /patient/:id/diagnosis ?
