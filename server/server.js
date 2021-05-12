@@ -847,7 +847,7 @@ app.post('/admin/add_staff', (req,res)=>{
             }
             client.query(q, params, (err, result) => {
                 if (err) {
-                    return res.status(404).send(err);
+                    return res.status(403).send(err);
                 }
                 return res.status(200).send({"message": "insertion successful"})
             });
