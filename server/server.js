@@ -74,16 +74,16 @@ app.post('/login_first', (req,res,next)=>{
 
     client.query(q, [params.email],(err, result)=>{
         if (err){
-            return res.send(error);
+            return res.sendStatus(404).send(err);
         }
         else{
             // res.send(result);
            // console.log(JSON.parse(JSON.stringify(result)))
             if(result.rows[0].password.toString() === params.password.toString()){
-                return res.status(200).send(result.rows[0])
+                return res.sendStatus(200).send(result.rows[0])
             }
             else{
-                return res.status(404).send('Not found')
+                return res.sendStatus(404).send(err)
             }
         }
     });
@@ -107,10 +107,10 @@ app.post('/login_second', (req,res,next)=>{
 
     client.query(q, [params.national_id],(err, result)=>{
         if (err){
-            return res.send(error);
+            return res.sendStatus(404).send(err);
         }
         else{
-            return res.status(200).send(result.rows[0])
+            return res.sendStatus(200).send(result.rows[0])
         }
     });
 });
@@ -125,9 +125,6 @@ app.post('/login_second', (req,res,next)=>{
 app.get('/logout', (req, res)=>{
     res.redirect('/');
 });
-
-
-
 
 
 //sign up
@@ -153,16 +150,16 @@ app.get('/logout', (req, res)=>{
 
  */
 app.post('/signup', (req,res)=>{
-    let q = `INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES 
+    let q = `INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES
     ($1, $2, $3, $4, $5, $6, $7, $8);`
     let re = req.body
-    let params = [re.national_id,re.name,re.surname, re.email, re.password, re.person_type, re.phone, re.birthday]
+    let params = [re.national_id,re.name,re.surname, re.email, re.password, 'patient', re.phone, re.birthday]
 
     client.query(q, params,(err, result)=>{
         if (err){
-            return res.send(error).send({"message": "insertion unsuccessful"});
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send({"message": "insertion successful"})
+        return res.sendStatus(200).send({"message": "insertion successful"})
     });
 })
 
@@ -192,14 +189,12 @@ app.get('/patient/:id/homepage', (req, res) =>{
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"error": "error"})
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
 
 })
-
-
 
 //appointments
 /*
@@ -221,9 +216,9 @@ app.get('/patient/:id/appointments', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no appointment found"})
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
 
 
@@ -243,18 +238,18 @@ app.get('/patient/:id/appointments', (req,res)=>{
 //appointment cancel
 app.post('/patient/:id/appointment/cancel', (req,res)=>{
 
-    let q = ` DELETE FROM appointment WHERE appointment_id = $1;`
+    let person_q = ` DELETE FROM appointment WHERE appointment_id = $1;`
 
-    let params = Object.values(req.body) // will get id
+    let params = Object.values(req.params) // will get id
 
-    client.query(q, params, (err, result) =>{
+    client.query(person_q, params, (err, result) =>{
         if(err){
-            return res.send(err).send({"message": "cancelation error"})
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send({"message": "deleted successfully"})
+        else {
+            return res.sendStatus(200).send({"message": "deleted successfully"})
+        }
     })
-
-
 })
 
 
@@ -278,14 +273,14 @@ app.post('/patient/:id/appointment/newappointment', (req,res)=>{
                ( $1,  $2, $3); `
 
     let params1 = req.params // will give national id
-    let params2 = req.body //
+    let params2 = req.body
     let params = [ params2.date, params1, params2.doctor_id]
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send({"error": "error"})
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
 
 
@@ -302,12 +297,10 @@ app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
 
     client.query(q,  (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no department found"})
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
-
-
 })
 
 /*
@@ -323,26 +316,22 @@ app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
 //new appointment get doctor
 app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 
-    let q = ` SELECT *
-
-              FROM doctor
-
-              WHERE department = $1 ;  `
+    let q = ` SELECT national_id, name, surname FROM person NATURAL JOIN doctor WHERE department = $1;  `
 
     let params = Object.values(req.body)
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.send(error).send({"message": "no doctor"})
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
 
 
 })
-
-
-
+// /patient/:id/prescriptions
+// /patient/:id/tests
+// /patient/:id/diagnosis ?
 
 //doctor routes
 
@@ -358,26 +347,25 @@ app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
      naming conventions presented above should be followed
  */
 
+// returns appointment_id, save it and then give it as a parameter in the following three requests as aid.
 app.get('/doctor/:id/homepage', (req,res)=>{
-    let q = ` SELECT *
-               FROM appointment
+    let q = ` SELECT appointment_id, P.name, P.surname, date
+               FROM appointment, person as P 
                 WHERE doctor_id = $1 and EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM current_date)
+                and P.national_id = patient_id and status = 'upcoming'
                 ORDER BY date DESC ;`
     let params = Object.values(req.params)
-    console.log(params)
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(401).send({"message": "no appointment found"})
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
 })
 
 
-
-
-//manage days of -> need database changes
+//manage days off -> need database changes
 //add off day
 
 /*
@@ -396,9 +384,9 @@ app.get('/doctor/:id/off_days', (req,res)=>{
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(401).send({"message": "no appointment found"})
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
 })
 
@@ -423,9 +411,9 @@ app.post('/doctor/:id/create_off_days', (req,res)=>{
     let params = [params1, params2]
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(401)
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send({"message":"successful insertion"})
+        return res.sendStatus(200).send({"message":"successful insertion"})
     })
 })
 
@@ -446,9 +434,9 @@ app.post('/doctor/:id/make_diagnosis', (req,res)=>{
     let params = Object.values(req.body)
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(401)
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send({"message":"successful insertion"})
+        return res.sendStatus(200).send({"message":"successful insertion"})
     })
 })
 
@@ -460,12 +448,11 @@ app.get('/doctor/:id/get_test_types',(req,res)=>{
     let q = ` SELECT * FROM test  `
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(401)
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
 })
-
 
 
 
@@ -491,9 +478,9 @@ VALUES ($1, $2, $3) `
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(401)
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send({"message":"successful insertion"})
+        return res.sendStatus(200).send({"message":"successful insertion"})
     })
 
 
@@ -508,9 +495,9 @@ app.get('/doctor/:id/get_disease_names', (req,res)=>{
     let q = `SELECT * FROM diseases `
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(401)
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
 })
 
@@ -530,21 +517,37 @@ let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1,
     let params = Object.values(req.body)
     client.query(q, params, (err,result)=>{
         if(err){
-            return res.sendStatus(401)
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send({"message":"successful insertion"})
+        return res.sendStatus(200).send({"message":"successful insertion"})
     })
 })
 
 
 
 
-
-
-
-
 //laboratorian routes
 
+/*
+    /laboratorian/:id/homepage:
+    /laboratorian/$/homepage
+ */
+app.get('/laboratorian/:id/homepage', (req,res)=>{
+
+    let q = `SELECT *
+             FROM test_assigned_to ta NATURAL JOIN test_result tr
+             WHERE laboratorian_id = $1 and test_status = 'assigned' 
+             and EXTRACT(MONTH FROM ta.date) = EXTRACT(MONTH FROM current_date)
+             and ta.date >= current_date;  `
+    let params = Object.values(req.params)
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(404).send(err)
+        }
+        return res.sendStatus(200).send(result.rows)
+    })
+} )
 
 /*
     /laboratorian/:id/get_tests:
@@ -553,29 +556,78 @@ let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1,
 app.get('/laboratorian/:id/get_tests', (req,res)=>{
 
     let q = `SELECT *
-             FROM test_assigned_to
-             WHERE laboratorian_id = $1  `
+             FROM test_assigned_to NATURAL JOIN test_result
+             WHERE laboratorian_id = $1;  `
     let params = Object.values(req.params)
 
     client.query(q, params, (err, result) =>{
         if(err){
-            return res.sendStatus(401)
+            return res.sendStatus(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.sendStatus(200).send(result.rows)
     })
 } )
 
+/*
+    /laboratorian/:id/get_spec_comps:
+    /laboratorian/$/get_spec_comps
+    {
+        "result_id" : "$"
+    }
+ */
+app.get('/laboratorian/:id/get_spec_comps', (req,res)=>{
+    let q = `SELECT *
+             FROM test_result NATURAL JOIN comp_result
+             WHERE result_id = $1;  `
+
+    let params = Object.values(req.body)
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(404).send(err)
+        }
+        return res.sendStatus(200).send(result.rows)
+    })
+} )
 
 //get components with result_id
-app.get('/laboratorian/:id/get_comp', (req,res)=>{
-
+app.get('/laboratorian/:id/get_all_comp', (req,res)=>{
+    let q = 'SELECT * FROM test_assigned_to NATURAL JOIN test_result NATURAL JOIN comp_result WHERE laboratorian_id = $1;'
+    let params = Object.values(req.params)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(404).send(err)
+        }
+        return res.sendStatus(200).send(result.rows)
+    })
 })
 
+/*
+    /laboratorian/:id/post_spec_comps:
+    /laboratorian/$/post_spec_comps
+    {
+        "result_id" : "$",
+        "comp_name" : "$",
+        "comp_value": "$",
+        "comp_result" : "$",
+        "comp_status" : "$"
+    }
+ */
+app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
+    let q = `UPDATE comp_result
+             SET  comp_value = $1, comp_result = $2, comp_status = $3
+             WHERE result_id = $4 and comp_name = $5;  `
 
-// assign scores to components
-app.post ('/laboratorian/:id/post_comp_results', (req, res)=>{
+    let re = req.body
+    let params = [re.comp_value, re.comp_result, re.comp_status, re.result_id, re.comp_name]
 
-})
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.sendStatus(404).send(err)
+        }
+        return res.sendStatus(200).send({"MESSAGE" : "successfull"})
+    })
+} )
 
 
 //pharmacist routes
@@ -584,3 +636,57 @@ app.post ('/laboratorian/:id/post_comp_results', (req, res)=>{
 
 
 //admin routes
+
+
+/*
+/admin/add_staff
+    {
+        "national_id" : "$",
+        "person_type" : "$",
+        "email" : "$",
+        "password" : "$",
+        "name" : "$",
+        "surname" : "$",
+        "phone" : "$",
+        "birthday" : "$",
+        "room_no" : "$"     // optional
+        "department": "$"   // optional
+    }
+       $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+ */
+app.post('/admin/add_staff', (req,res)=>{
+    let q = `INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES 
+    ($1, $2, $3, $4, $5, $6, $7, $8);`
+    let re = req.body
+    let params = [re.national_id,re.name,re.surname, re.email, re.password, re.person_type, re.phone, re.birthday]
+
+    client.query(q, params,(err, result)=>{
+        if (err){
+            return res.sendStatus(404).send(err);
+        }
+        else {
+            if (re.person_type === 'doctor') {
+                q = `INSERT INTO doctor (national_id, room_no, department)
+                          VALUES ($1, $2, $3);`
+                params = [re.national_id, re.room_no, re.department]
+            } else if (re.person_type === 'pharmacist') {
+                q = `INSERT INTO pharmacist (national_id)
+                          VALUES ($1)`
+                params = [re.national_id]
+            } else if (re.person_type === 'laboratorian') {
+                q = `INSERT INTO laboratorian (national_id, department)
+                          VALUES ($1, $2);`
+                params = [re.national_id, re.department]
+            } else {
+                return res.send({"message": "invalid person type"})
+            }
+            client.query(q, params, (err, result) => {
+                if (err) {
+                    return res.sendStatus(404).send(err);
+                }
+                return res.sendStatus(200).send({"message": "insertion successful"})
+            });
+        }
+    });
+})

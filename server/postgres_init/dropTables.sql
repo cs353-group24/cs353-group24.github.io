@@ -20,7 +20,8 @@ symptom,
 test,
 test_assigned_to,
 doctor_off_days,
-    comp_result;
+comp_result,
+prescription_assigned_to;
 
 DROP  type
 app_status,

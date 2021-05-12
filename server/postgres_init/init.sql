@@ -11,10 +11,10 @@ CREATE TABLE person (
     name varchar ,
     surname varchar ,
     email varchar UNIQUE ,
-    password int ,
+    password varchar ,
     person_type person_type,
     phone varchar ,
-    birthday date  ,
+    birthday date CHECK (birthday <= current_date ) DEFAULT current_date ,
     PRIMARY KEY (national_id)
 );
 
@@ -32,14 +32,15 @@ CREATE TABLE appointment (
   status app_status DEFAULT 'upcoming',
   patient_id int ,
   doctor_id int ,
-  PRIMARY KEY (appointment_id)
-
+  PRIMARY KEY (appointment_id) ,
+  UNIQUE (date, patient_id) ,
+  UNIQUE (date, doctor_id)
   );
 
 
 CREATE TABLE department (
   name varchar ,
-  date_est date ,
+  date_est date CHECK (date_est <= current_date ) DEFAULT current_date ,
   building varchar ,
   PRIMARY KEY (name)
 );
@@ -122,9 +123,9 @@ CREATE TABLE prescription (
 CREATE TABLE test_result (
   test_name varchar ,
   result_id serial ,
-  result_date timestamp  DEFAULT current_timestamp,
+  result_date date  DEFAULT current_date,
   appointment_id int ,
-  status test_status DEFAULT 'assigned',
+  test_status test_status DEFAULT 'assigned',
   PRIMARY KEY (result_id)
   );
 
@@ -133,7 +134,7 @@ CREATE TABLE comp_result (
     comp_name varchar,
     comp_value varchar,
     comp_result varchar DEFAULT NULL,
-    status test_status  DEFAULT 'assigned',
+    comp_status test_status  DEFAULT 'assigned',
     PRIMARY KEY (result_id, comp_name)
 );
 
@@ -172,6 +173,11 @@ CREATE TABLE doctor_off_days (
     PRIMARY KEY (doctor_id,date)
 );
 
+CREATE TABLE prescription_assigned_to (
+    pharmacist_id int ,
+    prescription_no int ,
+    PRIMARY KEY (pharmacist_id,prescription_no)
+);
 
 --- foreign-key constraints
 ALTER TABLE doctor
@@ -181,7 +187,11 @@ ALTER TABLE doctor
 ALTER TABLE appointment
     ADD CONSTRAINT appointment_doctor FOREIGN KEY (doctor_id) REFERENCES doctor (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT appointment_patient FOREIGN KEY (patient_id) REFERENCES patient (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
-
+ /*
+ALTER TABLE appointment
+    ADD UNIQUE (date, patient_id)
+    ADD UNIQUE (date, doctor_id)
+ */
 ALTER TABLE component
     ADD CONSTRAINT component_test FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -238,7 +248,9 @@ ALTER TABLE comp_result
     ADD CONSTRAINT comp_name FOREIGN KEY (comp_name) REFERENCES component (comp_name) ON DELETE CASCADE ON UPDATE CASCADE,
      ADD CONSTRAINT comp_result_id FOREIGN KEY (result_id) REFERENCES test_result (result_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-
+ALTER TABLE prescription_assigned_to
+    ADD CONSTRAINT presc_pharma FOREIGN KEY (pharmacist_id) REFERENCES pharmacist (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    ADD CONSTRAINT presc_presc FOREIGN KEY (prescription_no) REFERENCES prescription (prescription_no) ON DELETE CASCADE ON UPDATE CASCADE;
 /*
 create triggers and functions for insertion into patient, doctor, laboratorian and pharmacist  tables
 to make insert additional values
