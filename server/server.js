@@ -127,9 +127,6 @@ app.get('/logout', (req, res)=>{
 });
 
 
-
-
-
 //sign up
 
 
@@ -199,8 +196,6 @@ app.get('/patient/:id/homepage', (req, res) =>{
 
 })
 
-
-
 //appointments
 /*
     /patient/:id/appointments :
@@ -245,16 +240,16 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
 
     let person_q = ` DELETE FROM appointment WHERE appointment_id = $1;`
 
-    let params = Object.values(req.body) // will get id
+    let params = Object.values(req.params) // will get id
 
     client.query(person_q, params, (err, result) =>{
         if(err){
             return res.send(err).send({"message": "cancelation error"})
         }
-        return res.status(200).send({"message": "deleted successfully"})
+        else {
+            return res.status(200).send({"message": "deleted successfully"})
+        }
     })
-
-
 })
 
 
@@ -278,7 +273,7 @@ app.post('/patient/:id/appointment/newappointment', (req,res)=>{
                ( $1,  $2, $3); `
 
     let params1 = req.params // will give national id
-    let params2 = req.body //
+    let params2 = req.body
     let params = [ params2.date, params1, params2.doctor_id]
 
     client.query(q, params, (err, result) =>{
@@ -323,11 +318,7 @@ app.get('/patient/:id/appointment/newappointment/departments', (req,res)=>{
 //new appointment get doctor
 app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 
-    let q = ` SELECT *
-
-              FROM doctor
-
-              WHERE department = $1 ;  `
+    let q = ` SELECT national_id, name, surname FROM person NATURAL JOIN doctor WHERE department = $1;  `
 
     let params = Object.values(req.body)
 
@@ -340,9 +331,9 @@ app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
 
 
 })
-
-
-
+// /patient/:id/prescriptions
+// /patient/:id/tests
+// /patient/:id/diagnosis ?
 
 //doctor routes
 
@@ -358,13 +349,14 @@ app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
      naming conventions presented above should be followed
  */
 
+// returns patient_id, save it and then give it as a parameter in the following three requests as pid.
 app.get('/doctor/:id/homepage', (req,res)=>{
-    let q = ` SELECT *
-               FROM appointment
+    let q = ` SELECT appointment_id, P.name, P.surname, patient_id, date
+               FROM appointment, person as P 
                 WHERE doctor_id = $1 and EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM current_date)
+                and P.national_id = patient_id and status = 'upcoming'
                 ORDER BY date DESC ;`
     let params = Object.values(req.params)
-    console.log(params)
 
     client.query(q, params, (err, result) =>{
         if(err){
@@ -374,10 +366,12 @@ app.get('/doctor/:id/homepage', (req,res)=>{
     })
 })
 
+// /doctor/:id/homepage/:pid/symptoms
 
+// /doctor/:id/homepage/:pid/diagnosis
+// /doctor/:id/homepage/:pid/prescription
 
-
-//manage days of -> need database changes
+//manage days off -> need database changes
 //add off day
 
 /*

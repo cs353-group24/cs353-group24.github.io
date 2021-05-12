@@ -17,7 +17,8 @@ INSERT INTO pharmacist (national_id) VALUES
 
 
 INSERT INTO doctor (national_id, room_no, department) VALUES
-(2, 489, 'Computer Science');
+(2, 489, 'Computer Science'),
+(4, 302, 'Cardiology');
 
 INSERT INTO laboratorian (national_id, department) VALUES
 (3, 'Computer Science');
