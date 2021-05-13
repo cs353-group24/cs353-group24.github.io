@@ -6,7 +6,8 @@ INSERT INTO person (national_id, name, surname, email, password, person_type, ph
 (3, 'arnisa', 'fazla', 'fazla@gmail.com', 334455, 'laboratorian', '+905536644233', '2000-12-01'),
 (4, 'atakan', 'aray', 'atakan@gmail.com', 445566, 'doctor', '+905325425145', '2000-12-01'),
 (5, 'joyner', 'lucas', 'joyner@outlook.com', 556677, 'pharmacist', '+906451354875', '2000-12-01'),
-(6, 'david', 'davenport', 'david@outlook.com', 667788, 'laboratorian', '+906451354875', '2000-12-01');
+(6, 'david', 'davenport', 'david@outlook.com', 667788, 'laboratorian', '+906451354875', '2000-12-01'),
+(7, 'name', 'surname', 'admin@gmail.com', 667788, 'admin', '+906451354875', '2000-12-01');
 
 INSERT INTO department (name, date_est, building) VALUES
 ('Computer Science','2021-03-01', 'A' ),
