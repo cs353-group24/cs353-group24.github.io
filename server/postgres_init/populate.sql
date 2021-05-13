@@ -10,7 +10,8 @@ INSERT INTO person (national_id, name, surname, email, password, person_type, ph
 
 INSERT INTO department (name, date_est, building) VALUES
 ('Computer Science','2021-03-01', 'A' ),
-('Cardiology','2021-03-01', 'B' );
+('Cardiology','2021-03-01', 'B' ),
+('Gastroenterology', '2021-03-02', 'C');
 
 
 INSERT INTO pharmacist (national_id) VALUES
@@ -25,10 +26,10 @@ INSERT INTO laboratorian (national_id, department) VALUES
 (3, 'Computer Science'),
 (6, 'Cardiology');
 
-INSERT INTO test (test_name) VALUES
-('blood'),
-('stones'),
-('x-ray');
+INSERT INTO test (test_name, department) VALUES
+('blood', 'Cardiology'),
+('stones', 'Gastroenterology'),
+('x-ray', 'Computer Science');
 
 INSERT INTO prescription (prescription_no, prescription_type, date) VALUES
 (1, 'A','2021-04-01' ),
