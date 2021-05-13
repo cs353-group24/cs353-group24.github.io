@@ -22,10 +22,11 @@
         :page.sync="page"
         :search="search"
         :hide-default-footer="true"
-        :loading="(items.length === 0)? true:false"
-        loading-text="Loading... Please wait"
+        :no-data-text="'No items in the table'"
         @page-count="pageCount = $event"
       >
+        <!-- :loading="(items.length === 0)? true:false"
+        loading-text="Loading... Please wait" -->
         <!-- :custom-filter="filterOnlyCapsText" can be used to implement a filter if needed, check data-table in vuetify -->
         <!-- Use below if u wanna color some stuff -->
         <template v-slot:[`item.${col.name}`]="{ item }" v-for="col in color"> 

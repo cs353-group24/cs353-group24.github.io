@@ -88,7 +88,7 @@ app.get('/login_first', (req,res,next)=>{
                 return res.status(403).send(err)
             } else {
                 if(result.rows[0].password.toString() === params.password.toString()){
-                    return res.status(200).send(result.rows)
+                    return res.status(200).send(result.rows[0])
                 }
                 else{
                     return res.status(402).send(err)
@@ -114,13 +114,14 @@ app.get('/login_first', (req,res,next)=>{
 app.get('/login_second', (req,res,next)=>{
     let q = 'SELECT * FROM person WHERE national_id=$1'
     let params =   req.query
+    console.log(params)
 
     client.query(q, [params.national_id],(err, result)=>{
         if (err){
             return res.status(404).send(err);
         }
         else{
-            return res.status(200).send(result.rows)
+            return res.status(200).send(result.rows[0])
         }
     });
 });
@@ -194,7 +195,7 @@ app.get('/patient/:id/homepage', (req, res) =>{
     let q = `SELECT a.appointment_id, p.name, p.surname, a.date, d.department
              FROM appointment as  a, doctor as d, person as p
              WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id and a.status = 'upcoming'
-             ORDER BY  date DESC ; `
+             ORDER BY  date ASC ; `
 
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
@@ -284,7 +285,9 @@ app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
     let params1 = req.params // will give national id
     let params2 = req.body
-    let params = [ params2.date, params1, params2.doctor_id]
+    let params = [ params2.date, params1.id, params2.doctor_id]
+
+    console.log(params)
 
     client.query(q, params, (err, result) =>{
         if(err){
@@ -552,7 +555,7 @@ app.get('/doctor/:id/off_days', (req,res)=>{
               FROM doctor_off_days
               WHERE doctor_id = $1 ;  `
     let params = Object.values(req.params)
-
+    console.log(params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -579,7 +582,8 @@ app.post('/doctor/:id/create_off_days', (req,res)=>{
 
     let params1 = req.body //date
     let params2 = req.params //id
-    let params = [params1, params2]
+    let params = [params1.date, Number(params2.id)]
+    console.log(params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)

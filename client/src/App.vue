@@ -8,13 +8,13 @@
     <v-app-bar app flat color="F7FAFB" class="mb-15">
         <v-toolbar-title class="font-weight-bold datatablefontcolor--text" :style="{marginLeft: (3 - (($router.currentRoute.path.includes('/patient')) ? 1 : 0)) + 'em'}">Hospital Database Management System</v-toolbar-title>
         <v-spacer></v-spacer>
-        <router-link to="/test">Test</router-link>
+        <!-- <router-link to="/test">Test</router-link>
         <router-link class="ml-5" to="/patient">Patient</router-link>
         <router-link class="ml-5" to="/auth">Auth</router-link>
         <router-link class="ml-5" to="/doctor">Doctor</router-link>
         <router-link class="ml-5" to="/laboratorian">Laboratorian</router-link>
         <router-link class="ml-5" to="/pharmacist">Pharma</router-link>
-        <router-link class="ml-5" to="/admin">Admin</router-link>
+        <router-link class="ml-5" to="/admin">Admin</router-link> -->
     </v-app-bar>
     <v-main>
       <router-view/>

@@ -165,8 +165,7 @@
           this.$refs.form.validate();
           if (this.valid) {
             let temp = {email: this.email, id: this.id, password: this.password}
-            let parsed = JSON.stringify(temp)
-            localStorage.setItem('signup', parsed)
+            this.$cookies.set('signup', temp, '0')
             this.$router.push({name:'Signup2'});
           }
       }

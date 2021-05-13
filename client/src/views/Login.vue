@@ -16,7 +16,7 @@
           <v-spacer></v-spacer>
           <v-col cols="12" md="5">
             <v-card outlined class="py-16 px-8 rounded-xl mt-n5" height="110%" width="90%" :elevation="8">
-              <v-form v-model="valid">
+              <v-form ref="form" v-model="valid">
                 <v-card flat class="align-center d-flex flex-row justify-center">
                   <v-card-title class="blue--text text--darken-3 text-h4 font-weight-black mb-3">
                     Login
@@ -60,7 +60,7 @@
                   </v-row>
                   <v-row>
                     <v-col class="d-flex justify-center">
-                      <v-btn width="100%" height="100%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Login</v-btn>
+                      <v-btn @click="loginHandle" width="100%" height="100%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Login</v-btn>
                     </v-col>
                     <v-col class="d-flex justify-center">
                       <v-btn @click="goToSignup" width="100%" large class="rounded-lg font-weight-bold" outlined color="#5080DE">Signup</v-btn>
@@ -71,6 +71,29 @@
             </v-card>
           </v-col>
         </v-row>
+        <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+        >
+          {{ errorMsg }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
+        <v-progress-circular
+          indeterminate
+          size="64"
+        ></v-progress-circular>
+      </v-overlay>
       </v-container>
     </v-main>
   </v-app>
@@ -79,6 +102,9 @@
 <script>
   export default {
     data: () => ({
+      overlay: false,
+      errorMsg: '',
+      snackbar: false,
       valid: false,
       email: '',
       password: '',
@@ -94,7 +120,40 @@
     methods: {
       goToSignup() {
         this.$router.push({name:'Signup'});
+      },
+      async loginHandle(){
+        this.overlay= true
+        this.$refs.form.validate()
+        if (this.valid) {
+          await this.$http.get(this.$url+"/login_first", {
+            params: {
+              email: this.email, 
+              password: this.password
+            }
+          }).then((res) => {
+            this.$cookies.set('auth', res.data.email, '0')
+            this.overlay = false
+            this.$router.push({path: `/auth`})
+          }).catch(e => {
+            if(e.response.status === 403)
+            {
+              this.errorMsg = 'No such email, try again'
+            }
+            else if(e.response.status === 402)
+            {
+              this.errorMsg = 'Wrong password, try again'
+            }
+            else{
+              this.errorMsg = 'Unknown error'
+            }
+            this.snackbar = true
+            this.overlay = false
+          })
+        }
       }
+    },
+    mounted(){
+      this.$cookies.config('1d', '/')
     }
   }
 </script>

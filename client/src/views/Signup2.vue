@@ -258,6 +258,7 @@
           this.errorMsg = 'Succesfully signed up, will route to login shortly'
           setTimeout(() => this.$router.push({name: 'Login'}), 4000);
           this.overlay = true
+          this.$cookies.remove('signup')
           console.log(result)
         }).catch((e) => {
           this.overlay = false
@@ -269,11 +270,12 @@
       
     },
     mounted(){
-      if (localStorage.getItem('signup')) {
+      if (this.$cookies.get('signup')) {
         try {
-          this.signup = JSON.parse(localStorage.getItem('signup'));
+          this.signup = this.$cookies.get('signup');
+          console.log(this.signup)
         } catch(e) {
-          localStorage.removeItem('signup');
+          this.$cookies.remove('signup');
         }
       }
     },

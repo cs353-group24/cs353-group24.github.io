@@ -35,9 +35,10 @@ INSERT INTO prescription (prescription_no, prescription_type, date) VALUES
 (2, 'B', '2021-04-01');
 
 
-INSERT INTO appointment (appointment_id, date,  patient_id, doctor_id) VALUES
-    (1, '2030-04-01',  1, 2),
-    (2, '2030-04-02',  1, 2);
+INSERT INTO appointment (date, patient_id, doctor_id) VALUES
+    ('2030-04-01',  1, 2),
+    ('2030-04-03',  1, 4),
+    ('2030-04-02',  1, 2);
 
 INSERT INTO component (test_name, comp_name, upper_normality_interval, lower_normality_interval) VALUES
     ('blood', 'calcium', 0, 25),
