@@ -332,7 +332,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
-
+/*
 CREATE or REPLACE FUNCTION update1()
 returns trigger
 as $$
@@ -346,7 +346,7 @@ RETURN NEW;
 END;
 $$
 LANGUAGE 'plpgsql';
-
+*/
 --- trigers
 
 CREATE TRIGGER  addition1
@@ -368,8 +368,10 @@ CREATE TRIGGER deletion1
     BEFORE DELETE ON test_assigned_to
     FOR EACH  ROW
     EXECUTE PROCEDURE delete1();
-
+/*
 CREATE TRIGGER update1
     BEFORE UPDATE ON prescribed_in
     FOR EACH  ROW
     EXECUTE PROCEDURE update1();
+
+ */

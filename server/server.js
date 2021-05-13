@@ -1099,8 +1099,7 @@ app.post('/admin/add_component', (req,res)=>{
  */
 app.post('/admin/add_symptom', (req,res)=>{
 
-    let q = `INSERT INTO symptom (name, description) VALUES 
-                VALUES ($1, $2)`
+    let q = `INSERT INTO symptom (name, description) VALUES ($1, $2)`
     let params = Object.values(req.body)
     client.query(q, params, (err, result) =>{
         if(err){
@@ -1175,7 +1174,7 @@ app.post('/admin/add_department', (req,res)=>{
  */
 app.get('/admin/:table', (req,res)=>{
     let q = ``
-    let table = req.query.table
+    let table = req.params.table
     if (table === 'appointment') {
         q = `SELECT * FROM appointment;  `
     } else if (table === 'person' ) {
