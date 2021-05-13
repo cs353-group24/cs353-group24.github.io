@@ -201,22 +201,25 @@ export default {
             doctor_id: this.appointment.doctor.id
           }).then(() => {
             // console.log(res)
-            this.errorMsg = 'Appointment Created'
-            this.overlay = false
-            this.snackbar = true
-            this.getItems()
+            this.$http.post(this.$url + `/doctor/${this.appointment.doctor.id}/create_off_days`, {
+              date: this.appointment.date
+            }).then(() => {
+              // console.log(res)
+              this.errorMsg = 'Appointment Created'
+              this.overlay = false
+              this.snackbar = true
+              this.getItems()
+            }).catch(err => {
+              console.log(err)
+              this.errorMsg = 'Unexpected Error in creating Appointment, try again later'
+              this.overlay = false
+              this.snackbar = true
+            })
           }).catch(err => {
             console.log(err.response)
-            this.errorMsg = 'Unexpected Error, try again later'
+            this.errorMsg = 'Unexpected Error in disbaling date for others'
             this.overlay = false
             this.snackbar = true
-          })
-          await this.$http.post(this.$url + `/doctor/${this.appointment.doctor.id}/create_off_days`, {
-            date: this.appointment.date
-          }).then(res => {
-            console.log(res)
-          }).catch(err => {
-            console.log(err.response)
           })
           this.appointment.department = ''
           this.appointment.date = ''
