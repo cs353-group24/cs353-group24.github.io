@@ -135,13 +135,15 @@
             this.overlay = false
             this.$router.push({path: `/auth`})
           }).catch(e => {
-            if(e.response.status === 403)
-            {
-              this.errorMsg = 'No such email, try again'
-            }
-            else if(e.response.status === 402)
-            {
-              this.errorMsg = 'Wrong password, try again'
+            if (e.response) {
+              if(e.response.status === 403)
+              {
+                this.errorMsg = 'No such email, try again'
+              }
+              else if(e.response.status === 402)
+              {
+                this.errorMsg = 'Wrong password, try again'
+              }
             }
             else{
               this.errorMsg = 'Unknown error'
