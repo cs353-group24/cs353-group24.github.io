@@ -54,7 +54,7 @@ client.connect();
 //req.params
 // for get use req.query
 // for post use req.body
-//-------------------- ROUTES-------------------//
+//-------------------------------------------- ROUTES-------------------------------------------------//
 
 //add triggers to database
 
@@ -174,14 +174,13 @@ app.post('/signup', (req,res)=>{
     });
 })
 
+//--------------------------------------------PATIENT ROUTES-------------------------------------------------//
+
 
 /* -----------------------------------------------------------------------------------------------------
     /user_type/:id
     the id will be passed by the client side always when calling these type of routes
 ----------------------------------------------------------------------------------------------------- */
-
-//order by date
-
 
 /*
     /patient/:id/homepage :
@@ -272,7 +271,6 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
     {
         "date": "$",
         "doctor_id": "$"
-
     }
     $ is the required info(s) that will provided by client side,
      naming conventions presented above should be followed
@@ -280,8 +278,8 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
  */
 app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
-    let q = ` INSERT INTO appointment ( date,  patient_id, doctor_id) VALUES
-               ( $1,  $2, $3); `
+    let q = ` INSERT INTO appointment ( date, patient_id, doctor_id) VALUES
+               ( $1, $2, $3); `
 
     let params1 = req.params // will give national id
     let params2 = req.body
@@ -293,10 +291,8 @@ app.post('/patient/:id/appointment/newappointment', (req,res)=>{
         if(err){
             return res.status(404).send(err)
         }
-        return res.status(200).send(result.rows)
+        return res.status(200).send({"message": "insertion successful"})
     })
-
-
 })
 
 /*
@@ -477,7 +473,7 @@ app.get('/patient/:id/see_all_diag', (req,res)=>{
 
            {
             "assignment_id":"$"
-        }
+            }
 
       $ is the required info(s) that will provided by client side,
      naming conventions presented above should be followed
@@ -499,20 +495,16 @@ app.get('/patient/:id/see_app_diag', (req,res)=>{
     })
 } )
 
-
-
-
-
 // /patient/:id/prescriptions
 // /patient/:id/tests
 // /patient/:id/diagnosis ?
 
-//doctor routes
+//--------------------------------------------DOCTOR ROUTES-------------------------------------------------//
 
 // /doctor/:id/...
 
 
-//list all the appointments for the entire month
+// list all the appointments for the entire month
 
 /*
     /doctor/:id/homepage
@@ -537,7 +529,6 @@ app.get('/doctor/:id/homepage', (req,res)=>{
         return res.status(200).send(result.rows)
     })
 })
-
 
 //manage days off -> need database changes
 //add off day
@@ -567,11 +558,9 @@ app.get('/doctor/:id/off_days', (req,res)=>{
 /*
     /doctor/:id/create_off_days
    /doctor/:$/create_off_days
-
     {
         "date": "$"
     }
-
        $ is the required info(s) that will provided by client side,
      naming conventions presented above should be followed
  */
@@ -582,13 +571,58 @@ app.post('/doctor/:id/create_off_days', (req,res)=>{
 
     let params1 = req.body //date
     let params2 = req.params //id
-    let params = [params1.date, Number(params2.id)]
-    console.log(params)
+    let params = [params2.id, params1.date]
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
         }
         return res.status(200).send({"message":"successful insertion"})
+    })
+})
+
+/*
+    /doctor/:id/delete_off_days
+   /doctor/:$/delete_off_days
+    {
+        "date": "$"
+    }
+       $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+ */
+
+app.post('/doctor/:id/delete_off_days', (req,res)=>{
+
+    let q = `DELETE FROM doctor_off_days WHERE doctor_id = $1 AND date = $2; `
+
+    let params1 = req.body //date
+    let params2 = req.params //id
+    let params = [params2.id, params1.date]
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"message":"deletion successful"})
+    })
+})
+
+// see diagnosis for the given aid
+
+/*
+    /doctor/:id/homepage/:aid/see_diagnosis
+    /doctor/$/homepage/$/see_diagnosis
+     id: doctor_id, aid: appointment_id
+*/
+
+app.get('/doctor/:id/:aid/see_diagnosis', (req,res)=>{
+    let q = ` SELECT disease_name, description
+                FROM diagnosis WHERE appointment_id = $1;`
+    let re = req.params
+    let params = [re.aid]
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -616,8 +650,8 @@ app.post('/doctor/:id/make_diagnosis', (req,res)=>{
 })
 
 /*
-/doctor/:id/get_test_types
-no info required
+    /doctor/:id/get_test_types
+    no info required
  */
 app.get('/doctor/:id/get_test_types',(req,res)=>{
     let q = ` SELECT * FROM test  `
@@ -629,11 +663,20 @@ app.get('/doctor/:id/get_test_types',(req,res)=>{
     })
 })
 
-
-
-// laboratorian will be selected randomly a routed needed to pass required laboratorian types ???
-//ask for tests -> will be ssigned to a random lab technician
-
+/*
+    /doctor/:id/get_laboratorians
+    no info required
+    returns all the laboratorians, choose one with same department in frontend
+ */
+app.get('/doctor/:id/get_laboratorians',(req,res)=>{
+    let q = ` SELECT * FROM laboratorian; `
+    client.query(q,  (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
 
 /*
 /doctor/:id/ask_for_tests
@@ -657,10 +700,24 @@ VALUES ($1, $2, $3) `
         }
         return res.status(200).send({"message":"successful insertion"})
     })
-
-
 })
 
+/*
+    /doctor/:id/:aid/see_tests
+    id: doctor_id, aid: appointment_id
+    save the test_name's and use them to see components, test_results etc.
+ */
+app.get('/doctor/:id/:aid/see_tests', (req,res)=>{
+    let q = ` SELECT * FROM test_assigned_to WHERE appointment_id = $1;`
+    let re = req.params
+    let params = [re.aid]
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
 
 /*
 /doctor/:id/get_disease_names
@@ -676,6 +733,21 @@ app.get('/doctor/:id/get_disease_names', (req,res)=>{
     })
 })
 
+/*
+    /doctor/:id/:aid/see_patient_symptoms
+    id: doctor_id, aid: appointment_id
+ */
+app.get('/doctor/:id/:aid/see_patient_symptoms', (req,res)=>{
+    let q = `SELECT symptom_name FROM patient_symptoms WHERE appointment_id = $1`
+    let re = req.params
+    let params = [re.aid]
+    client.query(q, params, (err,result)=>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
 
 /*
 /doctor/:id/insert_patient_symptoms
@@ -698,10 +770,7 @@ let q = `INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES ($1,
     })
 })
 
-
-
-
-//laboratorian routes
+//--------------------------------------------LABORATORIAN ROUTES-------------------------------------------------//
 
 /*
     /laboratorian/:id/homepage:
@@ -805,12 +874,12 @@ app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
 } )
 
 
-//pharmacist routes
+//--------------------------------------------PHARMACIST ROUTES-------------------------------------------------//
 
 
 
 
-//admin routes
+//--------------------------------------------ADMIN ROUTES-------------------------------------------------//
 
 
 /*
