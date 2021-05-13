@@ -896,8 +896,99 @@ app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
 
 //--------------------------------------------PHARMACIST ROUTES-------------------------------------------------//
 
+/*
+ */
+app.get('/pharmacist/:id/get_all_prescriptions', (req,res)=>{
+    let q= `SELECT *
+            FROM prescription_assigned_to NATURAL JOIN prescription
+            WHERE pharmacist_id = $1; `
+    let params = Object.values(req.params)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.row)
+    })
+})
+
+/*
+ */
+app.get('/pharmacist/:id/get_waiting_prescriptions', (req,res)=>{
+    let q= `SELECT *
+            FROM prescription_assigned_to NATURAL JOIN prescription
+            WHERE pharmacist_id = $1 and status = 'waiting'; `
+    let params = Object.values(req.params)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.row)
+    })
+})
+
+app.get('/pharmacist/:id/check_stock' , (req,res)=>{
+    let q = `SELECT * FROM medicine`
+    client.query(q, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.row)
+    })
+})
 
 
+
+/*
+    this function adds stock to medicine
+    {
+        "stock": "$",
+        "name": "$"
+    }
+ */
+
+app.post ('/pharmacist/:id/add_stock', (req,res)=>{
+    let q  = ` UPDATE medicine
+                SET stock = stock + $1
+                where medicine.name = $2  `
+
+    let params = [req.body.stock, req.body.name]
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"MESSAGE" : "successfull"})
+    })
+})
+
+/*
+        {
+            "prescription_id": "$",
+            "status": "$",
+            "qty":"$",
+            "medicine_name" : "$"
+        }
+ */
+
+// pahrmacists will be able to full the presc if they can supply the quantity (if there is enough stock)
+app.post('pharmacist/:id/fill_presc', (req,res)=>{
+    let q = ` UPDATE prescription 
+              SET status = $1  
+              WHERE prescription_id = $2; `
+    let params = [req.body.status, req.body.prescription_id]
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        else {
+            q = `UPDATE medicine
+                SET stock = stock - $1
+                where medicine.name = $2; `
+            params = [req.body.qty, req.body.medicine_name]
+            return res.status(200).send({"MESSAGE" : "successfull"})
+        }
+
+    })
+})
 
 //--------------------------------------------ADMIN ROUTES-------------------------------------------------//
 
