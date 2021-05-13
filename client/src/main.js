@@ -1,9 +1,13 @@
 import Vue from 'vue'
 import App from './App.vue'
+import VueCookies from 'vue-cookies'
 import vuetify from './plugins/vuetify'
 import router from './router'
+import axios from 'axios'
 
 Vue.config.productionTip = false
+Vue.prototype.$http = axios;
+Vue.prototype.$url = "http://localhost:8079";
 
 Vue.mixin({
   methods: {
@@ -24,11 +28,20 @@ Vue.mixin({
           dif + pad(tzo / 60) +
           ':' + pad(tzo % 60);
     },
+    capitalise: function(name, surname = "")
+    {
+      let last = (surname ? (' ' + surname.charAt(0).toUpperCase() + surname.slice(1)): "")
+      return name.charAt(0).toUpperCase() + name.slice(1) + last
+    }
   },
 })
 
+Vue.use(VueCookies)
+
 new Vue({
+  VueCookies,
   vuetify,
+  axios,
   router,
   render: h => h(App)
 }).$mount('#app')

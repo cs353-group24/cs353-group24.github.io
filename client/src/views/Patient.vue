@@ -29,7 +29,7 @@
                   clearable
                   :rules="[v => !!v || 'Department is required']"
                   prepend-inner-icon="mdi-domain"
-                  :items="selects"
+                  :items="departments"
                   label="Department"
                   outlined
                 ></v-select>
@@ -40,6 +40,8 @@
                   :rules="[v => !!v || 'Doctor is required']"
                   prepend-inner-icon="mdi-doctor"
                   :items="doctors"
+                  item-text="name"
+                  return-object
                   label="Doctor"
                   outlined
                 ></v-select>
@@ -113,6 +115,29 @@
       <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
           
       </PaginationTable>
+      <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+        >
+          {{ errorMsg }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
+        <v-progress-circular
+          indeterminate
+          size="64"
+        ></v-progress-circular>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -125,22 +150,23 @@ export default {
   },
 
   data: () => ({
+    snackbar: false,
+    overlay: false,
+    errorMsg: '',
     id:'',
     dateArray: [],
     modal:false,
     valid: false,
     appointment:{
-      id: '',
       department: '',
       date: '',
       doctor: ''
     },
     dialog:false,
-    patientName: 'Abdul',
-    upcoming: 5,
+    patientName: '',
     buttonHeader: 'actions',
-    selects:['Cardilogy', 'Radiology', 'Urology', 'Plastic Surgery'],
-    doctors:['Mohi', 'Sunny', 'Arnisa', 'Atakan'],
+    departments:[],
+    doctors:[],
     headers: [
     {
         text: 'Appointment ID',
@@ -165,64 +191,137 @@ export default {
     noDateArray: function(val){
       return (!this.dateArray.includes(val))
     },
-    validateForm(){
+    async validateForm(){
       this.$refs.form.validate()
       if (this.valid) {
-          this.appointment.id = this.id;
-          console.log(this.id)
-          this.id++;
-          const temp = JSON.parse(JSON.stringify(this.appointment));
-          this.dateArray.push(temp.date);
-          this.items.push(temp);
-          const parsed = JSON.stringify(this.items);
-          localStorage.setItem('items', parsed);
-          const parsedArray = JSON.stringify(this.dateArray);
-          localStorage.setItem('dataArray', parsedArray);
-          localStorage.setItem('id', this.id);
-          this.appointment.id = ''
+          this.dialog = false
+          this.overlay = true
+          await this.$http.post(this.$url + `/patient/${this.id}/appointment/newappointment`, {
+            date: this.appointment.date,
+            doctor_id: this.appointment.doctor.id
+          }).then(() => {
+            // console.log(res)
+            this.$http.post(this.$url + `/doctor/${this.appointment.doctor.id}/create_off_days`, {
+              date: this.appointment.date
+            }).then(() => {
+              // console.log(res)
+              this.errorMsg = 'Appointment Created'
+              this.overlay = false
+              this.snackbar = true
+              this.getItems()
+            }).catch(err => {
+              console.log(err)
+              this.errorMsg = 'Unexpected Error in creating Appointment, try again later'
+              this.overlay = false
+              this.snackbar = true
+            })
+          }).catch(err => {
+            console.log(err.response)
+            this.errorMsg = 'Unexpected Error in disbaling date for others'
+            this.overlay = false
+            this.snackbar = true
+          })
           this.appointment.department = ''
           this.appointment.date = ''
           this.appointment.doctor = ''
-          this.dialog = false
       }
     },
-    resetValidation () {
-      this.dialog=true;
+    async resetValidation () {
+      this.overlay = true
       if(this.$refs.form) {
-          this.$refs.form.resetValidation()   
+        this.$refs.form.resetValidation()   
       }
+      if(this.departments.length === 0)
+      {
+        await this.$http.get(this.$url+`/patient/${this.id}/appointment/newappointment/departments`).then(res => {
+          res.data.forEach(x => {
+            this.departments.push(x.name)
+          })
+          this.overlay = false
+        }).catch((err) => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error, try again later'
+          this.overlay = false
+          this.snackbar = true
+        })
+      }
+      this.overlay = false
+      this.dialog=true;
+    },
+    async getItems(){
+      this.overlay = true
+      if(this.$cookies.get('user'))
+      {
+        this.id = this.$cookies.get('user').national_id
+        let temp = this.$cookies.get('user').name
+        this.patientName = temp.charAt(0).toUpperCase() + temp.slice(1)
+      }
+      await this.$http.get(this.$url+`/patient/${this.id}/homepage`).then(res => {
+        // console.log(res)
+        this.items = []
+        res.data.forEach(x => {
+          let temp = {
+            id: x.appointment_id,
+            doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+            date: x.date,
+            department: x.department
+          }
+          this.items.push(temp)
+        })
+        this.overlay = false
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
     }
-  },
-  created: function(){
-    // this.appointment.date = this.toIsoString(new Date()).substring(0, 10)
-    // console.log(this.appointment.date)
   },
   mounted() {
-    if (localStorage.getItem('items')) {
-      try {
-        this.items = JSON.parse(localStorage.getItem('items'));
-      } catch(e) {
-        localStorage.removeItem('items');
-      }
-    }
-    if (localStorage.getItem('dataArray')) {
-      try {
-        this.dateArray = JSON.parse(localStorage.getItem('dataArray'));
-      } catch(e) {
-        localStorage.removeItem('dataArray');
-      }
-    }
-    if (localStorage.getItem('id')) {
-      try {
-        this.id = localStorage.getItem('id');
-      } catch(e) {
-        localStorage.removeItem('id');
-      }
-    }
-    else{
-      this.id = 1
-    }
+    this.getItems()
   },
+  watch: {
+    "appointment.department": async function(val){
+      if (val) {
+        await this.$http.get(this.$url+`/patient/${this.id}/appointment/newappointment/doctor`, {
+          params: {
+            department: val
+          }
+        }).then(res => {
+          this.doctors = []
+          res.data.forEach(x => {
+            this.doctors.push({
+              id: x.national_id,
+              name: 'Dr. ' + this.capitalise(x.name, x.surname)
+            })
+          })
+          // console.log(this.doctors)
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Error retrieving list of Doctors'
+          this.dialog = false
+          this.snackbar = true
+        })
+      }
+    },
+    "appointment.doctor": async function(val){
+      if (val) {
+        // TODO - remove substring once all dates are made string in db
+        await this.$http.get(this.$url+`/doctor/${val.id}/off_days`).then(res => {
+          // console.log(res)
+          this.dateArray = []
+          res.data.forEach(x => {
+            this.dateArray.push(x.date.substring(0,10))
+          })
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Error retrieving doctor\'s days off'
+          this.dialog = false
+          this.snackbar = true
+        })
+      }
+    }
+  }
 };
 </script>
 

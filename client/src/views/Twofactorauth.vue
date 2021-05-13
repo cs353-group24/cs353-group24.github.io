@@ -16,7 +16,7 @@
           <v-spacer></v-spacer>
           <v-col cols="12" md="5">
             <v-card outlined class="py-16 px-8 rounded-xl mt-n5" height="110%" width="90%" :elevation="8">
-              <v-form v-model="valid">
+              <v-form ref="form" v-model="valid">
                 <v-card flat class="align-center d-flex flex-row justify-center">
                   <v-card-title class="blue--text text--darken-3 text-h4 font-weight-black mb-3">
                     Authentication
@@ -44,7 +44,7 @@
                   </v-row>
                   <v-row>
                     <v-col class="d-flex justify-center">
-                      <v-btn large width="50%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Login</v-btn>
+                      <v-btn @click="handleauth" large width="50%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Login</v-btn>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -52,6 +52,29 @@
             </v-card>
           </v-col>
         </v-row>
+        <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+        >
+          {{ errorMsg }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
+        <v-progress-circular
+          indeterminate
+          size="64"
+        ></v-progress-circular>
+      </v-overlay>
       </v-container>
     </v-main>
   </v-app>
@@ -60,14 +83,53 @@
 <script>
   export default {
     data: () => ({
+      snackbar: false,
+      overlay: false,
+      errorMsg: '',
       valid: false,
       id: '',
+      auth:'',
       idRules: [
         v => !!v || 'National ID is required'
       ],
     }),
     methods: {
-      
+      async handleauth(){
+        this.overlay = true
+        this.$refs.form.validate()
+        if (this.valid) {
+          await this.$http.get(this.$url+'/login_second', {
+            params: {
+              national_id: this.id
+            }
+          }).then(res => {
+            if (res.data.email === this.auth) {
+              this.$cookies.set('user', res.data, '0')
+              this.$router.push({path: `/${res.data.person_type}`})
+            }
+            else{
+              this.errorMsg = 'National ID is incorrect, try again later'
+              this.snackbar = true
+              this.overlay = false
+            }
+          }).catch(() => {
+            this.errorMsg = 'There was an unknown error, please try again later'
+            this.snackbar = true
+            this.overlay = false
+          })
+        }
+      }
+    },
+    created(){
+      if(this.$cookies.get('auth'))
+      {
+        this.auth = this.$cookies.get('auth')
+        console.log(this.auth)
+      }
+      else{
+        this.$router.push({path: '/'})
+      }
+
     }
   }
 </script>

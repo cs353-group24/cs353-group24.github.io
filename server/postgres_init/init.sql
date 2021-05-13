@@ -14,7 +14,7 @@ CREATE TABLE person (
     password varchar ,
     person_type person_type,
     phone varchar ,
-    birthday date CHECK (birthday <= current_date ) DEFAULT current_date ,
+    birthday varchar ,
     PRIMARY KEY (national_id)
 );
 
@@ -28,7 +28,7 @@ CREATE TABLE doctor (
 
 CREATE TABLE appointment (
   appointment_id serial ,
-  date date CHECK (date >= current_date ) DEFAULT current_date ,
+  date varchar ,
   status app_status DEFAULT 'upcoming',
   patient_id int ,
   doctor_id int ,
@@ -40,7 +40,7 @@ CREATE TABLE appointment (
 
 CREATE TABLE department (
   name varchar ,
-  date_est date CHECK (date_est <= current_date ) DEFAULT current_date ,
+  date_est varchar ,
   building varchar ,
   PRIMARY KEY (name)
 );
@@ -58,6 +58,7 @@ CREATE TABLE disease (
   description text ,
   PRIMARY KEY (name)
 );
+
 
 CREATE TABLE disease_symptoms (
   disease_name varchar ,
@@ -115,7 +116,7 @@ CREATE TABLE prescribed_in (
 CREATE TABLE prescription (
   prescription_no serial ,
   prescription_type varchar ,
-  date date ,
+  date varchar ,
   status presc_type DEFAULT 'waiting',
   PRIMARY KEY (prescription_no)
 );
@@ -123,7 +124,7 @@ CREATE TABLE prescription (
 CREATE TABLE test_result (
   test_name varchar ,
   result_id serial ,
-  result_date date  DEFAULT current_date,
+  result_date varchar ,
   appointment_id int ,
   test_status test_status DEFAULT 'assigned',
   PRIMARY KEY (result_id)
@@ -163,13 +164,13 @@ CREATE TABLE test_assigned_to (
   appointment_id int ,
   laboratorian_id int ,
   test_name varchar ,
-  date date DEFAULT current_date,
+  date varchar ,
   PRIMARY KEY (appointment_id,laboratorian_id,test_name)
   );
 
 CREATE TABLE doctor_off_days (
     doctor_id int,
-    date date,
+    date varchar ,
     PRIMARY KEY (doctor_id,date)
 );
 
@@ -187,11 +188,7 @@ ALTER TABLE doctor
 ALTER TABLE appointment
     ADD CONSTRAINT appointment_doctor FOREIGN KEY (doctor_id) REFERENCES doctor (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT appointment_patient FOREIGN KEY (patient_id) REFERENCES patient (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
- /*
-ALTER TABLE appointment
-    ADD UNIQUE (date, patient_id)
-    ADD UNIQUE (date, doctor_id)
- */
+
 ALTER TABLE component
     ADD CONSTRAINT component_test FOREIGN KEY (test_name) REFERENCES test (test_name) ON DELETE CASCADE ON UPDATE CASCADE;
 

@@ -164,7 +164,9 @@
       signupNext(){
           this.$refs.form.validate();
           if (this.valid) {
-              this.$router.push({name:'Signup2'});
+            let temp = {email: this.email, id: this.id, password: this.password}
+            this.$cookies.set('signup', temp, '0')
+            this.$router.push({name:'Signup2'});
           }
       }
     }

@@ -29,7 +29,7 @@ test_status,
 presc_type,
 person_type;
 
-drop function insert1(), insert2(), insert3(), delete1() , update1();
+drop function insert1(), insert2(), insert3(), delete1();
 
 DROP TRIGGER  IF EXISTS  addition1 ON person;
 DROP TRIGGER  IF EXISTS  addition2 ON test_assigned_to;

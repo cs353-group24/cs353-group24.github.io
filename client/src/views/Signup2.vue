@@ -165,7 +165,7 @@
                           Login</v-btn>
                     </v-col>
                     <v-col class="d-flex justify-center">
-                      <v-btn width="100%" height="100%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Signup</v-btn>
+                      <v-btn @click="signUp" width="100%" height="100%" color="#558EFE" class="white--text rounded-lg font-weight-bold">Signup</v-btn>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -173,6 +173,29 @@
             </v-card>
           </v-col>
         </v-row>
+        <v-overlay :value="overlay">
+        <v-progress-circular
+          indeterminate
+          size="64"
+        ></v-progress-circular>
+      </v-overlay>
+      <v-snackbar
+        v-model="snackbar"
+        :timeout="5000"
+      >
+        {{ errorMsg }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="indigo"
+            text
+            v-bind="attrs"
+            @click="snackbar = false"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
       </v-container>
     </v-main>
   </v-app>
@@ -181,6 +204,11 @@
 <script>
   export default {
     data: () => ({
+      errorMsg: '',
+      snackbar: false,
+      overlay:false,
+      body:'',
+      signup: {},
       valid: false,
       dialog: false,
       name: '',
@@ -205,9 +233,55 @@
       value: String,
     }),
     methods: {
+      signUp(){
+        this.$refs.form.validate()
+        if (this.valid) {
+          let temp = {
+            national_id: Number(this.signup.id),
+            name: this.name,
+            surname: this.surname,
+            email: this.signup.email,
+            password: this.signup.password,
+            person_type: 'patient',
+            phone: this.phone,
+            birthday: this.dob
+          }
+          this.body = temp
+          this.postSignUp()
+        }
+      },
+      async postSignUp() {
+        this.overlay =true
+        await this.$http.post(this.$url+"/signup",  this.body).then((result) => {
+          this.overlay = false
+          this.snackbar =true
+          this.errorMsg = 'Succesfully signed up, will route to login shortly'
+          setTimeout(() => this.$router.push({name: 'Login'}), 4000);
+          this.overlay = true
+          this.$cookies.remove('signup')
+          console.log(result)
+        }).catch((e) => {
+          this.overlay = false
+          this.snackbar =true
+          this.errorMsg = 'There was an issue with the sign up, try again later'
+          console.log(e.response)
+        })
+      },
       
-      
+    },
+    mounted(){
+      if (this.$cookies.get('signup')) {
+        try {
+          this.signup = this.$cookies.get('signup');
+          console.log(this.signup)
+        } catch(e) {
+          this.$cookies.remove('signup');
+        }
+      }
+    },
+    created(){
     }
+    
   }
 </script>
 

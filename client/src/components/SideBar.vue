@@ -7,7 +7,7 @@
             <v-icon  >fas fa-user-alt</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>Profile</v-list-item-title>
+            <v-list-item-title>{{userName}}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -35,9 +35,9 @@
         </v-list-item-group>
       </v-list>
       <v-list style="position: absolute; bottom: 0" class="ml-3" flat>
-        <v-list-item router to="/">
-          <v-list-item-action>
-            <v-icon left class="flip">fas fa-sign-out-alt</v-icon>
+        <v-list-item @click="logout">
+          <v-list-item-action >
+            <v-icon  left class="flip">fas fa-sign-out-alt</v-icon>
           </v-list-item-action>
         </v-list-item>
       </v-list>
@@ -49,6 +49,7 @@
 export default {
   //change
   name: "SideBar",
+  userName: '',
   props:{
     items: {
       type: Array,
@@ -62,10 +63,21 @@ export default {
     selectedItem: '',
   }),
   methods:{
-    
+    logout(){
+      this.$cookies.remove('user')
+      this.$router.push({path: '/'})
+    }
   },
   created(){
     this.selectedItem = this.items.findIndex((x) => x.route === this.$router.currentRoute.path)
+    if(!this.$cookies.get('user')){
+      this.$router.push({path: '/'})
+    }
+    else{
+      let temp = this.$cookies.get('user')
+      this.userName = temp.name.charAt(0).toUpperCase() + temp.name.slice(1) + ' ' + temp.surname.charAt(0).toUpperCase() + temp.surname.slice(1)
+      // console.log(this.userName)
+    }
   },
   watch: {
     $route (){
