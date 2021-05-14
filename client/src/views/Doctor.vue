@@ -32,6 +32,29 @@
             @close="dialog=false"
         >
         </AppointmentDetails>
+        <v-snackbar
+            v-model="snackbar"
+            :timeout="5000"
+        >
+          {{ errorMsg }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+                color="indigo"
+                text
+                v-bind="attrs"
+                @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
+          <v-progress-circular
+              indeterminate
+              size="64"
+          ></v-progress-circular>
+        </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -41,6 +64,10 @@ import PaginationTable from "@/components/PaginationTable"
 import AppointmentDetails from "@/components/AppointmentDetails"
 export default {
     data:()=>({
+      snackbar: false,
+      overlay: false,
+      errorMsg: '',
+      id:'',
         dialog: false,
         tableInfo: {
             symptomItems: [
@@ -101,9 +128,8 @@ export default {
             value: 'id',
             class: 'datatablefontcolor--text'
         },
-        { text: 'Doctor Name', value: 'doctor', class: 'datatablefontcolor--text' },
+        { text: 'Patient Name', value: 'patient', class: 'datatablefontcolor--text' },
         { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
-        { text: 'Department', value: 'department', class: 'datatablefontcolor--text' },
         { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
         ],
         items:[],
@@ -118,17 +144,35 @@ export default {
         PaginationTable, AppointmentDetails
     },
     methods:{
-        getItemsData(){
-            if (localStorage.getItem('items')) {
-            try {
-                let parse = JSON.parse(localStorage.getItem('items'));
-                let filtered = parse.filter((x) => Number(x.date.substring(9,10)) === Number(this.toIsoString(new Date).substring(9,10)));
-                this.items = filtered.filter((x) => x.doctor === this.doctor)
-                this.upcoming = this.items.length
-            } catch(e) {
-                localStorage.removeItem('items');
-            }
-            }
+        async getItemsData(){
+          this.overlay = true
+          if(this.$cookies.get('user'))
+          {
+            this.id = this.$cookies.get('user').national_id
+            let temp = this.$cookies.get('user').name
+            this.patientName = temp.charAt(0).toUpperCase() + temp.slice(1)
+          }
+          await this.$http.get(this.$url+`/doctor/${this.id}/homepage`).then(res => {
+            console.log(res)
+            this.items = []
+            res.data.forEach(x => {
+              let temp = {
+                id: x.appointment_id,
+                patient: this.capitalise(x.name, x.surname),
+                date: x.date,
+              }
+              this.items.push(temp)
+            })
+            this.overlay = false
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
+
+
+
             if (localStorage.getItem('dataArray')) {
             try {
                 this.dateArray = JSON.parse(localStorage.getItem('dataArray'));

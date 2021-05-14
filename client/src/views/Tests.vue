@@ -13,6 +13,29 @@
             </v-row>
           </template>
       </PaginationTable>
+      <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+      >
+        {{ errorMsg }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+      <v-overlay :value="overlay">
+        <v-progress-circular
+            indeterminate
+            size="64"
+        ></v-progress-circular>
+      </v-overlay>
       <Dialog :tableData="group" :dialog="dialog1" :title="item.calories" @close="dialog1=false">
         <template #tableActions="{item}">
             <v-btn @click="handleDialog2(item)" class="rounded-pill font-weight-bold" outlined color="#5080DE">History</v-btn>
@@ -32,6 +55,10 @@ export default {
   },
 
   data: () => ({
+    snackbar: false,
+    overlay: false,
+    errorMsg: '',
+    id:'',
     item:{},
     item1:{},
     group: {
@@ -49,163 +76,15 @@ export default {
         align: 'start',
         // sortable: false,
         // filterable: false,
-        value: 'name',
+        value: 'id',
         class: 'datatablefontcolor--text'
     },
-    { text: 'Test Name', value: 'calories', class: 'datatablefontcolor--text' },
-    { text: 'Date', value: 'fat', class: 'datatablefontcolor--text' },
-    { text: 'Laboratorian', value: 'carbs', class: 'datatablefontcolor--text' },
-    { text: 'Extra', value: 'protein', class: 'datatablefontcolor--text' },
-    { text: 'ExtraToo', value: 'iron', class: 'datatablefontcolor--text' },
+    { text: 'Test Name', value: 'name', class: 'datatablefontcolor--text' },
+    { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
+    { text: 'Laboratorian', value: 'laboratorian', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
-    items: [
-    {
-        name: 1010,
-        calories: 'Dr Mohla',
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: '1%',
-    },
-    {
-        name: 1100,
-        calories: 'Dr Royim',
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: '1%',
-    },
-    {
-        name: 1141,
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: '7%',
-    },
-    {
-        name: 10114,
-        calories: 'Dr Mohla',
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: '1%',
-    },
-    {
-        name: 11013,
-        calories: 'Dr Royim',
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: '1%',
-    },
-    {
-        name: 11412,
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: '7%',
-    },
-    {
-        name: 10111,
-        calories: 'Dr Mohla',
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: '1%',
-    },
-    {
-        name: 11010,
-        calories: 'Dr Royim',
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: '1%',
-    },
-    {
-        name: 1149,
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: '7%',
-    },
-    {
-        name: 1018,
-        calories: 'Dr Mohla',
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: '1%',
-    },
-    {
-        name: 1107,
-        calories: 'Dr Royim',
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: '1%',
-    },
-    {
-        name: 1146,
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: '7%',
-    },
-    {
-        name: 1015,
-        calories: 'Dr Mohla',
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: '1%',
-    },
-    {
-        name: 1104,
-        calories: 'Dr Royim',
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: '1%',
-    },
-    {
-        name: 1143,
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: '7%',
-    },
-    {
-        name: 1012,
-        calories: 'Dr Mohla',
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: '1%',
-    },
-    {
-        name: 1102,
-        calories: 'Dr Royim',
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: '1%',
-    },
-    {
-        name: 1142,
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: '7%',
-    },
-    
-    ],
+    items: [],
     tableInfo: {
         tableTitle: 'Tests',
         itemsKey: 'name',
@@ -213,14 +92,78 @@ export default {
     },
   }),
   methods: {
+    async getItems(){
+      this.overlay = true
+      if(this.$cookies.get('user'))
+      {
+        this.id = this.$cookies.get('user').national_id
+        let temp = this.$cookies.get('user').name
+        this.patientName = temp.charAt(0).toUpperCase() + temp.slice(1)
+      }
+      await this.$http.get(this.$url+`/patient/${this.id}/see_all_tests`).then(res => {
+        // console.log(res)
+        this.items = []
+        res.data.forEach(x => {
+          let temp = {
+            id: x.appointment_id,
+            name: x.test_name,
+            date: x.date,
+            laboratorian: x.laboratorian_id,
+          }
+          this.items.push(temp)
+        })
+        this.overlay = false
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
+    },
         handleBack: function(){
             this.dialog2 = false;
             this.dialog1 = true;
         },
-        handleDialog1: function(item){
-            // console.log(this.group);
+        async handleDialog1(item){
+          let componentItems = [];
+          this.overlay = true
+          await this.$http.get(this.$url+`/patient/${this.id}/see_all_comps`).then(res => {
+            // console.log(res)
+            res.data.forEach(x => {
+              let temp = {
+                id: x.result_id,
+                name: x.comp_name,
+                value: x.comp_value,
+                result: x.comp_result,
+                status: x.comp_status
+              }
+              componentItems.push(temp)
+            })
+            this.overlay = false
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
             this.item = item;
             this.dialog1 = true;
+            this.group.items = componentItems;
+            this.group.headers = [
+              {
+                text: 'Result ID',
+                align: 'start',
+                // sortable: false,
+                // filterable: false,
+                value: 'id',
+                class: 'datatablefontcolor--text'
+              },
+              { text: 'Component Name', value: 'name', class: 'datatablefontcolor--text' },
+              { text: 'Component Value', value: 'value', class: 'datatablefontcolor--text' },
+              { text: 'Component Result', value: 'result', class: 'datatablefontcolor--text' },
+              { text: 'Component Status', value: 'status', class: 'datatablefontcolor--text' },
+            ];
+            this.group.buttonHeader = 'History'
         },
         handleDialog2: function(item){
             this.item1 = item;
