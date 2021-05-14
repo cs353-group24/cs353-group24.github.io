@@ -191,7 +191,7 @@ app.post('/signup', (req,res)=>{
      naming conventions presented above should be followed
  */
 app.get('/patient/:id/homepage', (req, res) =>{
-    let q = `SELECT a.appointment_id, p.name, p.surname, a.date, d.department
+    let q = `SELECT a.appointment_id, p.name, p.surname, TO_CHAR(a.date,'YYYY-MM-DD' ), d.department
              FROM appointment as  a, doctor as d, person as p
              WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id and a.status = 'upcoming'
              ORDER BY  date ASC ; `
@@ -217,7 +217,7 @@ app.get('/patient/:id/homepage', (req, res) =>{
  */
 app.get('/patient/:id/appointments', (req,res)=>{
 
-    let q = ` SELECT a.appointment_id, p.name, p.surname, a.date, d.department, a.status
+    let q = ` SELECT a.appointment_id, p.name, p.surname, to_char(a.date, 'YYYY-MM-DD'), d.department, a.status
               FROM appointment as  a, doctor as d, person as p
               WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id 
               ORDER BY  date DESC ; `
@@ -335,7 +335,7 @@ app.post('/patient/:id/appointment/see_tests', (req,res)=>{
 app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
     let q = ` INSERT INTO appointment ( date, patient_id, doctor_id) VALUES
-               ( $1, $2, $3); `
+               ( to_date($1, 'YYYY-MM-DD'), $2, $3); `
 
     let params1 = req.params // will give national id
     let params2 = req.body
@@ -575,7 +575,7 @@ app.get('/patient/:id/see_test_comps', (req,res)=>{
 
  */
 app.get('/patient/:id/see_prev_test_comps', (req,res)=>{
-    let q = `SELECT t.result_date, a.appointment_id, c.result_id, c.comp_value, c.comp_result, c.comp_status, c.comp_name
+    let q = `SELECT to_char(t.result_date, 'YYYY-MM-DD'), a.appointment_id, c.result_id, c.comp_value, c.comp_result, c.comp_status, c.comp_name
              FROM appointment as a  NATURAL JOIN test_result as t NATURAL JOIN comp_result as c
              WHERE a.patient_id = $1 and c.comp_name = $2 `
 
@@ -679,7 +679,7 @@ app.get('/patient/:id/see_all_presc', (req,res)=>{
 
 // returns appointment_id, save it and then give it as a parameter in the following three requests as aid.
 app.get('/doctor/:id/homepage', (req,res)=>{
-    let q = ` SELECT appointment_id, P.name, P.surname, date
+    let q = ` SELECT appointment_id, P.name, P.surname, to_char(date, 'YYYY-MM-DD')
                FROM appointment, person as P 
                 WHERE doctor_id = $1
                 and P.national_id = patient_id and status = 'upcoming'
@@ -730,7 +730,7 @@ app.get('/doctor/:id/off_days', (req,res)=>{
 
 app.post('/doctor/:id/create_off_days', (req,res)=>{
 
-    let q = `INSERT INTO doctor_off_days (doctor_id, date ) VALUES ($1, $2); `
+    let q = `INSERT INTO doctor_off_days (doctor_id, date ) VALUES ($1,to_date( $2, 'YYYY-MM-DD')); `
 
     let params1 = req.body //date
     let params2 = req.params //id
@@ -755,7 +755,7 @@ app.post('/doctor/:id/create_off_days', (req,res)=>{
 
 app.post('/doctor/:id/delete_off_days', (req,res)=>{
 
-    let q = `DELETE FROM doctor_off_days WHERE doctor_id = $1 AND date = $2; `
+    let q = `DELETE FROM doctor_off_days WHERE doctor_id = $1 AND date = to_date($2, 'YYYY-MM-DD'); `
 
     let params1 = req.body //date
     let params2 = req.params //id
@@ -1384,7 +1384,7 @@ app.post('/admin/add_medicine', (req,res)=>{
  */
 app.post('/admin/add_department', (req,res)=>{
 
-    let q = `INSERT INTO department (name, date_est, building) VALUES ($1, $2, $3)`
+    let q = `INSERT INTO department (name, date_est, building) VALUES ($1, TO_DATE($2,'YYYY-MM-DD') , $3)`
     let params = Object.values(req.body)
     client.query(q, params, (err, result) =>{
         if(err){

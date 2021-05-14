@@ -14,7 +14,7 @@ CREATE TABLE person (
     password varchar ,
     person_type person_type,
     phone varchar ,
-    birthday varchar ,
+    birthday date ,
     PRIMARY KEY (national_id)
 );
 
@@ -28,7 +28,7 @@ CREATE TABLE doctor (
 
 CREATE TABLE appointment (
   appointment_id serial ,
-  date varchar ,
+  date date ,
   status app_status DEFAULT 'upcoming',
   patient_id int ,
   doctor_id int ,
@@ -116,7 +116,7 @@ CREATE TABLE prescribed_in (
 CREATE TABLE prescription (
   prescription_no serial ,
   prescription_type varchar ,
-  date varchar ,
+  date date ,
   status presc_type DEFAULT 'waiting',
   PRIMARY KEY (prescription_no)
 );
@@ -124,7 +124,7 @@ CREATE TABLE prescription (
 CREATE TABLE test_result (
   test_name varchar ,
   result_id serial ,
-  result_date varchar ,
+  result_date date ,
   appointment_id int ,
   test_status test_status DEFAULT 'assigned',
   PRIMARY KEY (result_id)
@@ -164,13 +164,13 @@ CREATE TABLE test_assigned_to (
   appointment_id int ,
   laboratorian_id int ,
   test_name varchar ,
-  date varchar ,
+  date date ,
   PRIMARY KEY (appointment_id,laboratorian_id,test_name)
   );
 
 CREATE TABLE doctor_off_days (
     doctor_id int,
-    date varchar ,
+    date date ,
     PRIMARY KEY (doctor_id,date)
 );
 
