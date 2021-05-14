@@ -622,7 +622,7 @@ app.get('/patient/:id/see_all_diag', (req,res)=>{
         /patient/$/see_all_diag
 
            {
-            "assignment_id":"$"
+            "appointment_id":"$"
             }
 
       $ is the required info(s) that will provided by client side,
