@@ -262,18 +262,27 @@ export default {
         this.appointment.doctor = ''
       }
     },
-    editApt: function(item) {
+    editApt: async function(item) {
+      this.overlay = true
+      this.resetValidation()
       this.edit = true;
       this.appointment.id = item.id
       this.appointment.department = item.department
+      // console.log(this.appointment.department)
       this.appointment.date = item.date
-      this.appointment.doctor = item.doctor
+      await this.getDocs(item.department)
+      // console.log(this.appointment.department)
+      let temp = this.doctors.filter(x => x.name === item.doctor)
+      this.appointment.doctor = temp[0]
+      // console.log(this.appointment.department)
+      this.overlay = false
       this.dialog = true
     },
     async deleteApt(item) {
+      this.overlay = true
       await this.$http.post(this.$url + `/patient/${item.id}/appointment/cancel`).then(res => {
-        this.errorMsg = 'Appointment' + res +'.'
-        this.overlay = false
+        console.log(res)
+        this.errorMsg = 'Appointment ' + res.data.message +'.'
         this.snackbar = true
         this.getItems()
         this.overlay = false
@@ -306,16 +315,7 @@ export default {
       this.overlay = false
       this.dialog=true;
     },
-  },
-  created: function(){
-    // this.appointment.date = this.toIsoString(new Date()).substring(0, 10)
-    // console.log(this.appointment.date)
-  },
-  mounted() {
-    this.getItems()
-  },
-  watch: {
-    "appointment.department": async function(val){
+    getDocs: async function(val){
       if (val) {
         await this.$http.get(this.$url+`/patient/${this.id}/appointment/newappointment/doctor`, {
           params: {
@@ -329,6 +329,7 @@ export default {
               name: 'Dr. ' + this.capitalise(x.name, x.surname)
             })
           })
+          // return new Promise(resolve => {resolve('resolved')});
         }).catch(err => {
           console.log(err)
           this.errorMsg = 'Error retrieving list of Doctors'
@@ -336,6 +337,18 @@ export default {
           this.snackbar = true
         })
       }
+    },
+  },
+  created: function(){
+    // this.appointment.date = this.toIsoString(new Date()).substring(0, 10)
+    // console.log(this.appointment.date)
+  },
+  mounted() {
+    this.getItems()
+  },
+  watch: {
+    "appointment.department": async function(val){
+      this.getDocs(val)
     },
     "appointment.doctor": async function(val){
       if (val) {
