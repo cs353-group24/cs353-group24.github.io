@@ -1154,6 +1154,26 @@ app.post('pharmacist/:id/fill_presc', (req,res)=>{
     })
 })
 
+/*
+        {
+           "name": "$"
+        }
+
+ */
+app.get('/pharmacist/:id/medicine_search' , (req,res)=>{
+    let q = `Select * from medicine where name Like '%' || $1 || '%'`
+    client.query(q, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.row)
+    })
+})
+
+
+
+
+
 //--------------------------------------------ADMIN ROUTES-------------------------------------------------//
 
 
