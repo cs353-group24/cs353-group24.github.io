@@ -936,8 +936,9 @@ app.post('/doctor/:id/ask_for_tests',(req,res)=>{
  */
 app.get('/doctor/:id/:aid/see_tests', (req,res)=>{
     let q = ` SELECT to_char(result_date, 'YYYY-MM-DD') as result_date_to_char, *
-            FROM test_result
-            WHERE appointment_id = $1;`
+              FROM appointment a , test_result tr  , test_assigned_to tat
+              where a.appointment_id = tr.appointment_id and tr.appointment_id = tat.appointment_id
+                and tr.test_name = tat.test_name and appointment_id = $1;`
     let re = req.params
     let params = [re.aid]
     client.query(q, params, (err, result) =>{
