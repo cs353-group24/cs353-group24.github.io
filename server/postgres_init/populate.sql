@@ -99,8 +99,12 @@ INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES
 ('1', 'nausea');
 
 INSERT INTO doctor_off_days (doctor_id, date) VALUES
-('2', to_date('2021-05-18', 'YYYY-MM-DD'))
+('2', to_date('2021-05-18', 'YYYY-MM-DD'));
 
+INSERT INTO medicine (name, manufacturer, pharmacist_id, stock) VALUES
+('asprin', 'eczacibasi', 5, 50),
+('parol', 'eczacibasi', 5, 50),
+('paracetamol', 'ezcacibasi', 5, 50);
 
 
 /*

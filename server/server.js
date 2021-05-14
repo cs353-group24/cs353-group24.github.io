@@ -628,7 +628,7 @@ app.get('/patient/:id/see_all_diag', (req,res)=>{
         /patient/$/see_all_diag
 
            {
-            "assignment_id":"$"
+            "appointment_id":"$"
             }
 
       $ is the required info(s) that will provided by client side,
@@ -653,17 +653,60 @@ app.get('/patient/:id/see_app_diag', (req,res)=>{
 
 // /patient/:id/prescriptions
 app.get('/patient/:id/see_all_presc', (req,res)=>{
+
     let q = ` SELECT to_char(a.date, 'YYYY-MM-DD') as date_to_char, 
                 to_char(p.date, 'YYYY-MM-DD') as prescription_date_to_char, *
-              FROM appointment AS a NATURAL JOIN prescribed_by NATURAL JOIN prescription AS p NATURAL JOIN prescribed_in
-                WHERE patient_id = $1`
-    let params = Object.value(req.params)
+              FROM appointment a, prescribed_by pb, prescription p, prescribed_in pi
+              WHERE a.appointment_id = pb.appointment_id and pb.prescription_no = p.prescription_no and p.prescription_no = pi.prescription_no  
+               and patient_id = $1`
+    let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
         }
         return res.status(200).send(result.rows)
     })
+
+})
+
+
+/*
+    {
+        "prescription_no": "$"
+        }
+ */
+app.get('/patient/:id/see_presc', (req,res)=>{
+    let q = ` SELECT *
+              FROM  prescription p, prescribed_in pi, medicine m
+              WHERE  p.prescription_no = pi.prescription_no and pi.med_name = m.name and  p.prescription_no = $1 ;`
+    let params = Object.value(req.query)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+
+
+})
+
+/*
+    {
+        "appointment_id": "$"
+    }
+ */
+app.get("/patient/:id/see_app_symp", (req,res)=>{
+    let q = ` SELECT  * FROM diagnosis d , symptom s, disease_symptoms ds 
+  where d.disease_name = ds.disease_name and s.name = ds.symptom_name and appointment_id = $1; `
+
+    let params = Object.values(req.query)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+
 })
 
 
@@ -958,6 +1001,11 @@ app.post('/doctor/:id/make_diagnosis', (req,res)=>{
         return res.status(200).send({"message":"successful insertion"})
     })
 })
+
+
+// insert and delete prescriptions
+
+
 
 
 
