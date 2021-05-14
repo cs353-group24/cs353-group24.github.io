@@ -162,7 +162,7 @@ app.get('/logout', (req, res)=>{
  */
 app.post('/signup', (req,res)=>{
     let q = `INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8);`
+    ($1, $2, $3, $4, $5, $6, $7, to_date($8, 'YYYY-MM-DD') );`
     let re = req.body
     let params = [re.national_id,re.name,re.surname, re.email, re.password, 'patient', re.phone, re.birthday]
 
@@ -191,7 +191,7 @@ app.post('/signup', (req,res)=>{
      naming conventions presented above should be followed
  */
 app.get('/patient/:id/homepage', (req, res) =>{
-    let q = `SELECT a.appointment_id, p.name, p.surname, TO_CHAR(a.date,'YYYY-MM-DD' ), d.department
+    let q = `SELECT a.appointment_id, p.name, p.surname, TO_CHAR(a.date,'YYYY-MM-DD' ) as date, d.department
              FROM appointment as  a, doctor as d, person as p
              WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id and a.status = 'upcoming'
              ORDER BY  date ASC ; `
@@ -217,7 +217,7 @@ app.get('/patient/:id/homepage', (req, res) =>{
  */
 app.get('/patient/:id/appointments', (req,res)=>{
 
-    let q = ` SELECT a.appointment_id, p.name, p.surname, to_char(a.date, 'YYYY-MM-DD'), d.department, a.status
+    let q = ` SELECT a.appointment_id, p.name, p.surname, to_char(a.date, 'YYYY-MM-DD') as date, d.department, a.status
               FROM appointment as  a, doctor as d, person as p
               WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id 
               ORDER BY  date DESC ; `
@@ -299,7 +299,7 @@ app.post('/patient/:id/appointment/edit', (req,res)=>{
  */
 
 //appointment cancel
-app.post('/patient/:id/appointment/see_tests', (req,res)=>{
+app.post('/patient/:id/appointment/cancel_appointment', (req,res)=>{
 
     let person_q = ` DELETE FROM appointment
                     WHERE appoitnment_id = $1`
@@ -575,7 +575,7 @@ app.get('/patient/:id/see_test_comps', (req,res)=>{
 
  */
 app.get('/patient/:id/see_prev_test_comps', (req,res)=>{
-    let q = `SELECT to_char(t.result_date, 'YYYY-MM-DD'), a.appointment_id, c.result_id, c.comp_value, c.comp_result, c.comp_status, c.comp_name
+    let q = `SELECT to_char(t.result_date, 'YYYY-MM-DD') as result_date, a.appointment_id, c.result_id, c.comp_value, c.comp_result, c.comp_status, c.comp_name
              FROM appointment as a  NATURAL JOIN test_result as t NATURAL JOIN comp_result as c
              WHERE a.patient_id = $1 and c.comp_name = $2 `
 
@@ -679,7 +679,7 @@ app.get('/patient/:id/see_all_presc', (req,res)=>{
 
 // returns appointment_id, save it and then give it as a parameter in the following three requests as aid.
 app.get('/doctor/:id/homepage', (req,res)=>{
-    let q = ` SELECT appointment_id, P.name, P.surname, to_char(date, 'YYYY-MM-DD')
+    let q = ` SELECT appointment_id, P.name, P.surname, to_char(date, 'YYYY-MM-DD') as date
                FROM appointment, person as P 
                 WHERE doctor_id = $1
                 and P.national_id = patient_id and status = 'upcoming'
@@ -1240,7 +1240,7 @@ app.get('/pharmacist/:id/stock_search', (req,res)=>{
  */
 app.post('/admin/add_staff', (req,res)=>{
     let q = `INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES 
-    ($1, $2, $3, $4, $5, $6, $7, $8);`
+    ($1, $2, $3, $4, $5, $6, $7, to_date($8, 'YYYY-MM-DD'));`
     let re = req.body
     let params = [re.national_id,re.name,re.surname, re.email, re.password, re.person_type, re.phone, re.birthday]
 
