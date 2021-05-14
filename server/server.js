@@ -234,7 +234,6 @@ app.get('/patient/:id/appointments', (req,res)=>{
 
 })
 
-
 //appointments
 /*
     /patient/:id/appointments :
@@ -517,11 +516,10 @@ app.get('/patient/:id/see_app_diag', (req,res)=>{
 app.get('/doctor/:id/homepage', (req,res)=>{
     let q = ` SELECT appointment_id, P.name, P.surname, date
                FROM appointment, person as P 
-                WHERE doctor_id = $1 and EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM current_date)
+                WHERE doctor_id = $1
                 and P.national_id = patient_id and status = 'upcoming'
                 ORDER BY date DESC ;`
     let params = Object.values(req.params)
-
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -803,9 +801,7 @@ app.get('/laboratorian/:id/homepage', (req,res)=>{
 
     let q = `SELECT *
              FROM test_assigned_to ta NATURAL JOIN test_result tr
-             WHERE laboratorian_id = $1 and test_status = 'assigned' 
-             and EXTRACT(MONTH FROM ta.date) = EXTRACT(MONTH FROM current_date)
-             and ta.date >= current_date;  `
+             WHERE laboratorian_id = $1 and test_status = 'assigned';  `
     let params = Object.values(req.params)
 
     client.query(q, params, (err, result) =>{
