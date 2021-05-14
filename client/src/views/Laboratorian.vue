@@ -122,15 +122,7 @@ name: "Laboratorian",
       { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' },
     ],
     filteredTests: [],
-    items:[
-      {
-        id: 8845,
-        doctorName: 'Dr. Sunny',
-        date: '22.04.2021',
-        testName: 'BloodTest',
-        status: 'Assigned'
-      }
-    ],
+    items:[],
     tableInfo: {
       tableTitle: 'Tests Waiting',
       itemsKey: 'id',
@@ -203,8 +195,40 @@ name: "Laboratorian",
         }
         this.result = ''
       }
+    },
+    async getItems(){
+      this.overlay = true
+      if(this.$cookies.get('user'))
+      {
+        this.id = this.$cookies.get('user').national_id
+        let temp = this.$cookies.get('user').name
+        this.patientName = temp.charAt(0).toUpperCase() + temp.slice(1)
+      }
+      await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
+        // console.log(res)
+        this.items = []
+        res.data.forEach(x => {
+          let temp = {
+            id: x.appointment_id,
+            doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+            date: x.date,
+            department: x.department
+          }
+          this.items.push(temp)
+        })
+        this.overlay = false
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
     }
   },
+  mounted() {
+    this.getItems()
+  },
+
   created: function() {
     this.group.items = this.compItems
     this.group.headers = this.compHeaders
