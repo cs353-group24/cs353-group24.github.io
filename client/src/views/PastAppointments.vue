@@ -19,6 +19,29 @@
             </v-row>
           </template>
       </PaginationTable>
+      <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+      >
+        {{ errorMsg }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+      <v-overlay :value="overlay">
+        <v-progress-circular
+            indeterminate
+            size="64"
+        ></v-progress-circular>
+      </v-overlay>
       <Dialog :tableData="group" :item="item1" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog1" :title="'Symptoms'" @close="dialog1=false"></Dialog>
       <Dialog :tableData="group" :item="item2" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog2" :title="'Diagnosis'" @close="dialog2=false"></Dialog>
       <Dialog :tableData="group" :item="item3" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog3" :title="'Prescription'" @close="dialog3=false"></Dialog>
@@ -35,6 +58,11 @@ export default {
   },
 
   data: () => ({
+    snackbar: false,
+    overlay: false,
+    errorMsg: '',
+    id:'',
+    patientName: '',
     item1:{},
     item2:{},
     item3:{},
@@ -54,43 +82,16 @@ export default {
         align: 'start',
         sortable: false,
         // filterable: false,
-        value: 'name',
+        value: 'id',
         class: 'datatablefontcolor--text'
     },
-    { text: 'Doctor Name', value: 'calories', class: 'datatablefontcolor--text' },
-    { text: 'Date', value: 'fat', class: 'datatablefontcolor--text' },
-    { text: 'Time', value: 'carbs', class: 'datatablefontcolor--text' },
-    { text: 'Department', value: 'protein', class: 'datatablefontcolor--text' },
-    { text: 'Iron', value: 'iron', class: 'datatablefontcolor--text' },
+    { text: 'Doctor Name', value: 'doctor', class: 'datatablefontcolor--text' },
+    { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
+    { text: 'Department', value: 'department', class: 'datatablefontcolor--text' },
+    { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
-    items: [
-    {
-        name: 1010,
-        calories: 'Dr Mohla',
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: '1%',
-    },
-    {
-        name: 1100,
-        calories: 'Dr Royim',
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: '1%',
-    },
-    {
-        name: 1141,
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: '7%',
-    },
-    
-    ],
+    items: [],
     tableInfo: {
         tableTitle: 'Past Appointments',
         itemsKey: 'name',
@@ -98,19 +99,97 @@ export default {
     },
   }),
   methods: {
-      handleDialog1: function(item){
-          // console.log(this.group);
+    async getItems(){
+      this.overlay = true
+      if(this.$cookies.get('user'))
+      {
+        this.id = this.$cookies.get('user').national_id
+        let temp = this.$cookies.get('user').name
+        this.patientName = temp.charAt(0).toUpperCase() + temp.slice(1)
+      }
+      await this.$http.get(this.$url+`/patient/${this.id}/appointments`).then(res => {
+        console.log(res)
+        this.items = []
+        res.data.filter(x => x.status === 'finalized').forEach(x => {
+          let temp = {
+            id: x.appointment_id,
+            doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+            date: x.date,
+            department: x.department,
+            status: x.status,
+          }
+          this.items.push(temp)
+        })
+        this.overlay = false
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
+    },
+      async handleDialog1(item){
+      //waiting for backend
+          let symptomsItems = [];
           this.item1 = item;
           this.dialog1 = true;
+        await this.$http.get(this.$url+`/doctor/1/${item.id}/see_patient_symptoms`).then(res => {
+          console.log(res)
+          /*res.data.forEach(x => {
+            let temp = {
+              name: x.disease_name,
+              description: x.description,
+            }
+            symptomsItems.push(temp)
+          })*/
+          this.overlay = false
+        }).catch((err) => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error, could not load data'
+          this.overlay = false
+          this.snackbar = true
+        })
+          this.group.headers =[
+            { text: 'Name', value: 'name', class: 'datatablefontcolor--text' },
+            { text: 'Description', value: 'description', class: 'datatablefontcolor--text' },
+          ];
+        this.group.items = symptomsItems;
+
       },
-      handleDialog2: function(item){
-          this.item2 = item;
-          this.dialog2 = true;
+      async handleDialog2(item){
+        let diagnosisItems = [];
+        await this.$http.get(this.$url+`/patient/${this.id}/see_app_diag`, {
+          params: {
+            appointment_id: item.id
+          }
+        }).then(res => {
+          res.data.forEach(x => {
+            let temp = {
+              name: x.disease_name,
+              description: x.description,
+            }
+            diagnosisItems.push(temp)
+          })
+        }).catch((err) => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error, could not load data'
+        })
+        this.item2 = item;
+        this.dialog2 = true;
+        this.group.headers =[
+          { text: 'Name', value: 'name', class: 'datatablefontcolor--text' },
+          { text: 'Description', value: 'description', class: 'datatablefontcolor--text' },
+        ];
+        this.group.items = diagnosisItems
       },
       handleDialog3: function(item){
+      //waiting for backend
           this.item3 = item;
           this.dialog3 = true;
       },
+  },
+  mounted() {
+    this.getItems()
   },
   created: function() {
       this.group.items = this.items

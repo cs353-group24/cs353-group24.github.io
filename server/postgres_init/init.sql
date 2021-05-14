@@ -1,7 +1,7 @@
 --types
 CREATE TYPE test_status AS ENUM ('assigned', 'preparing', 'finalized');
 CREATE TYPE app_status AS ENUM ( 'upcoming','waiting-tests', 'finalized');
-CREATE TYPE person_type as ENUM ('patient', 'doctor', 'laboratorian','pharmacist' );
+CREATE TYPE person_type as ENUM ('patient', 'doctor', 'laboratorian','pharmacist', 'admin' );
 CREATE TYPE presc_type as ENUM ('waiting', 'filled');
 -- create enums for doctors, laboratorians -> department -> room no will be incremented
 
