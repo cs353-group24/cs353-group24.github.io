@@ -191,10 +191,6 @@ name: "Laboratorian",
         this.dialog=false
         this.item.status = 'Preparing'
         this.snackbar = true
-        await this.$http.post(this.$url + `/patient/${this.id}/appointment/newappointment`, {
-          date: this.appointment.date,
-          doctor_id: this.appointment.doctor.id
-        })
         this.msg = `Test: ${this.item.id} moved to the preparing tests page`
         this.filteredTests = this.items.filter(x => x.status === 'Assigned')
         if (this.resultItem.l_interval !== '-') {
