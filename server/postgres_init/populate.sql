@@ -1,5 +1,5 @@
 
-
+-- 2 pharmacist, 4 patient, 3 doctors, 3 laboratorian
 INSERT INTO person (national_id, name, surname, email, password, person_type, phone, birthday) VALUES
 (1, 'mannan', 'abdul', 'mannan@gmail.com', 112233, 'patient', '+905536644231', '2000-07-01'),
 (2, 'mohlaroyim', 'raupova', 'mohi@sucks.com', 223344, 'doctor', '+925984569115', '2000-07-01'),
@@ -7,12 +7,24 @@ INSERT INTO person (national_id, name, surname, email, password, person_type, ph
 (4, 'atakan', 'aray', 'atakan@gmail.com', 445566, 'doctor', '+905325425145', '2000-12-01'),
 (5, 'joyner', 'lucas', 'joyner@outlook.com', 556677, 'pharmacist', '+906451354875', '2000-12-01'),
 (6, 'david', 'davenport', 'david@outlook.com', 667788, 'laboratorian', '+906451354875', '2000-12-01'),
-(7, 'name', 'surname', 'admin@gmail.com', 667788, 'admin', '+906451354875', '2000-12-01');
+(7, 'name', 'surname', 'admin@gmail.com', 667788, 'admin', '+906451354875', '2000-12-01'),
+(8, 'james', 'smith', 'smith@gmail.com', 113355, 'patient', '+905536684331', '2001-07-21'),
+(9, 'jane', 'doe', 'janedoe@gmail.com', 335577, 'patient', '+905585694231', '2010-03-01'),
+(10, 'john', 'doe', 'johndoe@gmail.com', 557799, 'patient', '+904536424231', '1998-06-01'),
+(11, 'james', 'bond', '007@outlook.com', 224466, 'pharmacist', '+906456374875', '1980-10-01'),
+(12, 'nathan', 'drake', 'drake@gmail.com', 446688, 'doctor', '+905627485145', '1990-02-01'),
+(13, 'solid', 'snake', 'snake@gmail.com', 668800, 'laboratorian', '+906451354875', '2000-12-01');
+
+
+
 
 INSERT INTO department (name, date_est, building) VALUES
-('Computer Science','2021-03-01', 'A' ),
+('Oncology','2021-03-01', 'A' ),
 ('Cardiology','2021-03-01', 'B' ),
-('Gastroenterology', '2021-03-02', 'C');
+('Gastroenterology', '2021-03-02', 'C'),
+('Radiology','2021-03-01', 'B' ),
+('Otolaryngology ','2021-03-01', 'B' );
+
 
 
 INSERT INTO pharmacist (national_id) VALUES
@@ -20,17 +32,19 @@ INSERT INTO pharmacist (national_id) VALUES
 
 
 INSERT INTO doctor (national_id, room_no, department) VALUES
-(2, 489, 'Computer Science'),
-(4, 302, 'Cardiology');
+(2, 489, 'Oncology'),
+(4, 302, 'Cardiology'),
+(12, 432, 'Otolaryngology');
 
 INSERT INTO laboratorian (national_id, department) VALUES
-(3, 'Computer Science'),
-(6, 'Cardiology');
+(3, 'Oncology'),
+(6, 'Cardiology'),
+(13, 'Radiology');
 
 INSERT INTO test (test_name, department) VALUES
 ('blood', 'Cardiology'),
 ('stones', 'Gastroenterology'),
-('x-ray', 'Computer Science');
+('x-ray', 'Radiology');
 
 INSERT INTO prescription (prescription_no, prescription_type, date) VALUES
 (1, 'A','2021-04-01' ),
@@ -86,6 +100,9 @@ INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES
 
 INSERT INTO doctor_off_days (doctor_id, date) VALUES
 ('2', '2021-05-18')
+
+
+
 /*
 
 INSERT INTO result (test_name, comp_name, result_id, result_date, appointment_id, test_comp_value, test_comp_result, status) VALUES
