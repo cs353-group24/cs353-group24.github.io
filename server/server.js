@@ -807,6 +807,30 @@ app.post('/doctor/:id/delete_off_days', (req,res)=>{
     })
 })
 
+
+/*
+    see_all_symptom
+
+    /*
+    /doctor/:id/:aid/see_all_patient_symptoms
+    id: doctor_id
+ */
+app.get('/doctor/:id/see_all_patient_symptoms', (req,res)=>{
+    let q = `SELECT  symptom_name, description FROM appointment a, patient_symptoms p, symptom  s
+             WHERE a.appointment_id = p.appointment_id and p.symptom_name = s.name and a.doctor_id = $1;`
+    let re = req.params
+    let params = [re.id]
+    client.query(q, params, (err,result)=>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
+
+
+
+
 /*
     /doctor/:id/:aid/see_patient_symptoms
     id: doctor_id, aid: appointment_id
