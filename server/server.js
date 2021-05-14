@@ -908,7 +908,7 @@ app.get('/doctor/:id/get_laboratorians',(req,res)=>{
      naming conventions presented above should be followed
  */
 app.post('/doctor/:id/ask_for_tests',(req,res)=>{
-    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_nam) 
+    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_name) 
 VALUES ($1, $2, $3) `
     let par = req.body
     let params = [par.appointment_id, par.laboratorian_id, par.test_name]
