@@ -651,7 +651,7 @@ app.get('/patient/:id/see_all_presc', (req,res)=>{
               FROM appointment a, prescribed_by pb, prescription p, prescribed_in pi
               WHERE a.appointment_id = pb.appointment_id and pb.prescription_no = p.prescription_no and p.prescription_no = pi.prescription_no  
                and patient_id = $1`
-    let params = Object.value(req.params)
+    let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
