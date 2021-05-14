@@ -35,6 +35,8 @@
                   :rules="[v => !!v || 'Doctor is required']"
                   prepend-inner-icon="mdi-doctor"
                   :items="doctors"
+                  item-text="name"
+                  return-object
                   label="Doctor"
                   outlined
                 ></v-select>
@@ -111,12 +113,35 @@
             <v-col class="d-flex justify-center mx-n6">
                 <v-btn icon @click="editApt(item)" color="datatablefontcolor"><v-icon>mdi-pencil-outline</v-icon></v-btn>
             </v-col>
-            <v-col class="d-flex justify-center ml-n8">
+            <v-col v-if="item.status === 'upcoming'" class="d-flex justify-center ml-n8">
                 <v-btn icon @click="deleteApt(item)" color="datatablefontcolor"><v-icon>mdi-delete</v-icon></v-btn>
             </v-col>
             </v-row>
           </template>
       </PaginationTable>
+      <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+      >
+        {{ errorMsg }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+      <v-overlay :value="overlay">
+        <v-progress-circular
+            indeterminate
+            size="64"
+        ></v-progress-circular>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -129,6 +154,9 @@ export default {
   },
 
   data: () => ({
+    snackbar: false,
+    overlay: false,
+    errorMsg: '',
     edit:false,
     id:'',
     dateArray: [],
@@ -142,8 +170,8 @@ export default {
     },
     dialog:false,
     buttonHeader: 'details',
-    selects:['Cardilogy', 'Radiology', 'Urology', 'Plastic Surgery'],
-    doctors:['Mohi', 'Sunny', 'Arnisa', 'Atakan'],
+    selects:[],
+    doctors:[],
     headers: [
     {
         text: 'Appointment ID',
@@ -156,6 +184,7 @@ export default {
     { text: 'Doctor Name', value: 'doctor', class: 'datatablefontcolor--text' },
     { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
     { text: 'Department', value: 'department', class: 'datatablefontcolor--text' },
+      { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
     items: [],
@@ -169,91 +198,176 @@ export default {
     noDateArray: function(val){
       return (!this.dateArray.includes(val))
     },
-    validateForm(){
+    async getItems(){
+      this.overlay = true
+      if(this.$cookies.get('user'))
+      {
+        this.id = this.$cookies.get('user').national_id
+        let temp = this.$cookies.get('user').name
+        this.patientName = temp.charAt(0).toUpperCase() + temp.slice(1)
+      }
+      await this.$http.get(this.$url+`/patient/${this.id}/appointments`).then(res => {
+        console.log(res)
+        this.items = []
+        res.data.forEach(x => {
+          let temp = {
+            id: x.appointment_id,
+            doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+            date: x.date,
+            department: x.department,
+            status: x.status,
+          }
+          this.items.push(temp)
+        })
+        this.overlay = false
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
+    },
+    async validateForm(){
       this.$refs.form.validate()
       if (this.valid) {
-        if(this.edit === true)
-        {
-          this.deleteApt(this.appointment)
-        }
-        else{
-          this.appointment.id = this.id;
-          console.log(this.id)
-          this.id++;
-        }
-        const temp = JSON.parse(JSON.stringify(this.appointment));
-        this.items.push(temp);
-        this.dateArray.push(temp.date);
-        const parsed = JSON.stringify(this.items);
-        localStorage.setItem('items', parsed);
-        const parsedArray = JSON.stringify(this.dateArray);
-        localStorage.setItem('dataArray', parsedArray);
-        localStorage.setItem('id', this.id);
-        this.appointment.id = ''
+        this.dialog = false
+        this.overlay = true
+        await this.$http.post(this.$url + `/patient/${this.id}/appointment/newappointment`, {
+          date: this.appointment.date,
+          doctor_id: this.appointment.doctor.id
+        }).then(() => {
+          // console.log(res)
+          this.$http.post(this.$url + `/doctor/${this.appointment.doctor.id}/create_off_days`, {
+            date: this.appointment.date
+          }).then(() => {
+            // console.log(res)
+            this.errorMsg = 'Appointment Created'
+            this.overlay = false
+            this.snackbar = true
+            this.getItems()
+          }).catch(err => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error in creating Appointment, try again later'
+            this.overlay = false
+            this.snackbar = true
+          })
+        }).catch(err => {
+          console.log(err.response)
+          this.errorMsg = 'Unexpected Error in disbaling date for others'
+          this.overlay = false
+          this.snackbar = true
+        })
         this.appointment.department = ''
         this.appointment.date = ''
         this.appointment.doctor = ''
-        this.dialog = false
       }
     },
-    editApt: function(item) {
-      console.log(this.edit)
+    editApt: async function(item) {
+      this.overlay = true
+      this.resetValidation()
       this.edit = true;
       this.appointment.id = item.id
       this.appointment.department = item.department
+      // console.log(this.appointment.department)
       this.appointment.date = item.date
-      this.appointment.doctor = item.doctor
+      await this.getDocs(item.department)
+      // console.log(this.appointment.department)
+      let temp = this.doctors.filter(x => x.name === item.doctor)
+      this.appointment.doctor = temp[0]
+      // console.log(this.appointment.department)
+      this.overlay = false
       this.dialog = true
     },
-    deleteApt: function(item) {
-      let index = this.items.findIndex(x => x.id === item.id)
-      this.items.splice(index, 1);
-      index = this.dateArray.findIndex(x => x === item.date)
-      this.dateArray.splice(index, 1);
-      const parsed = JSON.stringify(this.items);
-      localStorage.setItem('items', parsed);
-      const parsedArray = JSON.stringify(this.dateArray);
-      localStorage.setItem('dataArray', parsedArray);
+    async deleteApt(item) {
+      this.overlay = true
+      await this.$http.post(this.$url + `/patient/${item.id}/appointment/cancel`).then(res => {
+        console.log(res)
+        this.errorMsg = 'Appointment ' + res.data.message +'.'
+        this.snackbar = true
+        this.getItems()
+        this.overlay = false
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
     },
-    resetValidation () {
-      console.log('valid')
-      this.edit = false;
-      this.dialog=true;
+    async resetValidation () {
+      this.overlay = true
       if(this.$refs.form) {
-          this.$refs.form.resetValidation()   
+        this.$refs.form.resetValidation()
       }
-    }
+      if(this.selects.length === 0)
+      {
+        await this.$http.get(this.$url+`/patient/${this.id}/appointment/newappointment/departments`).then(res => {
+          res.data.forEach(x => {
+            this.selects.push(x.name)
+          })
+          this.overlay = false
+        }).catch((err) => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error, try again later'
+          this.overlay = false
+          this.snackbar = true
+        })
+      }
+      this.overlay = false
+      this.dialog=true;
+    },
+    getDocs: async function(val){
+      if (val) {
+        await this.$http.get(this.$url+`/patient/${this.id}/appointment/newappointment/doctor`, {
+          params: {
+            department: val
+          }
+        }).then(res => {
+          this.doctors = []
+          res.data.forEach(x => {
+            this.doctors.push({
+              id: x.national_id,
+              name: 'Dr. ' + this.capitalise(x.name, x.surname)
+            })
+          })
+          // return new Promise(resolve => {resolve('resolved')});
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Error retrieving list of Doctors'
+          this.dialog = false
+          this.snackbar = true
+        })
+      }
+    },
   },
   created: function(){
     // this.appointment.date = this.toIsoString(new Date()).substring(0, 10)
     // console.log(this.appointment.date)
   },
   mounted() {
-    if (localStorage.getItem('items')) {
-      try {
-        this.items = JSON.parse(localStorage.getItem('items'));
-      } catch(e) {
-        localStorage.removeItem('items');
-      }
-    }
-    if (localStorage.getItem('dataArray')) {
-      try {
-        this.dateArray = JSON.parse(localStorage.getItem('dataArray'));
-      } catch(e) {
-        localStorage.removeItem('dataArray');
-      }
-    }
-    if (localStorage.getItem('id')) {
-      try {
-        this.id = localStorage.getItem('id');
-      } catch(e) {
-        localStorage.removeItem('id');
-      }
-    }
-    else{
-      this.id = 1
-    }
+    this.getItems()
   },
+  watch: {
+    "appointment.department": async function(val){
+      this.getDocs(val)
+    },
+    "appointment.doctor": async function(val){
+      if (val) {
+        // TODO - remove substring once all dates are made string in db
+        await this.$http.get(this.$url+`/doctor/${val.id}/off_days`).then(res => {
+          // console.log(res)
+          this.dateArray = []
+          res.data.forEach(x => {
+            this.dateArray.push(x.date.substring(0,10))
+          })
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Error retrieving doctor\'s days off'
+          this.dialog = false
+          this.snackbar = true
+        })
+      }
+    }
+  }
 };
 </script>
 
