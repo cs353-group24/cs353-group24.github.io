@@ -648,8 +648,9 @@ app.get('/patient/:id/see_app_diag', (req,res)=>{
 // /patient/:id/prescriptions
 app.get('/patient/:id/see_all_presc', (req,res)=>{
     let q = ` SELECT *
-              FROM appointment NATURAL JOIN prescribed_by NATURAL JOIN prescription NATURAL JOIN prescribed_in
-                WHERE patient_id = $1`
+              FROM appointment a, prescribed_by pb, prescription p, prescribed_in pi
+              WHERE a.appointment_id = pb.appointment_id and pb.prescription_no = p.prescription_no and p.prescription_no = pi.prescription_no  
+               and patient_id = $1`
     let params = Object.value(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
@@ -658,6 +659,44 @@ app.get('/patient/:id/see_all_presc', (req,res)=>{
         return res.status(200).send(result.rows)
     })
 
+})
+
+
+/*
+    {
+        "prescription_no": "$"
+        }
+ */
+app.get('/patient/:id/see_all_presc', (req,res)=>{
+    let q = ` SELECT *
+              FROM  prescription p, prescribed_in pi, medicine m
+              WHERE  p.prescription_no = pi.prescription_no and pi.med_name = m.name and  p.prescription_no = $1 ;`
+    let params = Object.value(req.query)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+
+})
+
+/*
+    {
+        "appointment_id": "$"
+    }
+ */
+app.get("/patient/:id/see_app_symp", (req,res)=>{
+    let q = ` SELECT  * FROM diagnosis d , symptom s, disease_symptoms ds 
+  where d.disease_name = ds.disease_name and s.name = ds.symptom_name and appointment_id = $1; `
+
+    let params = Object.values(req.query)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
 
 })
 
