@@ -667,7 +667,7 @@ app.get('/patient/:id/see_all_presc', (req,res)=>{
         "prescription_no": "$"
         }
  */
-app.get('/patient/:id/see_all_presc', (req,res)=>{
+app.get('/patient/:id/see_presc', (req,res)=>{
     let q = ` SELECT *
               FROM  prescription p, prescribed_in pi, medicine m
               WHERE  p.prescription_no = pi.prescription_no and pi.med_name = m.name and  p.prescription_no = $1 ;`
