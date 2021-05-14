@@ -1102,6 +1102,8 @@ app.get('/pharmacist/:id/check_stock' , (req,res)=>{
 
 
 
+
+
 /*
     this function adds stock to medicine
     {
@@ -1123,6 +1125,29 @@ app.post ('/pharmacist/:id/add_stock', (req,res)=>{
         return res.status(200).send({"MESSAGE" : "successfull"})
     })
 })
+
+/*
+    this function adds stock to medicine
+    {
+        "stock": "$",
+        "name": "$"
+    }
+ */
+
+app.post ('/pharmacist/:id/delete_stock', (req,res)=>{
+    let q  = ` UPDATE medicine
+                SET stock = stock - $1
+                where medicine.name = $2  `
+
+    let params = [req.body.stock, req.body.name]
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"MESSAGE" : "successfull"})
+    })
+})
+
 
 /*
         {
@@ -1162,7 +1187,9 @@ app.post('pharmacist/:id/fill_presc', (req,res)=>{
  */
 app.get('/pharmacist/:id/medicine_search' , (req,res)=>{
     let q = `Select * from medicine where name Like '%' || $1 || '%'`
-    client.query(q, (err, result) =>{
+
+    let params = Object.values(req.query)
+    client.query(q,params ,(err, result) =>{
         if(err){
             return res.status(404).send(err)
         }
@@ -1170,8 +1197,25 @@ app.get('/pharmacist/:id/medicine_search' , (req,res)=>{
     })
 })
 
+/*
+        {
+           "lower_bound": "$",
+           "upper_bound":"$"
+        }
 
+ */
+app.get('/pharmacist/:id/stock_search', (req,res)=>{
+    let q = `SELECT * from medicine WHERE stock NOT BETWEEN $1 AND $2`
 
+    let params = Object.values(req.query)
+    client.query(q, params ,(err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.row)
+    })
+
+})
 
 
 //--------------------------------------------ADMIN ROUTES-------------------------------------------------//
