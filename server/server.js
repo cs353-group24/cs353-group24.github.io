@@ -76,8 +76,8 @@ app.use('/patient', patientRouter);
      */
 
 app.get('/login_first', (req,res,next)=>{
-    let q = 'SELECT * FROM person WHERE email=$1'
-    let params =   req.query
+    let q = 'SELECT TO_CHAR(birthday,\'YYYY-MM-DD\' ) as birthday, * FROM person WHERE email=$1'
+    let params = req.query
 
     client.query(q, [params.email],(err, result)=>{
         if (err){
@@ -112,7 +112,7 @@ app.get('/login_first', (req,res,next)=>{
 
 
 app.get('/login_second', (req,res,next)=>{
-    let q = 'SELECT * FROM person WHERE national_id=$1'
+    let q = 'SELECT TO_CHAR(birthday,\'YYYY-MM-DD\' ) as birthday, * FROM person WHERE national_id=$1'
     let params =   req.query
     console.log(params)
 
@@ -275,7 +275,7 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
 app.post('/patient/:id/appointment/edit', (req,res)=>{
 
     let person_q = ` UPDATE  appointment 
-                     SET date = $1, doctor_id = $2 
+                     SET date = to_date($1, 'YYYY-MM-DD'), doctor_id = $2 
                       WHERE appointment_id = $3  `
 
     let params = Object.values(req.body) // will get id
@@ -404,8 +404,8 @@ app.get('/patient/:id/appointment/newappointment/doctor', (req,res)=>{
  */
 
 app.get('/patient/:id/see_all_tests', (req,res)=>{
-    let q = `SELECT *
-             FROM appointment NATURAL JOIN test_result 
+    let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date, *
+             FROM appointment AS a NATURAL JOIN test_result 
              WHERE patient_id = $1 ; `
     let params = Object.values(req.params)
 
@@ -425,8 +425,8 @@ app.get('/patient/:id/see_all_tests', (req,res)=>{
      naming conventions presented above should be followed
  */
 app.get('/patient/:id/see_all_comps', (req,res)=>{
-    let q = `SELECT *
-             FROM appointment NATURAL JOIN test_result NATURAL JOIN comp_result
+    let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date, to_char(t.result_date, 'YYYY-MM-DD') as result_date, *
+             FROM appointment AS a NATURAL JOIN test_result AS t NATURAL JOIN comp_result
              WHERE patient_id = $1 ; `
     let params = Object.values(req.params)
 
@@ -453,8 +453,8 @@ app.get('/patient/:id/see_all_comps', (req,res)=>{
 
  */
 app.get('/patient/:id/see_app_tests', (req,res)=>{
-    let q = `SELECT *
-             FROM appointment NATURAL JOIN test_result 
+    let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date, to_char(t.result_date, 'YYYY-MM-DD') as result_date, *
+             FROM appointment AS a NATURAL JOIN test_result AS t
              WHERE patient_id = $1 and appointment_id = $2 ; `
     let params1 = req.params
     let params2 = req.query
@@ -484,8 +484,8 @@ app.get('/patient/:id/see_app_tests', (req,res)=>{
 
  */
 app.get('/patient/:id/see_app_comps', (req,res)=>{
-    let q = `SELECT *
-             FROM appointment NATURAL JOIN test_result NATURAL JOIN comp_result
+    let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date, to_char(t.result_date, 'YYYY-MM-DD') as result_date, *
+             FROM appointment AS a NATURAL JOIN test_result AS t NATURAL JOIN comp_result
              WHERE patient_id = $1 and appointment_id = $2 ; `
     let params1 = req.params
     let params2 = req.query
@@ -515,8 +515,8 @@ app.get('/patient/:id/see_app_comps', (req,res)=>{
 
  */
 app.get('/patient/:id/see_app_test_comps', (req,res)=>{
-    let q = `SELECT *
-             FROM appointment NATURAL JOIN test_result NATURAL JOIN comp_result
+    let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date, to_char(t.result_date, 'YYYY-MM-DD') as result_date, *
+             FROM appointment AS a NATURAL JOIN test_result AS t NATURAL JOIN comp_result
              WHERE patient_id = $1 and appointment_id = $2 and test_name = $3; `
     let params1 = req.params
     let params2 = req.query
@@ -545,8 +545,8 @@ app.get('/patient/:id/see_app_test_comps', (req,res)=>{
 
  */
 app.get('/patient/:id/see_test_comps', (req,res)=>{
-    let q = `SELECT *
-             FROM appointment NATURAL JOIN test_result NATURAL JOIN comp_result
+    let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date, to_char(t.result_date, 'YYYY-MM-DD') as result_date, *
+             FROM appointment AS a NATURAL JOIN test_result AS t NATURAL JOIN comp_result
              WHERE result_id = $1 `
     let params1 = req.query
     let params = [result_id]
@@ -603,7 +603,7 @@ app.get('/patient/:id/see_prev_test_comps', (req,res)=>{
  */
 
 app.get('/patient/:id/see_all_diag', (req,res)=>{
-    let q = `SELECT *
+    let q = `SELECT to_char(date, 'YYYY-MM-DD') as date, *
              FROM appointment NATURAL JOIN diagnosis
              WHERE patient_id = $1 ; `
     let params = Object.values(req.params)
@@ -630,7 +630,7 @@ app.get('/patient/:id/see_all_diag', (req,res)=>{
  */
 
 app.get('/patient/:id/see_app_diag', (req,res)=>{
-    let q = `SELECT *
+    let q = `SELECT to_char(date, 'YYYY-MM-DD') as date, *
              FROM appointment NATURAL JOIN diagnosis
              WHERE patient_id = $1 and appointment_id = $2 ; `
     let params1 = req.params
@@ -647,8 +647,8 @@ app.get('/patient/:id/see_app_diag', (req,res)=>{
 
 // /patient/:id/prescriptions
 app.get('/patient/:id/see_all_presc', (req,res)=>{
-    let q = ` SELECT *
-              FROM appointment NATURAL JOIN prescribed_by NATURAL JOIN prescription NATURAL JOIN prescribed_in
+    let q = ` SELECT to_char(a.date, 'YYYY-MM-DD') as date, to_char(p.date, 'YYYY-MM-DD') as date, *
+              FROM appointment AS a NATURAL JOIN prescribed_by NATURAL JOIN prescription AS p NATURAL JOIN prescribed_in
                 WHERE patient_id = $1`
     let params = Object.value(req.params)
     client.query(q, params, (err, result) =>{
@@ -657,8 +657,6 @@ app.get('/patient/:id/see_all_presc', (req,res)=>{
         }
         return res.status(200).send(result.rows)
     })
-
-
 })
 
 
@@ -705,7 +703,7 @@ app.get('/doctor/:id/homepage', (req,res)=>{
 
 app.get('/doctor/:id/off_days', (req,res)=>{
 
-    let q = ` SELECT *
+    let q = ` SELECT to_char(date, 'YYYY-MM-DD') as date, *
               FROM doctor_off_days
               WHERE doctor_id = $1 ;  `
     let params = Object.values(req.params)
@@ -845,8 +843,8 @@ app.get('/doctor/:id/get_laboratorians',(req,res)=>{
      naming conventions presented above should be followed
  */
 app.post('/doctor/:id/ask_for_tests',(req,res)=>{
-    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_nam) 
-VALUES ($1, $2, $3) `
+    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_name) 
+            VALUES ($1, $2, $3) `
     let par = req.body
     let params = [par.appointment_id, par.laboratorian_id, par.test_name]
 
@@ -864,7 +862,7 @@ VALUES ($1, $2, $3) `
     save the result_id's and use them to see component results etc.
  */
 app.get('/doctor/:id/:aid/see_tests', (req,res)=>{
-    let q = ` SELECT * 
+    let q = ` SELECT to_char(result_date, 'YYYY-MM-DD') as result_date, *
             FROM test_result
             WHERE appointment_id = $1;`
     let re = req.params
@@ -964,8 +962,8 @@ app.post('/doctor/:id/make_diagnosis', (req,res)=>{
  */
 app.get('/laboratorian/:id/homepage', (req,res)=>{
 
-    let q = `SELECT *
-             FROM test_assigned_to ta NATURAL JOIN test_result tr
+    let q = `SELECT to_char(tr.result_date, 'YYYY-MM-DD') as result_date, to_char(ta.date, 'YYYY-MM-DD') as assign_date, *
+             FROM test_assigned_to AS ta NATURAL JOIN test_result AS tr
              WHERE laboratorian_id = $1 and test_status = 'assigned';  `
     let params = Object.values(req.params)
 
@@ -983,8 +981,8 @@ app.get('/laboratorian/:id/homepage', (req,res)=>{
  */
 app.get('/laboratorian/:id/get_tests', (req,res)=>{
 
-    let q = `SELECT *
-             FROM test_assigned_to NATURAL JOIN test_result
+    let q = `SELECT to_char(tr.result_date, 'YYYY-MM-DD') as result_date, to_char(ta.date, 'YYYY-MM-DD') as assign_date, *
+             FROM test_assigned_to ta NATURAL JOIN test_result tr
              WHERE laboratorian_id = $1;  `
     let params = Object.values(req.params)
 
@@ -1004,7 +1002,7 @@ app.get('/laboratorian/:id/get_tests', (req,res)=>{
     }
  */
 app.get('/laboratorian/:id/get_spec_comps', (req,res)=>{
-    let q = `SELECT *
+    let q = `SELECT to_char(result_date, 'YYYY-MM-DD') as result_date, *
              FROM test_result NATURAL JOIN comp_result
              WHERE result_id = $1;  `
 
@@ -1020,7 +1018,9 @@ app.get('/laboratorian/:id/get_spec_comps', (req,res)=>{
 
 //get components with result_id
 app.get('/laboratorian/:id/get_all_comp', (req,res)=>{
-    let q = 'SELECT * FROM test_assigned_to NATURAL JOIN test_result NATURAL JOIN comp_result WHERE laboratorian_id = $1;'
+    let q =  `SELECT to_char(tr.result_date, 'YYYY-MM-DD') as result_date, to_char(ta.date, 'YYYY-MM-DD') as assign_date, * 
+        FROM test_assigned_to ta NATURAL JOIN test_result tr NATURAL JOIN comp_result 
+        WHERE laboratorian_id = $1;`
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
@@ -1063,7 +1063,7 @@ app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
 /*
  */
 app.get('/pharmacist/:id/get_all_prescriptions', (req,res)=>{
-    let q= `SELECT *
+    let q= `SELECT to_char(date, 'YYYY-MM-DD') as date, *
             FROM prescription_assigned_to NATURAL JOIN prescription
             WHERE pharmacist_id = $1; `
     let params = Object.values(req.params)
@@ -1078,7 +1078,7 @@ app.get('/pharmacist/:id/get_all_prescriptions', (req,res)=>{
 /*
  */
 app.get('/pharmacist/:id/get_waiting_prescriptions', (req,res)=>{
-    let q= `SELECT *
+    let q= `SELECT to_char(date, 'YYYY-MM-DD') as date, *
             FROM prescription_assigned_to NATURAL JOIN prescription
             WHERE pharmacist_id = $1 and status = 'waiting'; `
     let params = Object.values(req.params)
@@ -1099,10 +1099,6 @@ app.get('/pharmacist/:id/check_stock' , (req,res)=>{
         return res.status(200).send(result.row)
     })
 })
-
-
-
-
 
 /*
     this function adds stock to medicine
@@ -1171,7 +1167,7 @@ app.post('pharmacist/:id/fill_presc', (req,res)=>{
         else {
             q = `UPDATE medicine
                 SET stock = stock - $1
-                where medicine.name = $2; `
+                 WHERE medicine.name = $2; `
             params = [req.body.qty, req.body.medicine_name]
             return res.status(200).send({"MESSAGE" : "successfull"})
         }
@@ -1186,7 +1182,7 @@ app.post('pharmacist/:id/fill_presc', (req,res)=>{
 
  */
 app.get('/pharmacist/:id/medicine_search' , (req,res)=>{
-    let q = `Select * from medicine where name Like '%' || $1 || '%'`
+    let q = `SELECT * FROM medicine WHERE name LIKE '%' || $1 || '%'`
 
     let params = Object.values(req.query)
     client.query(q,params ,(err, result) =>{
@@ -1202,7 +1198,6 @@ app.get('/pharmacist/:id/medicine_search' , (req,res)=>{
            "lower_bound": "$",
            "upper_bound":"$"
         }
-
  */
 app.get('/pharmacist/:id/stock_search', (req,res)=>{
     let q = `SELECT * from medicine WHERE stock NOT BETWEEN $1 AND $2`
@@ -1217,9 +1212,7 @@ app.get('/pharmacist/:id/stock_search', (req,res)=>{
 
 })
 
-
 //--------------------------------------------ADMIN ROUTES-------------------------------------------------//
-
 
 /*
 /admin/add_staff
@@ -1401,13 +1394,13 @@ app.get('/admin/:table', (req,res)=>{
     let q = ``
     let table = req.params.table
     if (table === 'appointment') {
-        q = `SELECT * FROM appointment;  `
+        q = `SELECT to_char(date, 'YYYY-MM-DD') as date, * FROM appointment;  `
     } else if (table === 'person' ) {
-        q = `SELECT * FROM person;  `
+        q = `SELECT to_char(birthdate, 'YYYY-MM-DD') as birthdate, * FROM person;  `
     } else if (table === 'doctor' ) {
         q = `SELECT * FROM doctor;  `
     } else if (table === 'department' ) {
-        q = `SELECT * FROM department;  `
+        q = `SELECT to_char(date_est, 'YYYY-MM-DD') as date_est, * FROM department;  `
     } else if (table === 'diagnosis' ) {
         q = `SELECT * FROM diagnosis;  `
     } else if (table === 'disease' ) {
@@ -1429,9 +1422,9 @@ app.get('/admin/:table', (req,res)=>{
     } else if (table === 'prescribed_in' ) {
         q = `SELECT * FROM prescribed_in;  `
     } else if (table === 'prescription' ) {
-        q = `SELECT * FROM prescription;  `
+        q = `SELECT to_char(date, 'YYYY-MM-DD') as date, * FROM prescription;  `
     } else if (table === 'test_result' ) {
-        q = `SELECT * FROM test_result;  `
+        q = `SELECT to_char(result_date, 'YYYY-MM-DD') as result_date, * FROM test_result;  `
     } else if (table === 'comp_result' ) {
         q = `SELECT * FROM comp_result;  `
     } else if (table === 'component' ) {
@@ -1441,9 +1434,9 @@ app.get('/admin/:table', (req,res)=>{
     } else if (table === 'test' ) {
         q = `SELECT * FROM test;  `
     } else if (table === 'test_assigned_to' ) {
-        q = `SELECT * FROM test_assigned_to;  `
+        q = `SELECT to_char(date, 'YYYY-MM-DD') as date, * FROM test_assigned_to;  `
     } else if (table === 'doctor_off_days' ) {
-        q = `SELECT * FROM doctor_off_days;  `
+        q = `SELECT to_char(date, 'YYYY-MM-DD') as date, * FROM doctor_off_days;  `
     } else if (table === 'prescription_assigned_to' ) {
         q = `SELECT * FROM prescription_assigned_to;  `
     } else {
