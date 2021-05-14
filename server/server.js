@@ -262,6 +262,63 @@ app.post('/patient/:id/appointment/cancel', (req,res)=>{
 })
 
 
+/*
+    edits an appoitnemnt
+     {
+        "date": "$",
+        "doctor_id": "$",
+        "appointment_id": "$"
+    }
+ */
+
+
+app.post('/patient/:id/appointment/edit', (req,res)=>{
+
+    let person_q = ` UPDATE  appointment 
+                     SET date = $1, doctor_id = $2 
+                      WHERE appointment_id = $3  `
+
+    let params = Object.values(req.body) // will get id
+
+    client.query(person_q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        else {
+            return res.status(200).send({"message": "edited successfully"})
+        }
+    })
+})
+
+
+/*
+    gives tests for a given appointment
+     {
+        "appointment_id": "$"
+    }
+ */
+
+//appointment cancel
+app.post('/patient/:id/appointment/see_tests', (req,res)=>{
+
+    let person_q = ` DELETE FROM appointment
+                    WHERE appoitnment_id = $1`
+
+    let params = Object.values(req.body) // will get id
+
+    client.query(person_q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        else {
+            return res.status(200).send({"message": "edited successfully"})
+        }
+    })
+})
+
+
+
+
 //new appointment
 
 /*
@@ -388,7 +445,7 @@ app.get('/patient/:id/see_all_comps', (req,res)=>{
         /patient/$/see_app_tests
 
         {
-            "assignment_id":"$"
+            "appointment_id":"$"
         }
 
       $ is the required info(s) that will provided by client side,
@@ -419,7 +476,7 @@ app.get('/patient/:id/see_app_tests', (req,res)=>{
         /patient/$/see_app_comps
 
         {
-            "assignment_id":"$"
+            "appointment_id":"$"
         }
 
       $ is the required info(s) that will provided by client side,
@@ -442,6 +499,100 @@ app.get('/patient/:id/see_app_comps', (req,res)=>{
         return res.status(200).send(result.rows)
     })
 } )
+
+/*
+     this function returns a patient to their tests and components for an appointment
+      /patient/:id/see_app_tests:
+        /patient/$/see_app_tests
+
+        {
+            "appointment_id":"$",
+            "test_name": "$"
+        }
+
+      $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+
+ */
+app.get('/patient/:id/see_app_test_comps', (req,res)=>{
+    let q = `SELECT *
+             FROM appointment NATURAL JOIN test_result NATURAL JOIN comp_result
+             WHERE patient_id = $1 and appointment_id = $2 and test_name = $3; `
+    let params1 = req.params
+    let params2 = req.query
+    let params = [params1.id, params2.appointment_id, params2.test_name]
+
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
+/*
+      this function returns a patient to their tests components
+      /patient/:id/see_test_comps:
+        /patient/$/see_test_comps
+
+        {
+           "result_id": "$"
+        }
+
+      $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+
+ */
+app.get('/patient/:id/see_test_comps', (req,res)=>{
+    let q = `SELECT *
+             FROM appointment NATURAL JOIN test_result NATURAL JOIN comp_result
+             WHERE result_id = $1 `
+    let params1 = req.query
+    let params = [result_id]
+
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
+
+/*
+
+      /patient/:id/see_app_tests:
+        /patient/$/see_app_tests
+
+        {
+           "comp_name": "$"
+        }
+
+      $ is the required info(s) that will provided by client side,
+     naming conventions presented above should be followed
+
+ */
+app.get('/patient/:id/see_prev_test_comps', (req,res)=>{
+    let q = `SELECT t.result_date, a.appointment_id, c.result_id, c.comp_value, c.comp_result, c.comp_status, c.comp_name
+             FROM appointment as a  NATURAL JOIN test_result as t NATURAL JOIN comp_result as c
+             WHERE a.patient_id = $1 and c.comp_name = $2 `
+
+
+   let params1 = req.params
+    let params2 = req.query
+    let params = [params1.id, params2.comp_name]
+
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+} )
+
 
 /*
     this function returns a patient to their all diagnoses
@@ -495,8 +646,22 @@ app.get('/patient/:id/see_app_diag', (req,res)=>{
 } )
 
 // /patient/:id/prescriptions
-// /patient/:id/tests
-// /patient/:id/diagnosis ?
+app.get('/patient/:id/see_all_presc', (req,res)=>{
+    let q = ` SELECT *
+              FROM appointment NATURAL JOIN prescribed_by NATURAL JOIN prescription NATURAL JOIN prescribed_in
+                WHERE patient_id = $1`
+    let params = Object.value(req.params)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+
+
+})
+
+
 
 //--------------------------------------------DOCTOR ROUTES-------------------------------------------------//
 
