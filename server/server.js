@@ -994,6 +994,11 @@ app.post('/doctor/:id/make_diagnosis', (req,res)=>{
 })
 
 
+// insert and delete prescriptions
+
+
+
+
 
 //--------------------------------------------LABORATORIAN ROUTES-------------------------------------------------//
 
