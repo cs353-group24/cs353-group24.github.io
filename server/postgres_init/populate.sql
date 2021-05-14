@@ -23,7 +23,7 @@ INSERT INTO department (name, date_est, building) VALUES
 ('Cardiology','2021-03-01', 'B' ),
 ('Gastroenterology', '2021-03-02', 'C'),
 ('Radiology','2021-03-01', 'B' ),
-('Otolaryngology ','2021-03-01', 'B' );
+('Otolaryngology','2021-03-01', 'B' );
 
 
 
