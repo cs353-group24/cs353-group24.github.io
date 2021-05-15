@@ -24,6 +24,7 @@
             @removeSymptom="removeSymptom($event)"
             @symptomAdd="symptomAdd($event)"
             @removeTest="removeTest($event)"
+            @viewTestComp ="loadComponent($event)"
             @testAdd="addTest($event)"
             @removePres="removePres($event)"
             @addPres="addPres($event)"
@@ -70,12 +71,7 @@ export default {
       id:'',
         dialog: false,
         tableInfo: {
-            symptomItems: [
-                {
-                    name: 'Weird Ass Disease',
-                    details: 'Patient got a boner and took a massive shit of equal size. Patient then started spinning in circles until he flew off into space like a helicopter. I wanna quit my job.'
-                },
-            ],
+            symptomItems: [],
             presItems: [],
             testItems: [],
         },
@@ -104,10 +100,10 @@ export default {
                     man: 'Medium Pharma'
                 },
             ],
-            testsList: ['Blood Test', 'X-Ray', 'Ultrasound', 'MRI'],
+            testsList: [],
             compList: [],
             labsList: ['Sunny', 'Mohi', 'Atakan', 'Arnissa'], 
-            diseaseList: ['Malaria', 'HIV', 'Crabs', 'Chlamydia' ],
+            diseaseList: [],
         },
         appointment: {
             id: '',
@@ -171,7 +167,7 @@ export default {
             this.snackbar = true
           })
 
-
+/*
 
             if (localStorage.getItem('dataArray')) {
             try {
@@ -203,7 +199,7 @@ export default {
                 } catch(e) {
                     localStorage.removeItem('presItems');
                 }
-            }
+            }*/
         },
         validateForm({pres, qty, usage}){
             let index = this.tableInfo.presItems.findIndex(x => x.name === pres.name)
@@ -238,12 +234,23 @@ export default {
             const parsedArray = JSON.stringify(this.tableInfo.testItems);
             localStorage.setItem('testItems', parsedArray);
         },
-        addTest(item) {
-            let temp = item.filter(x => (!this.tableInfo.testItems.some(y => y.name === x)))
-            let temp2 = temp.map(x => ({name: x, date: this.toIsoString(new Date()).substring(0, 10), lab: this.lists.labsList[this.rnd(0, this.lists.labsList.length - 1)], status: 'Assigned'}))
-            temp2.forEach(x => this.tableInfo.testItems.push(x))
-            const parsedArray = JSON.stringify(this.tableInfo.testItems);
-            localStorage.setItem('testItems', parsedArray);
+        async addTest(item) {
+          console.log(item)
+            this.overlay = true;
+          await this.$http.post(this.$url+`/doctor/${this.id}/ask_for_tests`, {
+            appointment_id: this.appointment.id,
+            test_name: item[0],
+            laboratorian_id: 3
+          }).then(() => {
+            this.errorMsg = 'Test Request Created'
+            this.overlay = false
+            this.snackbar = true
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
         },
         symptomAdd(item){
             let temp = item.filter(x => (!this.tableInfo.symptomItems.some(y => y.name === x.name)))
@@ -255,18 +262,96 @@ export default {
         rnd (a, b) {
             return Math.floor((b - a + 1) * Math.random()) + a
         },
-        getDetails(item){
-            this.appointment.id = item.id
-            this.appointment.pid= this.rnd(0, 100)
-            this.appointment.name= item.doctor
-            this.appointment.date= item.date
-            this.appointment.age= this.rnd(0, 100)
+        async getDetails(item){
+          this.appointment.id = item.id
+          this.appointment.pid= this.rnd(0, 100)
+          this.appointment.name= item.patient
+          this.appointment.date= item.date
+          this.appointment.age= this.rnd(0, 100)
+          this.lists.diseaseList = []
+          this.lists.testsList = []
+          this.tableInfo.symptomItems = [];
+          this.tableInfo.testItems = [];
+          //get disease list
+          await this.$http.get(this.$url+`/doctor/${this.id}/get_disease_names`).then(res => {
+            res.data.forEach(x => {
+              let temp = {
+                name: x.name,
+                description: x.description
+              }
+              this.lists.diseaseList.push(temp)
+            })
+            this.overlay = false
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
+          //get symptom list
+          await this.$http.get(this.$url+`/doctor/${this.id}/${this.appointment.id}/see_patient_symptoms`).then(res => {
+            res.data.forEach(x => {
+              let temp = {
+                name: x.name,
+                description: x.description
+              }
+              this.lists.diseaseList.push(temp)
+            })
+            this.overlay = false
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
+          //get test list
+          await this.$http.get(this.$url+`/doctor/${this.id}/get_test_types`).then(res => {
+            res.data.forEach(x => {
+              this.lists.testsList.push(x.test_name)
+            })
+            this.overlay = false
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
+          //get test items list
+          await this.$http.get(this.$url+`/doctor/${this.id}/${this.appointment.id}/see_tests`).then(res => {
+            console.log(res)
+            res.data.forEach(x => {
+              let temp = {
+                name: x.test_name,
+                status: x.test_status,
+                date: x.result_date
+              }
+              this.tableInfo.testItems.push(temp)
+            })
+            this.overlay = false
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
             this.dialog = true
         },
-        diagnosis({disease, details}){
-            console.log(disease)
-            console.log(details)
-
+        async diagnosis({disease, details}){
+          this.overlay = true
+          await this.$http.post(this.$url+`/doctor/${this.id}/make_diagnosis`, {
+            appointment_id: this.appointment.id,
+            disease_name: disease[0].name,
+            description: details,
+          }).then(() => {
+            this.errorMsg = 'Added diagnosis'
+            this.overlay = false
+            this.snackbar = true
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
         }
     },
     mounted() {

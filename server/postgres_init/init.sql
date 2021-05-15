@@ -14,7 +14,7 @@ CREATE TABLE person (
     password varchar ,
     person_type person_type,
     phone varchar ,
-    birthday varchar ,
+    birthday date ,
     PRIMARY KEY (national_id)
 );
 
@@ -28,7 +28,7 @@ CREATE TABLE doctor (
 
 CREATE TABLE appointment (
   appointment_id serial ,
-  date varchar ,
+  date date ,
   status app_status DEFAULT 'upcoming',
   patient_id int ,
   doctor_id int ,
@@ -78,7 +78,6 @@ CREATE TABLE laboratorian (
 CREATE TABLE medicine (
   name varchar ,
   manufacturer varchar ,
-  pharmacist_id int ,
   stock int DEFAULT 0,
   PRIMARY KEY (name)
   );
@@ -101,7 +100,7 @@ CREATE TABLE pharmacist (
 
 CREATE TABLE prescribed_by (
   prescription_no int ,
-  appointment_id int ,
+  appointment_id int UNIQUE ,
   PRIMARY KEY (prescription_no)
   );
 
@@ -116,7 +115,7 @@ CREATE TABLE prescribed_in (
 CREATE TABLE prescription (
   prescription_no serial ,
   prescription_type varchar ,
-  date varchar ,
+  date date ,
   status presc_type DEFAULT 'waiting',
   PRIMARY KEY (prescription_no)
 );
@@ -124,7 +123,7 @@ CREATE TABLE prescription (
 CREATE TABLE test_result (
   test_name varchar ,
   result_id serial ,
-  result_date varchar ,
+  result_date date ,
   appointment_id int ,
   test_status test_status DEFAULT 'assigned',
   PRIMARY KEY (result_id)
@@ -164,13 +163,13 @@ CREATE TABLE test_assigned_to (
   appointment_id int ,
   laboratorian_id int ,
   test_name varchar ,
-  date varchar ,
+  date date ,
   PRIMARY KEY (appointment_id,laboratorian_id,test_name)
   );
 
 CREATE TABLE doctor_off_days (
     doctor_id int,
-    date varchar ,
+    date date ,
     PRIMARY KEY (doctor_id,date)
 );
 
@@ -332,7 +331,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
-
+/*
 CREATE or REPLACE FUNCTION update1()
 returns trigger
 as $$
@@ -346,7 +345,7 @@ RETURN NEW;
 END;
 $$
 LANGUAGE 'plpgsql';
-
+*/
 --- trigers
 
 CREATE TRIGGER  addition1
@@ -368,8 +367,10 @@ CREATE TRIGGER deletion1
     BEFORE DELETE ON test_assigned_to
     FOR EACH  ROW
     EXECUTE PROCEDURE delete1();
-
+/*
 CREATE TRIGGER update1
     BEFORE UPDATE ON prescribed_in
     FOR EACH  ROW
     EXECUTE PROCEDURE update1();
+
+ */

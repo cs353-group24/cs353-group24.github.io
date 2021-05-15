@@ -44,22 +44,14 @@ name: "Laboratorian",
     resultItem: {},
     headers: [
       { text: 'Test ID', align: 'start',  value: 'id', class: 'datatablefontcolor--text'},
-      { text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
-      { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
+      // { text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
+      { text: 'Date Assigned', value: 'date', class: 'datatablefontcolor--text' },
       { text: 'Test Name', value: 'testName', class: 'datatablefontcolor--text' },
       { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
-      { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' },
+      { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' }
     ],
     filteredTests: [],
-    items:[
-      {
-        id: 8845,
-        doctorName: 'Dr. Sunny',
-        date: '22.04.2021',
-        testName: 'BloodTest',
-        status: 'Finalised'
-      }
-    ],
+    items:[],
     tableInfo: {
       tableTitle: 'Tests Finalised',
       itemsKey: 'id',
@@ -103,7 +95,66 @@ name: "Laboratorian",
       this.item = item;
       this.dialog=true
     },
+    validateForm(){
+      this.$refs.form.validate()
+      if (this.valid) {
+        console.log(this.result)
+        this.resultItem.value = this.result
+        this.editResultDialog = false
+        if (this.resultItem.l_interval !== '-') {
+          if ((Number(this.result) >= this.resultItem.l_interval && Number(this.result) <= this.resultItem.h_interval)) {
+            this.resultItem.result = 'Normal'
+          }
+          else{
+            this.resultItem.result = 'Abnormal'
+          }
+        }
+        this.result = ''
+        let temp = this.compItems.filter(x => x.value === '-')
+        if (temp.length === 0) {
+          this.item.status = 'Finalised'
+          this.msg = 'All results have been finalised, test is moved to the finalised tests tab'
+          this.snackbar = true
+          this.dialog = false
+        }
+        this.filteredTests = this.items.filter(x => x.status === 'preparing')
+      }
+    },
+    async getItems(){
+      this.overlay = true
+      if(this.$cookies.get('user'))
+      {
+        this.id = this.$cookies.get('user').national_id
+        let temp = this.$cookies.get('user').name
+        this.laboratorianName = temp.charAt(0).toUpperCase() + temp.slice(1)
+      }
+      await this.$http.get(this.$url+`/laboratorian/${this.id}/get_tests`).then(res => {
+        // console.log(res)
+        this.items = []
+        res.data.forEach(x => {
+          let temp = {
+            id: x.result_id,
+            // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+            date: x.assign_date_to_char,
+            testName: x.test_name,
+            status: x.test_status
+          }
+          this.items.push(temp)
+        })
+        this.filteredTests = this.items.filter(x => x.status === 'finalized')
+        this.overlay = false
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
+    }
   },
+  mounted() {
+    this.getItems()
+  },
+
   created: function() {
     this.group.items = this.compItems
     this.group.headers = this.compHeaders

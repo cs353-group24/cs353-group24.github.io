@@ -112,22 +112,14 @@ name: "Laboratorian",
     resultItem: {},
     headers: [
       { text: 'Test ID', align: 'start',  value: 'id', class: 'datatablefontcolor--text'},
-      { text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
-      { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
+      // { text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
+      { text: 'Date Assigned', value: 'date', class: 'datatablefontcolor--text' },
       { text: 'Test Name', value: 'testName', class: 'datatablefontcolor--text' },
       { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
-      { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' },
+      { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' }
     ],
     filteredTests: [],
-    items:[
-      {
-        id: 8845,
-        doctorName: 'Dr. Sunny',
-        date: '22.04.2021',
-        testName: 'BloodTest',
-        status: 'Preparing'
-      }
-    ],
+    items:[],
     tableInfo: {
       tableTitle: 'Tests Waiting',
       itemsKey: 'id',
@@ -147,25 +139,7 @@ name: "Laboratorian",
       itemsKey: 'component, resultID',
       itemsPerPage: 6,
     },
-    compItems:[
-      {
-        component: 'Creatin Kinase',
-        resultID: 6745,
-        l_interval: 0,
-        h_interval: 190,
-        value: '23',
-        result: 'Normal'
-      },
-      {
-        component: 'Creatin Kinase',
-        resultID: 6745,
-        l_interval: 0,
-        h_interval: 190,
-        value: '-',
-        result: '-'
-      }
-    ],
-
+    compItems:[],
   }),
   methods:{
     editTest: function (item){
@@ -201,16 +175,51 @@ name: "Laboratorian",
           this.snackbar = true
           this.dialog = false
         }
-        this.filteredTests = this.items.filter(x => x.status === 'Preparing')
+        this.filteredTests = this.items.filter(x => x.status === 'preparing')
       }
+    },
+    async getItems(){
+      this.overlay = true
+      if(this.$cookies.get('user'))
+      {
+        this.id = this.$cookies.get('user').national_id
+        let temp = this.$cookies.get('user').name
+        this.laboratorianName = temp.charAt(0).toUpperCase() + temp.slice(1)
+      }
+      await this.$http.get(this.$url+`/laboratorian/${this.id}/get_tests`).then(res => {
+        // console.log(res)
+        this.items = []
+        res.data.forEach(x => {
+          let temp = {
+            id: x.result_id,
+            // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+            date: x.assign_date_to_char,
+            testName: x.test_name,
+            status: x.test_status
+          }
+          this.items.push(temp)
+        })
+        this.filteredTests = this.items.filter(x => x.status === 'preparing')
+        // this.filteredTests = this.items
+        this.overlay = false
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
     }
   },
+  mounted() {
+    this.getItems()
+  },
+
   created: function() {
     this.group.items = this.compItems
     this.group.headers = this.compHeaders
     this.group.tableInfo = this.compTableInfo
     this.group.buttonHeader = this.buttonHeader
-    this.filteredTests = this.items.filter(x => x.status === 'Preparing')
+    this.filteredTests = this.items.filter(x => x.status === 'preparing')
   },
   computed: {
     resultLabel(){
