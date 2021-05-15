@@ -845,13 +845,14 @@ app.get('/doctor/:id/get_laboratorians',(req,res)=>{
      naming conventions presented above should be followed
  */
 app.post('/doctor/:id/ask_for_tests',(req,res)=>{
-    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_nam) 
+    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_name) 
 VALUES ($1, $2, $3) `
     let par = req.body
     let params = [par.appointment_id, par.laboratorian_id, par.test_name]
 
     client.query(q, params, (err, result) =>{
         if(err){
+            console.log(err)
             return res.status(404).send(err)
         }
         return res.status(200).send({"message":"successful insertion"})
@@ -900,7 +901,7 @@ app.get('/doctor/:id/:aid/see_test_components', (req,res)=>{
 no info required
  */
 app.get('/doctor/:id/get_disease_names', (req,res)=>{
-    let q = `SELECT * FROM diseases `
+    let q = `SELECT * FROM disease `
     client.query(q,  (err, result) =>{
         if(err){
             return res.status(404).send(err)

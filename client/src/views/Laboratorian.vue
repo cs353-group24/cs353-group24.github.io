@@ -11,7 +11,7 @@
           </v-row>
         </v-col>
       </v-row>
-      <PaginationTable :items="filteredTests" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
+      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
         <template #buttons="{item}">
           <v-row>
             <v-col class="d-flex justify-center mx-n8">
@@ -69,22 +69,28 @@
         </v-card>
       </v-dialog>
       <v-snackbar
-        v-model="snackbar"
-        :timeout="5000"
+          v-model="snackbar"
+          :timeout="5000"
       >
-        {{msg}}
+        {{ errorMsg }}
 
         <template v-slot:action="{ attrs }">
           <v-btn
-            color="indigo"
-            text
-            v-bind="attrs"
-            @click="snackbar = false"
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
           >
             Close
           </v-btn>
         </template>
       </v-snackbar>
+      <v-overlay :value="overlay">
+        <v-progress-circular
+            indeterminate
+            size="64"
+        ></v-progress-circular>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -99,6 +105,9 @@ name: "Laboratorian",
   },
   data: () => ({
     snackbar: false,
+    overlay: false,
+    errorMsg: '',
+    id:'',
     msg: '',
     result: '',
     editResultDialog: false,
@@ -115,22 +124,14 @@ name: "Laboratorian",
     resultItem: {},
     headers: [
       { text: 'Test ID', align: 'start',  value: 'id', class: 'datatablefontcolor--text'},
-      { text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
+      //{ text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
       { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
       { text: 'Test Name', value: 'testName', class: 'datatablefontcolor--text' },
       { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
       { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' },
     ],
     filteredTests: [],
-    items:[
-      {
-        id: 8845,
-        doctorName: 'Dr. Sunny',
-        date: '22.04.2021',
-        testName: 'BloodTest',
-        status: 'Assigned'
-      }
-    ],
+    items:[],
     tableInfo: {
       tableTitle: 'Tests Waiting',
       itemsKey: 'id',
@@ -171,6 +172,34 @@ name: "Laboratorian",
 
   }),
   methods:{
+  async getItems(){
+    this.overlay = true
+    if(this.$cookies.get('user'))
+    {
+      this.id = this.$cookies.get('user').national_id
+    }
+    await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
+      console.log(res)
+      this.items = []
+      res.data.forEach(x => {
+        let temp = {
+          id: x.appointment_id,
+          //doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+          date: x.date,
+          //department: x.department,
+          testName: x.test_name,
+          status: x.status
+        }
+        this.items.push(temp)
+      })
+      this.overlay = false
+    }).catch((err) => {
+      console.log(err)
+      this.errorMsg = 'Unexpected Error, could not load data'
+      this.overlay = false
+      this.snackbar = true
+    })
+  },
     editTest: function (item){
       this.item = item;
       this.dialog=true
@@ -204,6 +233,9 @@ name: "Laboratorian",
         this.result = ''
       }
     }
+  },
+  mounted() {
+  this.getItems()
   },
   created: function() {
     this.group.items = this.compItems
