@@ -163,6 +163,7 @@ export default {
             appointment_id: item.id
           }
         }).then(res => {
+          console.log(res)
           res.data.forEach(x => {
             let temp = {
               name: x.disease_name,
@@ -182,8 +183,22 @@ export default {
         ];
         this.group.items = diagnosisItems
       },
-      handleDialog3: function(item){
+    async handleDialog3(item){
       //waiting for backend
+       // let prescriptionItems = [];
+        await this.$http.get(this.$url+`/patient/${this.id}/see_all_presc`).then(res => {
+          console.log(res)
+          /*res.data.forEach(x => {
+            let temp = {
+              id: x.precription_id,
+              description: x.description,
+            }
+            diagnosisItems.push(temp)
+          })*/
+        }).catch((err) => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error, could not load data'
+        })
           this.item3 = item;
           this.dialog3 = true;
       },
