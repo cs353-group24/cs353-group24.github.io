@@ -43,9 +43,9 @@ name: "Laboratorian",
     item: {},
     resultItem: {},
     headers: [
-      { text: 'Test ID', align: 'start',  value: 'id', class: 'datatablefontcolor--text'},
-      // { text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
-      { text: 'Date Assigned', value: 'date', class: 'datatablefontcolor--text' },
+      { text: 'Appointment ID', align: 'start',  value: 'id', class: 'datatablefontcolor--text'},
+      { text: 'Patient Name', value: 'patient', class: 'datatablefontcolor--text' },
+      { text: 'Date Due', value: 'date', class: 'datatablefontcolor--text' },
       { text: 'Test Name', value: 'testName', class: 'datatablefontcolor--text' },
       { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
       { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' }
@@ -63,7 +63,7 @@ name: "Laboratorian",
       { text: 'Lower Interval', align: 'start',  value: 'l_interval', class: 'datatablefontcolor--text'},
       { text: 'Upper Interval', align: 'start',  value: 'h_interval', class: 'datatablefontcolor--text'},
       { text: 'Value', align: 'start',  value: 'value', class: 'datatablefontcolor--text'},
-      { text: 'Result', align: 'start',  value: 'result', class: 'datatablefontcolor--text'},
+      { text: 'Result', align: 'start',  value: 'result', class: 'datatablefontcolor--text'}
     ],
     compTableInfo: {
       tableTitle: 'Test Components',
@@ -91,9 +91,43 @@ name: "Laboratorian",
 
   }),
   methods:{
-    viewTest: function (item){
+    async viewTest(item){
+      this.overlay = true
+
       this.item = item;
-      this.dialog=true
+      await this.$http.get(this.$url+`/laboratorian/${this.id}/get_spec_comps`, {
+        params: {
+          appointment_id : this.item.id,
+          test_name: this.item.testName
+        }
+      }).then((res) => {
+        res.data.forEach(x => {
+          let comp = {
+            component: x.comp_name,
+            resultID: x.result_id,
+            l_interval: x.lower_normality_interval,
+            h_interval: x.upper_normality_interval,
+            value: x.comp_value,
+            result: x.comp_result,
+            date: x.result_date_to_char
+          }
+          this.compItems.push(comp)
+        })
+      }).catch(e => {
+        if (e.response) {
+          if (e.response.status === 403) {
+            this.errorMsg = 'No such email, try again'
+          } else if (e.response.status === 402) {
+            this.errorMsg = 'Wrong password, try again'
+          }
+        } else {
+          this.errorMsg = 'Unknown error'
+        }
+      })
+      this.compItems = []
+      this.dialog = true
+      this.snackbar = true
+      this.overlay = false
     },
     validateForm(){
       this.$refs.form.validate()
@@ -128,13 +162,13 @@ name: "Laboratorian",
         let temp = this.$cookies.get('user').name
         this.laboratorianName = temp.charAt(0).toUpperCase() + temp.slice(1)
       }
-      await this.$http.get(this.$url+`/laboratorian/${this.id}/get_tests`).then(res => {
+      await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
         // console.log(res)
         this.items = []
         res.data.forEach(x => {
           let temp = {
-            id: x.result_id,
-            // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+            id: x.appointment_id,
+            patient: this.capitalise(x.name, x.surname),
             date: x.assign_date_to_char,
             testName: x.test_name,
             status: x.test_status
@@ -149,6 +183,7 @@ name: "Laboratorian",
         this.overlay = false
         this.snackbar = true
       })
+      this.overlay = false
     }
   },
   mounted() {
