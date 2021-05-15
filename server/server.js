@@ -672,14 +672,15 @@ app.get('/patient/:id/see_all_presc', (req,res)=>{
 
 /*
     {
-        "prescription_no": "$"
-        }
+       "appointment_id":"$"
+    }
  */
 app.get('/patient/:id/see_presc', (req,res)=>{
-    let q = ` SELECT *
-              FROM  prescription p, prescribed_in pi, medicine m
-              WHERE  p.prescription_no = pi.prescription_no and pi.med_name = m.name and  p.prescription_no = $1 ;`
-    let params = Object.value(req.query)
+    let q = ` SELECT to_char(p.date, 'YYYY-MM-DD') as prescription_date_to_char, *
+              FROM  prescribed_by as pb, prescription p, prescribed_in pi, medicine m
+              WHERE  p.prescription_no = pi.prescription_no and pi.med_name = m.name 
+                and appointment_id = $1 and pb.prescription_no = p.prescription_no;`
+    let params = Object.values(req.query)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -1084,9 +1085,9 @@ app.get('/laboratorian/:id/get_tests', (req,res)=>{
     }
  */
 app.get('/laboratorian/:id/get_spec_comps', (req,res)=>{
-    let q = `SELECT to_char(result_date, 'YYYY-MM-DD') as result_date_to_char, *
-             FROM test_result NATURAL JOIN comp_result
-             WHERE result_id = $1;  `
+    let q = `SELECT to_char(t.result_date, 'YYYY-MM-DD') as result_date_to_char, *
+             FROM test_result AS t NATURAL JOIN comp_result AS cr, component AS c
+             WHERE result_id = $1 AND t.test_name = c.test_name AND cr.comp_name = c.comp_name;  `
 
     let params = Object.values(req.query)
 
@@ -1140,6 +1141,30 @@ app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
     })
 } )
 
+/*
+    /laboratorian/:id/post_test:
+    /laboratorian/$/post_test
+    {
+        "result_id" : "$",
+        "result_date" : "$",
+        "test_status" : "$"
+    }
+ */
+app.post('/laboratorian/:id/post_test', (req,res)=>{
+    let q = `UPDATE test_result
+             SET  result_date = $2, test_status = $3
+             WHERE result_id = $1;  `
+
+    let re = req.body
+    let params = [re.result_id, re.result_date, re.test_status, re.result_id, re.comp_name]
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"MESSAGE" : "successfull"})
+    })
+} )
 
 //--------------------------------------------PHARMACIST ROUTES-------------------------------------------------//
 

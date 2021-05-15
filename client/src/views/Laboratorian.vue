@@ -4,14 +4,14 @@
       <v-row>
         <v-col>
           <v-row>
-            <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Welcome Dr. Mohi</h1>
+            <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Welcome {{ laboratorianName }}</h1>
           </v-row>
           <v-row>
-            <h4 class="ml-6 blue--text text--lighten-3">You have {{items.length}} waiting tests</h4>
+            <h4 class="ml-6 blue--text text--lighten-3">You have {{ filteredTests.length }} waiting tests</h4>
           </v-row>
         </v-col>
       </v-row>
-      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
+      <PaginationTable :items="filteredTests" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
         <template #buttons="{item}">
           <v-row>
             <v-col class="d-flex justify-center mx-n8">
@@ -124,11 +124,11 @@ name: "Laboratorian",
     resultItem: {},
     headers: [
       { text: 'Test ID', align: 'start',  value: 'id', class: 'datatablefontcolor--text'},
-      //{ text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
-      { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
+      // { text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
+      { text: 'Date Assigned', value: 'date', class: 'datatablefontcolor--text' },
       { text: 'Test Name', value: 'testName', class: 'datatablefontcolor--text' },
       { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
-      { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' },
+      { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' }
     ],
     filteredTests: [],
     items:[],
@@ -153,53 +153,18 @@ name: "Laboratorian",
     },
     compItems:[
       {
-        component: 'Creatin Kinase',
-        resultID: 6745,
-        l_interval: 0,
-        h_interval: 190,
-        value: '-',
-        result: '-'
-      },
-      {
-        component: 'Creatin Kinase',
-        resultID: 6745,
-        l_interval: 0,
-        h_interval: 190,
-        value: '-',
-        result: '-'
+        component: "x.comp_name",
+        // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+        resultID: 5,
+        l_interval: "x.lower_normality_interval",
+        h_interval: "x.upper_normality_interval",
+        value: "x.comp_value",
+        result: "x.comp_result"
       }
     ],
 
   }),
   methods:{
-  async getItems(){
-    this.overlay = true
-    if(this.$cookies.get('user'))
-    {
-      this.id = this.$cookies.get('user').national_id
-    }
-    await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
-      console.log(res)
-      this.items = []
-      res.data.forEach(x => {
-        let temp = {
-          id: x.appointment_id,
-          //doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
-          date: x.date,
-          //department: x.department,
-          testName: x.test_name,
-          status: x.status
-        }
-        this.items.push(temp)
-      })
-      this.overlay = false
-    }).catch((err) => {
-      console.log(err)
-      this.errorMsg = 'Unexpected Error, could not load data'
-      this.overlay = false
-      this.snackbar = true
-    })
-  },
     editTest: function (item){
       this.item = item;
       this.dialog=true
@@ -211,13 +176,57 @@ name: "Laboratorian",
       this.resultItem = item
       this.editResultDialog = true
     },
-    validateForm(){
+    async validateForm(){
       this.$refs.form.validate()
       if (this.valid) {
+        this.compItems.push({
+          component: "x.comp_name",
+          // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+          resultID: 5,
+          l_interval: "x.lower_normality_interval",
+          h_interval: "x.upper_normality_interval",
+          value: "x.comp_value",
+          result: "x.comp_result"
+        })
         console.log(this.result)
         this.resultItem.value = this.result
         this.editResultDialog = false
         this.dialog=false
+        await this.$http.get(this.$url+`/laboratorian/${this.id}/get_spec_comps`, {
+          params: {
+            result_id : this.resultItem.id
+          }
+        }).then((res) => {
+          res.data.forEach(x => {
+            let comp = {
+              component: x.comp_name,
+              // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+              resultID: x.result_id,
+              l_interval: x.lower_normality_interval,
+              h_interval: x.upper_normality_interval,
+              value: x.comp_value,
+              result: x.comp_result
+            }
+            this.compItems.push(comp)
+          })
+        }).catch(e => {
+          if (e.response) {
+            if(e.response.status === 403)
+            {
+              this.errorMsg = 'No such email, try again'
+            }
+            else if(e.response.status === 402)
+            {
+              this.errorMsg = 'Wrong password, try again'
+            }
+          }
+          else{
+            this.errorMsg = 'Unknown error'
+          }
+          this.snackbar = true
+          this.overlay = false
+        })
+
         this.item.status = 'Preparing'
         this.snackbar = true
         this.msg = `Test: ${this.item.id} moved to the preparing tests page`
@@ -233,26 +242,51 @@ name: "Laboratorian",
         this.result = ''
       }
     },
+    async resetValidation () {
+      this.overlay = true
+      if(this.$refs.form) {
+        this.$refs.form.resetValidation()
+      }
+      if(this.departments.length === 0)
+      {
+        await this.$http.get(this.$url+`/patient/${this.id}/appointment/newappointment/departments`).then(res => {
+          res.data.forEach(x => {
+            this.departments.push(x.name)
+          })
+          this.overlay = false
+        }).catch((err) => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error, try again later'
+          this.overlay = false
+          this.snackbar = true
+        })
+      }
+      this.overlay = false
+      this.dialog=true;
+    },
     async getItems(){
+      // have query check status?
       this.overlay = true
       if(this.$cookies.get('user'))
       {
         this.id = this.$cookies.get('user').national_id
         let temp = this.$cookies.get('user').name
-        this.patientName = temp.charAt(0).toUpperCase() + temp.slice(1)
+        this.laboratorianName = temp.charAt(0).toUpperCase() + temp.slice(1)
       }
       await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
         // console.log(res)
         this.items = []
         res.data.forEach(x => {
           let temp = {
-            id: x.appointment_id,
-            doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
-            date: x.date,
-            department: x.department
+            id: x.result_id,
+            // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+            date: x.assign_date_to_char,
+            testName: x.test_name,
+            status: x.test_status
           }
           this.items.push(temp)
         })
+        this.filteredTests = this.items.filter(x => x.status === 'assigned')
         this.overlay = false
       }).catch((err) => {
         console.log(err)
@@ -271,7 +305,7 @@ name: "Laboratorian",
     this.group.headers = this.compHeaders
     this.group.tableInfo = this.compTableInfo
     this.group.buttonHeader = this.buttonHeader
-    this.filteredTests = this.items.filter(x => x.status === 'Assigned')
+    this.filteredTests = this.items.filter(x => x.status === 'assigned')
   },
   computed: {
     resultLabel(){
