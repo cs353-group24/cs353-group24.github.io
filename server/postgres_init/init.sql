@@ -3,6 +3,7 @@ CREATE TYPE test_status AS ENUM ('assigned', 'preparing', 'finalized');
 CREATE TYPE app_status AS ENUM ( 'upcoming','waiting-tests', 'finalized');
 CREATE TYPE person_type as ENUM ('patient', 'doctor', 'laboratorian','pharmacist', 'admin' );
 CREATE TYPE presc_type as ENUM ('waiting', 'filled');
+CREATE TYPE comp_status as ENUM ('assigned', 'finalized');
 -- create enums for doctors, laboratorians -> department -> room no will be incremented
 
 --tables
@@ -109,11 +110,12 @@ CREATE TABLE prescribed_in (
   med_name varchar ,
   qty int ,
   usage_method text ,
+  med_status presc_type DEFAULT 'waiting' ,
   PRIMARY KEY (prescription_no,med_name)
   );
 
 CREATE TABLE prescription (
-  prescription_no serial ,
+  prescription_no integer ,
   prescription_type varchar ,
   date date ,
   status presc_type DEFAULT 'waiting',
@@ -126,7 +128,8 @@ CREATE TABLE test_result (
   result_date date ,
   appointment_id int ,
   test_status test_status DEFAULT 'assigned',
-  PRIMARY KEY (result_id)
+  PRIMARY KEY (result_id) ,
+  UNIQUE (test_name, appointment_id)
   );
 
 CREATE TABLE comp_result (
@@ -134,7 +137,7 @@ CREATE TABLE comp_result (
     comp_name varchar,
     comp_value varchar,
     comp_result varchar DEFAULT NULL,
-    comp_status test_status  DEFAULT 'assigned',
+    comp_status comp_status  DEFAULT 'assigned',
     PRIMARY KEY (result_id, comp_name)
 );
 
@@ -202,9 +205,6 @@ ALTER TABLE disease_symptoms
 ALTER TABLE laboratorian
     ADD CONSTRAINT laboratorian_person FOREIGN KEY (national_id) REFERENCES person (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT laboratorian_department FOREIGN KEY (department) REFERENCES department (name) ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE medicine
-    ADD CONSTRAINT medicine_pharmacist FOREIGN KEY (pharmacist_id) REFERENCES pharmacist (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE patient
     ADD CONSTRAINT patient_person FOREIGN KEY (national_id) REFERENCES person (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -346,6 +346,8 @@ END;
 $$
 LANGUAGE 'plpgsql';
 */
+
+
 --- trigers
 
 CREATE TRIGGER  addition1
@@ -374,3 +376,85 @@ CREATE TRIGGER update1
     EXECUTE PROCEDURE update1();
 
  */
+
+CREATE or REPLACE FUNCTION update_status1()
+returns trigger
+as $$
+BEGIN
+
+UPDATE test_result
+SET test_status = 'finalized'
+WHERE result_id in(
+    (select distinct result_id from comp_result)
+    except
+    (select distinct result_id
+     from comp_result
+     where comp_status <> 'finalized')
+);
+
+
+RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER update_status1
+    AFTER UPDATE ON comp_result
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_status1();
+
+
+CREATE or REPLACE FUNCTION update_status2()
+returns trigger
+as $$
+BEGIN
+
+UPDATE test_result
+SET test_status = 'preparing'
+WHERE result_id in(
+    (select distinct result_id
+     from comp_result
+     where comp_status = 'finalized')
+    except
+    (select distinct result_id
+    from test_result
+    where test_status = 'finalized'
+    )
+);
+
+RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER update_status2
+    AFTER UPDATE ON comp_result
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_status2();
+
+
+CREATE or REPLACE FUNCTION update_status3()
+returns trigger
+as $$
+BEGIN
+
+UPDATE prescription
+SET status = 'filled'
+WHERE prescription_no in (
+    (select distinct prescription_no from prescribed_in)
+    except
+    (select distinct prescription_no
+     from prescribed_in
+     where prescribed_in <> 'filled')
+);
+
+
+RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER prescription_no
+    AFTER UPDATE ON prescribed_in
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_status3();

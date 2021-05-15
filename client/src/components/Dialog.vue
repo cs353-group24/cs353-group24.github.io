@@ -53,11 +53,11 @@
             <v-card-text>
                 <v-row>
                 <v-col cols="3" class="">
-                    <div v-for="(value, name) in item" :key="value" class="mt-6 ml-6">
+                    <div v-for="(value, name) in item" :key="name" class="mt-6 ml-6">
                         <v-row align="start">
                             <span class="text-h6 datatablefontcolor--text font-weight-bold">{{itemHeader[itemHeader.findIndex(x => x.value === name)].text}}:</span>
                         </v-row>
-                        <v-row align="start mb-5">
+                        <v-row align="start">
                             <span class="text-subtitle-1 datatablefontcolor--text">{{value}}</span>
                         </v-row>
                     </div>
