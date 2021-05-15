@@ -78,7 +78,6 @@ CREATE TABLE laboratorian (
 CREATE TABLE medicine (
   name varchar ,
   manufacturer varchar ,
-  pharmacist_id int ,
   stock int DEFAULT 0,
   PRIMARY KEY (name)
   );
@@ -101,7 +100,7 @@ CREATE TABLE pharmacist (
 
 CREATE TABLE prescribed_by (
   prescription_no int ,
-  appointment_id int ,
+  appointment_id int UNIQUE ,
   PRIMARY KEY (prescription_no)
   );
 
