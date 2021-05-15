@@ -100,8 +100,8 @@ CREATE TABLE pharmacist (
 
 CREATE TABLE prescribed_by (
   prescription_no int ,
-  appointment_id int UNIQUE ,
-  PRIMARY KEY (prescription_no)
+  appointment_id int  ,
+  PRIMARY KEY (prescription_no, appointment_id)
   );
 
 CREATE TABLE prescribed_in (
@@ -203,8 +203,6 @@ ALTER TABLE laboratorian
     ADD CONSTRAINT laboratorian_person FOREIGN KEY (national_id) REFERENCES person (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT laboratorian_department FOREIGN KEY (department) REFERENCES department (name) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE medicine
-    ADD CONSTRAINT medicine_pharmacist FOREIGN KEY (pharmacist_id) REFERENCES pharmacist (national_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE patient
     ADD CONSTRAINT patient_person FOREIGN KEY (national_id) REFERENCES person (national_id) ON DELETE CASCADE ON UPDATE CASCADE;

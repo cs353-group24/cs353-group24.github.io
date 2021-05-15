@@ -1425,7 +1425,10 @@ app.post('/admin/add_component', (req,res)=>{
  */
 app.post('/admin/add_symptom', (req,res)=>{
 
-    let q = `INSERT INTO symptom (name, description) VALUES ($1, $2)`
+
+    let q = `INSERT INTO symptom (name, description) 
+                VALUES ($1, $2)`
+
     let params = Object.values(req.body)
     client.query(q, params, (err, result) =>{
         if(err){

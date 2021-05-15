@@ -101,10 +101,10 @@ INSERT INTO patient_symptoms (appointment_id, symptom_name) VALUES
 INSERT INTO doctor_off_days (doctor_id, date) VALUES
 ('2', to_date('2021-05-18', 'YYYY-MM-DD'));
 
-INSERT INTO medicine (name, manufacturer, pharmacist_id, stock) VALUES
-('asprin', 'eczacibasi', 5, 50),
-('parol', 'eczacibasi', 5, 50),
-('paracetamol', 'ezcacibasi', 5, 50);
+INSERT INTO medicine (name, manufacturer,  stock) VALUES
+('asprin', 'eczacibasi',  50),
+('parol', 'eczacibasi',  50),
+('paracetamol', 'ezcacibasi',  50);
 
 
 /*
