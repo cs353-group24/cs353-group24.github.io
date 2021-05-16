@@ -171,7 +171,7 @@ name: "Laboratorian",
     },
     editResult(item){
       if (this.$refs.form) {
-        this.$refs.form.resetValidation
+        this.$refs.form.resetValidation()
       }
       this.resultItem = item
       this.editResultDialog = true

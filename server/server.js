@@ -1171,15 +1171,34 @@ app.post('/laboratorian/:id/post_test', (req,res)=>{
 /*
  */
 app.get('/pharmacist/:id/get_all_prescriptions', (req,res)=>{
-    let q= `SELECT to_char(date, 'YYYY-MM-DD') as date_to_char, *
-            FROM prescription_assigned_to NATURAL JOIN prescription
-            WHERE pharmacist_id = $1; `
+    let q= `SELECT to_char(p.date, 'YYYY-MM-DD') as date_to_char, *, p.status
+            FROM prescription_assigned_to AS pat , prescription AS p, prescribed_by AS pb, appointment AS a, person
+            WHERE pharmacist_id = $1 AND pat.prescription_no = p.prescription_no AND p.prescription_no = pb.prescription_no AND pb.appointment_id = a.appointment_id AND a.doctor_id = person.national_id ; `
     let params = Object.values(req.params)
+    console.log(params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
         }
-        return res.status(200).send(result.row)
+        return res.status(200).send(result.rows)
+    })
+})
+
+app.get('/pharmacist/:id/get_prescription_details', (req,res)=>{
+    let q= `SELECT *
+            FROM prescription_assigned_to NATURAL JOIN prescribed_in
+            WHERE pharmacist_id = $1 and prescription_no = $2;`
+    let params = req.params.id
+    let re = req.query.prescription_no
+    console.log(params)
+    console.log(re)
+    params1 = [params, re]
+    console.log(params1)
+    client.query(q, params1, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -1204,7 +1223,7 @@ app.get('/pharmacist/:id/check_stock' , (req,res)=>{
         if(err){
             return res.status(404).send(err)
         }
-        return res.status(200).send(result.row)
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -1222,6 +1241,7 @@ app.post ('/pharmacist/:id/add_stock', (req,res)=>{
                where medicine.name = $2  `
 
     let params = [req.body.stock, req.body.name]
+    console.log(params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -1263,21 +1283,31 @@ app.post ('/pharmacist/:id/delete_stock', (req,res)=>{
  */
 
 // pahrmacists will be able to full the presc if they can supply the quantity (if there is enough stock)
-app.post('pharmacist/:id/fill_presc', (req,res)=>{
-    let q = ` UPDATE prescription 
-              SET status = $1  
-              WHERE prescription_id = $2; `
-    let params = [req.body.status, req.body.prescription_id]
+app.post('/pharmacist/:id/fill_med', (req,res)=>{
+    let q = ` UPDATE prescribed_in
+              SET med_status = $1  
+              WHERE prescription_no = $2 AND med_name = $3; `
+    let params = [req.body.status, req.body.prescription_id, req.body.medicine_name]
+    
+    console.log(params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
         }
         else {
-            q = `UPDATE medicine
+            let y = `UPDATE medicine
                 SET stock = stock - $1
                  WHERE medicine.name = $2; `
-            params = [req.body.qty, req.body.medicine_name]
-            return res.status(200).send({"MESSAGE" : "successfull"})
+                 let params1 = [req.body.qty, req.body.medicine_name]
+                 console.log(params1)
+            client.query(y, params1, (error, result) => {
+                if (error) {
+                    return res.status(405).send(error)
+                }
+                else{
+                    return res.status(200).send({"MESSAGE" : "successfull"})
+                }
+            })
         }
 
     })
@@ -1297,7 +1327,19 @@ app.get('/pharmacist/:id/medicine_search' , (req,res)=>{
         if(err){
             return res.status(404).send(err)
         }
-        return res.status(200).send(result.row)
+        return res.status(200).send(result.rows)
+    })
+})
+
+app.get('/pharmacist/:id/def_medicine_search' , (req,res)=>{
+    let q = `SELECT * FROM medicine WHERE name = $1`
+
+    let params = Object.values(req.query)
+    client.query(q,params ,(err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -1315,7 +1357,7 @@ app.get('/pharmacist/:id/stock_search', (req,res)=>{
         if(err){
             return res.status(404).send(err)
         }
-        return res.status(200).send(result.row)
+        return res.status(200).send(result.rows)
     })
 
 })
