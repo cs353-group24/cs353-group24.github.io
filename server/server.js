@@ -1485,6 +1485,36 @@ app.get('/pharmacist/:id/stock_search', (req,res)=>{
 
 })
 
+
+app.get('/pharmacist/:id/get_max_stock_smaller_than_avg', (req,res)=>{
+    let q = `SELECT * FROM medicine where stock =
+                                          (SELECT Max(stock) FROM medicine
+                                           where stock < (SELECT AVG(stock) from medicine))
+             GROUP BY name, manufacturer;`
+    client.query(q, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+
+} )
+
+app.get('/pharmacist/:id/get_min_stock_bigger_than_avg', (req,res)=>{
+    let q = `SELECT * FROM medicine where stock =
+                                          (SELECT min(stock) FROM medicine
+                                           where stock > (SELECT AVG(stock) from medicine) )
+             GROUP BY name, manufacturer; `
+    client.query(q, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+
+} )
+
+
 //--------------------------------------------ADMIN ROUTES-------------------------------------------------//
 
 /*

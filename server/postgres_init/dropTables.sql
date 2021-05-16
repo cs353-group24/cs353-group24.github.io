@@ -39,3 +39,12 @@ DROP TRIGGER  IF EXISTS  deletion1 ON test_assigned_to;
 DROP TRIGGER  IF EXISTS  update_status1 ON comp_result;
 DROP TRIGGER  IF EXISTS  update_status2 ON comp_result;
 DROP TRIGGER  IF EXISTS  update_status3 ON prescribed_in;
+
+DROP INDEX person_password_idx;
+DROP INDEX doctor_dep_idx;
+DROP INDEX app_status_idx;
+DROP INDEX med_man_idx;
+DROP INDEX p_in_med_status_idx;
+DROP INDEX p_status_idx;
+DROP INDEX test_result_test_status_idx;
+DROP INDEX comp_result_comp_status_idx;
