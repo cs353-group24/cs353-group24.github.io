@@ -461,3 +461,30 @@ CREATE TRIGGER prescription_no
     AFTER UPDATE ON prescribed_in
     FOR EACH ROW
     EXECUTE PROCEDURE update_status3();
+
+--- INDEX
+
+CREATE INDEX person_password_idx
+ON person (pasword);
+
+CREATE INDEX doctor_dep_idx
+ON doctor (department);
+
+CREATE INDEX app_status_idx
+ON appointment (app_status)
+
+CREATE INDEX med_man_idx
+ON medicine (manufacturer);
+
+CREATE INDEX p_in_med_status_idx
+ON prescribed_in (med_status);
+
+
+CREATE INDEX p_status_idx
+ON prescription (status);
+
+CREATE INDEX test_result_test_status_idx
+ON test_result (test_status);
+
+CREATE INDEX comp_result_comp_status_idx
+ON comp_result (comp_status);
