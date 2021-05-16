@@ -1542,6 +1542,7 @@ app.post('/admin/add_staff', (req,res)=>{
 
     client.query(q, params,(err, result)=>{
         if (err){
+            console.log(err)
             return res.status(404).send(err);
         }
         else {
@@ -1560,8 +1561,10 @@ app.post('/admin/add_staff', (req,res)=>{
             } else {
                 return res.send({"message": "invalid person type"})
             }
+            console.log(params)
             client.query(q, params, (err, result) => {
                 if (err) {
+                    console.log(err);
                     return res.status(403).send(err);
                 }
                 return res.status(200).send({"message": "insertion successful"})
@@ -1646,6 +1649,7 @@ app.post('/admin/add_disease', (req,res)=>{
     let params = Object.values(req.body)
     client.query(q, params, (err, result) =>{
         if(err){
+            console.log(err)
             return res.status(404).send(err)
         }
         return res.status(200).send({"message":"successful insertion"})
@@ -1657,13 +1661,12 @@ app.post('/admin/add_disease', (req,res)=>{
     {
         "name" : "$",
         "manufacturer": "$",
-        "pharmacist_id": "$",
         "stock": "$"
     }
  */
 app.post('/admin/add_medicine', (req,res)=>{
 
-    let q = `INSERT INTO medicine (name, manufacturer, pharmacist_id, stock) VALUES ($1, $2, $3, $4)`
+    let q = `INSERT INTO medicine (name, manufacturer, stock) VALUES ($1, $2, $3)`
     let params = Object.values(req.body)
     client.query(q, params, (err, result) =>{
         if(err){
