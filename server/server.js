@@ -21,20 +21,7 @@ server.listen(port, () => console.log('listening on port ' + port));
 
 
 
-// home router
 
-app.get('/', function(req, res){
-    let q = `SELECT * FROM person`
-    client.query( q, (err, result) =>{
-        if(err){
-            res.send(err);
-            console.log("hi");
-            return;
-        }else {
-            res.send(result);
-        }
-    })
-});
 
 
 const client = new Client({
@@ -44,6 +31,7 @@ const client = new Client({
     password: "mohimohi",
     database: "hm"
 })
+
 
 client.on("connect", () =>{
     console.log("Database connection established.")
@@ -55,6 +43,30 @@ client.connect();
 // for get use req.query
 // for post use req.body
 //-------------------------------------------- ROUTES-------------------------------------------------//
+
+// home router
+
+app.get('/', function(req, res){
+    let q = `SELECT * FROM person;`
+    client.query( q, (err, result) =>{
+        if(err){
+            res.send(err);
+            return;
+        }else {
+
+            res.send(result);
+        }
+    })
+    client.query( q, (err, result) =>{
+        if(err){
+            res.send(err);
+            return;
+        }else {
+
+            res.send(result);
+        }
+    })
+});
 
 //add triggers to database
 
@@ -852,10 +864,6 @@ app.get('/doctor/:id/see_all_patient_symptoms', (req,res)=>{
     })
 })
 
-
-
-
-
 /*
 /doctor/:id/insert_patient_symptoms
     {
@@ -1028,12 +1036,81 @@ app.post('/doctor/:id/make_diagnosis', (req,res)=>{
     })
 })
 
-
 // insert and delete prescriptions
 
+/*
+/doctor/:id/get_medicines
+no info required
+ */
+app.get('/doctor/:id/get_medicines', (req,res)=>{
+    let q = `SELECT * FROM medicine `
+    client.query(q,  (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
 
+/*
+    /doctor/:id/get_prescription
+    {
+        "appointment_id" : "$"
+    }
+ */
+app.get('/doctor/:id/get_prescription', (req,res)=>{
 
+    let q = `SELECT precription_no FROM prescribed_by WHERE appointment_id = $1`
+    let params = Object.values(req.query)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"message":"successful insertion"})
+    })
+})
 
+/*
+    /doctor/:id/add_prescription
+    {
+        "appointment_id" : "$"
+    }
+*/
+app.post('/doctor/:id/add_prescription', (req,res)=>{
+
+    let q = `INSERT INTO prescription (prescription_no, prescription_type, date, status) VALUES ($1, 'A', current_date, 'waiting')`
+    let params = Object.values(req.body)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        q = `INSERT INTO prescribed_by (prescription_no, appointment_id) VALUES ($1, $2); `
+        let params2 = [req.body.appointment_id, req.body.appointment_id]
+        client.query(q, params2, (err, result) =>{
+            if(err){
+                return res.status(404).send(err)
+            }
+            return res.status(200).send({"message":"successful insertion"})
+        })
+    })
+})
+
+/*
+    /doctor/:id/add_prescription
+    {
+        "appointment_id" : "$";
+    }
+*/
+app.post('/doctor/:id/i', (req,res)=>{
+
+    let q = `INSERT INTO prescription (prescription_no, prescription_type, date, status) VALUES ($1, 'A', current_date, 'waiting')`
+    let params = Object.values(req.body)
+    client.query(q, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+    })
+})
 
 //--------------------------------------------LABORATORIAN ROUTES-------------------------------------------------//
 
@@ -1045,8 +1122,9 @@ app.get('/laboratorian/:id/homepage', (req,res)=>{
 
     let q = `SELECT to_char(tr.result_date, 'YYYY-MM-DD') as result_date_to_char, 
                 to_char(ta.date, 'YYYY-MM-DD') as assign_date_to_char, *
-             FROM test_assigned_to AS ta NATURAL JOIN test_result AS tr
-             WHERE laboratorian_id = $1 and test_status = 'assigned';  `
+             FROM test_assigned_to AS ta NATURAL JOIN test_result AS tr, person AS p, appointment AS a
+             WHERE laboratorian_id = $1
+               AND a.appointment_id = ta.appointment_id AND a.patient_id = p.national_id;  `
     let params = Object.values(req.params)
 
     client.query(q, params, (err, result) =>{
@@ -1081,13 +1159,15 @@ app.get('/laboratorian/:id/get_tests', (req,res)=>{
     /laboratorian/:id/get_spec_comps:
     /laboratorian/$/get_spec_comps
     {
-        "result_id" : "$"
+        "appointment_id" : "$",
+        "test_name" : "$"
     }
  */
 app.get('/laboratorian/:id/get_spec_comps', (req,res)=>{
     let q = `SELECT to_char(t.result_date, 'YYYY-MM-DD') as result_date_to_char, *
              FROM test_result AS t NATURAL JOIN comp_result AS cr, component AS c
-             WHERE result_id = $1 AND t.test_name = c.test_name AND cr.comp_name = c.comp_name;  `
+             WHERE t.test_name = $2 AND t.appointment_id = $1 AND 
+                   t.result_id = cr.result_id AND cr.comp_name = c.comp_name;  `
 
     let params = Object.values(req.query)
 
@@ -1120,18 +1200,16 @@ app.get('/laboratorian/:id/get_all_comp', (req,res)=>{
     {
         "result_id" : "$",
         "comp_name" : "$",
-        "comp_value": "$",
-        "comp_result" : "$",
-        "comp_status" : "$"
+        "comp_value": "$"
     }
  */
 app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
     let q = `UPDATE comp_result
-             SET  comp_value = $1, comp_result = $2, comp_status = $3
-             WHERE result_id = $4 and comp_name = $5;  `
+             SET  comp_value = $1, comp_status = 'finalized'
+             WHERE result_id = $2 and comp_name = $3;  `
 
     let re = req.body
-    let params = [re.comp_value, re.comp_result, re.comp_status, re.result_id, re.comp_name]
+    let params = [re.comp_value, re.result_id, re.comp_name]
 
     client.query(q, params, (err, result) =>{
         if(err){
@@ -1139,7 +1217,7 @@ app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
         }
         return res.status(200).send({"MESSAGE" : "successfull"})
     })
-} )
+})
 
 /*
     /laboratorian/:id/post_test:
@@ -1168,8 +1246,6 @@ app.post('/laboratorian/:id/post_test', (req,res)=>{
 
 //--------------------------------------------PHARMACIST ROUTES-------------------------------------------------//
 
-/*
- */
 app.get('/pharmacist/:id/get_all_prescriptions', (req,res)=>{
     let q= `SELECT to_char(p.date, 'YYYY-MM-DD') as date_to_char, *, p.status
             FROM prescription_assigned_to AS pat , prescription AS p, prescribed_by AS pb, appointment AS a, person

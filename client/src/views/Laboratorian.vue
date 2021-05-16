@@ -108,11 +108,11 @@ name: "Laboratorian",
     overlay: false,
     errorMsg: '',
     id:'',
-    msg: '',
     result: '',
     editResultDialog: false,
     valid: false,
     dialog:false,
+    laboratorianName: '',
     group:{
       items:[],
       headers:[],
@@ -123,9 +123,9 @@ name: "Laboratorian",
     item: {},
     resultItem: {},
     headers: [
-      { text: 'Test ID', align: 'start',  value: 'id', class: 'datatablefontcolor--text'},
-      // { text: 'Doctor Name', value: 'doctorName', class: 'datatablefontcolor--text' },
-      { text: 'Date Assigned', value: 'date', class: 'datatablefontcolor--text' },
+      { text: 'Appointment ID', align: 'start',  value: 'id', class: 'datatablefontcolor--text'},
+      { text: 'Patient Name', value: 'patient', class: 'datatablefontcolor--text' },
+      { text: 'Date Due', value: 'date', class: 'datatablefontcolor--text' },
       { text: 'Test Name', value: 'testName', class: 'datatablefontcolor--text' },
       { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
       { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' }
@@ -143,94 +143,72 @@ name: "Laboratorian",
       { text: 'Lower Interval', align: 'start',  value: 'l_interval', class: 'datatablefontcolor--text'},
       { text: 'Upper Interval', align: 'start',  value: 'h_interval', class: 'datatablefontcolor--text'},
       { text: 'Value', align: 'start',  value: 'value', class: 'datatablefontcolor--text'},
-      { text: 'Result', align: 'start',  value: 'result', class: 'datatablefontcolor--text'},
-      { text: 'Edit', align: 'start',  value: 'Edit', class: 'datatablefontcolor--text'},
+      { text: 'Add Result', align: 'start',  value: 'Edit', class: 'datatablefontcolor--text'},
     ],
     compTableInfo: {
       tableTitle: 'Test Components',
       itemsKey: 'component, resultID',
       itemsPerPage: 6,
     },
-    compItems:[
-      {
-        component: "x.comp_name",
-        // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
-        resultID: 5,
-        l_interval: "x.lower_normality_interval",
-        h_interval: "x.upper_normality_interval",
-        value: "x.comp_value",
-        result: "x.comp_result"
-      }
-    ],
+    compItems:[],
 
   }),
   methods:{
-    editTest: function (item){
+    async editTest(item){
+      this.overlay = true
+
       this.item = item;
-      this.dialog=true
+      await this.$http.get(this.$url+`/laboratorian/${this.id}/get_spec_comps`, {
+        params: {
+          appointment_id : this.item.id,
+          test_name: this.item.testName
+        }
+      }).then((res) => {
+            res.data.forEach(x => {
+              let comp = {
+                component: x.comp_name,
+                resultID: x.result_id,
+                l_interval: x.lower_normality_interval,
+                h_interval: x.upper_normality_interval,
+                value: x.comp_value,
+              }
+              this.compItems.push(comp)
+            })
+      }).catch(e => {
+        if (e.response) {
+          if (e.response.status === 403) {
+            this.errorMsg = 'No such email, try again'
+          } else if (e.response.status === 402) {
+            this.errorMsg = 'Wrong password, try again'
+          }
+        } else {
+          this.errorMsg = 'Unknown error'
+        }
+      })
+      this.compItems = []
+      this.dialog = true
+      this.snackbar = true
+      this.overlay = false
     },
-    editResult(item){
+    async editResult(item){
       if (this.$refs.form) {
         this.$refs.form.resetValidation()
       }
       this.resultItem = item
+      console.log(this.resultItem)
       this.editResultDialog = true
+
     },
     async validateForm(){
+      this.overlay = true
       this.$refs.form.validate()
       if (this.valid) {
-        this.compItems.push({
-          component: "x.comp_name",
-          // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
-          resultID: 5,
-          l_interval: "x.lower_normality_interval",
-          h_interval: "x.upper_normality_interval",
-          value: "x.comp_value",
-          result: "x.comp_result"
-        })
-        console.log(this.result)
         this.resultItem.value = this.result
         this.editResultDialog = false
         this.dialog=false
-        await this.$http.get(this.$url+`/laboratorian/${this.id}/get_spec_comps`, {
-          params: {
-            result_id : this.resultItem.id
-          }
-        }).then((res) => {
-          res.data.forEach(x => {
-            let comp = {
-              component: x.comp_name,
-              // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
-              resultID: x.result_id,
-              l_interval: x.lower_normality_interval,
-              h_interval: x.upper_normality_interval,
-              value: x.comp_value,
-              result: x.comp_result
-            }
-            this.compItems.push(comp)
-          })
-        }).catch(e => {
-          if (e.response) {
-            if(e.response.status === 403)
-            {
-              this.errorMsg = 'No such email, try again'
-            }
-            else if(e.response.status === 402)
-            {
-              this.errorMsg = 'Wrong password, try again'
-            }
-          }
-          else{
-            this.errorMsg = 'Unknown error'
-          }
-          this.snackbar = true
-          this.overlay = false
-        })
-
-        this.item.status = 'Preparing'
         this.snackbar = true
-        this.msg = `Test: ${this.item.id} moved to the preparing tests page`
-        this.filteredTests = this.items.filter(x => x.status === 'Assigned')
+
+        this.errorMsg = `Test: ${this.item.id} moved to the preparing tests page`
         if (this.resultItem.l_interval !== '-') {
           if (Number(this.result) >= this.resultItem.l_interval && Number(this.result) <= this.resultItem.h_interval) {
             this.resultItem.result = 'Normal'
@@ -240,6 +218,17 @@ name: "Laboratorian",
           }
         }
         this.result = ''
+        this.overlay = false
+        await this.$http.post(this.$url + `/laboratorian/{this.id}/post_spec_comps`, {
+          result_id : this.resultItem.resultID,
+          comp_name: this.resultItem.component,
+          comp_value: this.resultItem.value
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error in posting comp_value'
+          this.overlay = false
+          this.snackbar = true
+        })
       }
     },
     async resetValidation () {
@@ -247,25 +236,10 @@ name: "Laboratorian",
       if(this.$refs.form) {
         this.$refs.form.resetValidation()
       }
-      if(this.departments.length === 0)
-      {
-        await this.$http.get(this.$url+`/patient/${this.id}/appointment/newappointment/departments`).then(res => {
-          res.data.forEach(x => {
-            this.departments.push(x.name)
-          })
-          this.overlay = false
-        }).catch((err) => {
-          console.log(err)
-          this.errorMsg = 'Unexpected Error, try again later'
-          this.overlay = false
-          this.snackbar = true
-        })
-      }
       this.overlay = false
       this.dialog=true;
     },
     async getItems(){
-      // have query check status?
       this.overlay = true
       if(this.$cookies.get('user'))
       {
@@ -278,8 +252,8 @@ name: "Laboratorian",
         this.items = []
         res.data.forEach(x => {
           let temp = {
-            id: x.result_id,
-            // doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+            id: x.appointment_id,
+            patient: this.capitalise(x.name, x.surname),
             date: x.assign_date_to_char,
             testName: x.test_name,
             status: x.test_status
@@ -294,6 +268,7 @@ name: "Laboratorian",
         this.overlay = false
         this.snackbar = true
       })
+      this.overlay = false
     }
   },
   mounted() {
