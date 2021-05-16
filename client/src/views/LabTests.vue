@@ -191,7 +191,6 @@ name: "Laboratorian",
     async validateForm(){
       this.$refs.form.validate()
       if (this.valid) {
-        console.log(this.result)
         this.resultItem.value = this.result
         this.editResultDialog = false
         if (this.resultItem.l_interval !== '-') {
@@ -206,7 +205,6 @@ name: "Laboratorian",
         let temp = this.compItems.filter(x => x.value === '-')
         if (temp.length === 0) {
           this.item.status = 'Finalised'
-          this.msg = 'All results have been finalised, test is moved to the finalised tests tab'
           this.snackbar = true
           this.dialog = false
         }
