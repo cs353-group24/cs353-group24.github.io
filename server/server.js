@@ -203,7 +203,7 @@ app.post('/signup', (req,res)=>{
      naming conventions presented above should be followed
  */
 app.get('/patient/:id/homepage', (req, res) =>{
-    let q = `SELECT a.appointment_id, p.name, p.surname, TO_CHAR(a.date,'YYYY-MM-DD' ) as date, d.department
+    let q = `SELECT a.appointment_id, p.name, p.surname, TO_CHAR(a.date,'YYYY-MM-DD' ) as date, d.department, a.status
              FROM appointment as  a, doctor as d, person as p
              WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id and a.status = 'upcoming'
              ORDER BY  date ASC ; `
@@ -346,12 +346,12 @@ app.post('/patient/:id/appointment/cancel_appointment', (req,res)=>{
  */
 app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
-    let q = ` INSERT INTO appointment ( date, patient_id, doctor_id) VALUES
-        ( to_date($1, 'YYYY-MM-DD'), $2, $3); `
+    let q = ` INSERT INTO appointment ( date, patient_id, doctor_id, status) VALUES
+        ( to_date($1, 'YYYY-MM-DD'), $2, $3, $4); `
 
     let params1 = req.params // will give national id
     let params2 = req.body
-    let params = [ params2.date, params1.id, params2.doctor_id]
+    let params = [ params2.date, params1.id, params2.doctor_id, params2.status]
 
     console.log(params)
 

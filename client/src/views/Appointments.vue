@@ -210,14 +210,16 @@ export default {
         console.log(res)
         this.items = []
         res.data.forEach(x => {
-          let temp = {
-            id: x.appointment_id,
-            doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
-            date: x.date,
-            department: x.department,
-            status: x.status,
+          if (x.status !== 'finalized') {
+            let temp = {
+              id: x.appointment_id,
+              doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+              date: x.date,
+              department: x.department,
+              status: x.status,
+            }
+            this.items.push(temp)
           }
-          this.items.push(temp)
         })
         this.overlay = false
       }).catch((err) => {
