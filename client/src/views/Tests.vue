@@ -8,7 +8,7 @@
           <template #buttons="{item}">
             <v-row>
             <v-col class="d-flex justify-center mx-n8">
-                <v-btn @click="handleDialog1(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">See Components</v-btn>
+                <v-btn :disabled="(item.status !== 'finalized')"  @click="handleDialog1(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">See Components</v-btn>
             </v-col>
             </v-row>
           </template>
@@ -81,7 +81,7 @@ export default {
     },
     { text: 'Test Name', value: 'name', class: 'datatablefontcolor--text' },
     { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
-    { text: 'Laboratorian', value: 'laboratorian', class: 'datatablefontcolor--text' },
+    { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
     items: [],
@@ -101,14 +101,14 @@ export default {
         this.patientName = temp.charAt(0).toUpperCase() + temp.slice(1)
       }
       await this.$http.get(this.$url+`/patient/${this.id}/see_all_tests`).then(res => {
-        // console.log(res)
         this.items = []
         res.data.forEach(x => {
           let temp = {
             id: x.appointment_id,
             name: x.test_name,
-            date: x.date,
-            laboratorian: x.laboratorian_id,
+            date: x.date_to_char,
+            status: x.test_status,
+            resultId: x.result_id
           }
           this.items.push(temp)
         })
@@ -127,15 +127,19 @@ export default {
         async handleDialog1(item){
           let componentItems = [];
           this.overlay = true
-          await this.$http.get(this.$url+`/patient/${this.id}/see_all_comps`).then(res => {
-            // console.log(res)
+          await this.$http.get(this.$url+`/patient/${this.id}/see_test_comps`,{
+            params:{
+              result_id: item.resultId
+            }
+              }
+          ).then(res => {
             res.data.forEach(x => {
               let temp = {
                 id: x.result_id,
                 name: x.comp_name,
                 value: x.comp_value,
                 result: x.comp_result,
-                status: x.comp_status
+                status: x.comp_status,
               }
               componentItems.push(temp)
             })
@@ -162,16 +166,62 @@ export default {
               { text: 'Component Value', value: 'value', class: 'datatablefontcolor--text' },
               { text: 'Component Result', value: 'result', class: 'datatablefontcolor--text' },
               { text: 'Component Status', value: 'status', class: 'datatablefontcolor--text' },
+              { text: 'History', value: 'History', sortable:false, class: 'datatablefontcolor--text' }
             ];
             this.group.buttonHeader = 'History'
         },
-        handleDialog2: function(item){
-            this.item1 = item;
+        async handleDialog2(item){
+          this.item1 = item;
+          let prevValues = [];
+          this.overlay = true
+          await this.$http.get(this.$url+`/patient/${this.id}/see_prev_test_comps`,{
+                params:{
+                  comp_name: item.name
+                }
+              }
+          ).then(res => {
+            res.data.forEach(x => {
+              let temp = {
+                date: x.result_date,
+                aId: x.appointment_id,
+                rId: x.result_id,
+                value: x.comp_value,
+                result: x.comp_result,
+              }
+              prevValues.push(temp)
+            })
+            this.overlay = false
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
+          this.item = item;
+          this.dialog1 = true;
+          this.group.items = prevValues;
+          this.group.headers = [
+            {
+              text: 'Date',
+              align: 'start',
+              // sortable: false,
+              // filterable: false,
+              value: 'date',
+              class: 'datatablefontcolor--text'
+            },
+            { text: 'Appointment ID', value: 'aId', class: 'datatablefontcolor--text' },
+            { text: 'Result ID', value: 'rId', class: 'datatablefontcolor--text' },
+            { text: 'Component Value', value: 'value', class: 'datatablefontcolor--text' },
+            { text: 'Component Result', value: 'result', class: 'datatablefontcolor--text' },
+          ];
             this.dialog1 = false;
             this.dialog2 = true;
         },
     },
-    created: function() {
+  mounted() {
+    this.getItems()
+  },
+  created: function() {
         this.group.items = this.items
         this.group.headers = this.headers
         this.group.tableInfo = this.tableInfo

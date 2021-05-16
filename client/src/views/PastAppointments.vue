@@ -108,9 +108,8 @@ export default {
         this.patientName = temp.charAt(0).toUpperCase() + temp.slice(1)
       }
       await this.$http.get(this.$url+`/patient/${this.id}/appointments`).then(res => {
-        console.log(res)
         this.items = []
-        res.data.filter(x => x.status === 'finalized').forEach(x => {
+        res.data.filter(x => (x.status === 'finalized' || x.status === 'waiting-tests')).forEach(x => {
           let temp = {
             id: x.appointment_id,
             doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
@@ -133,15 +132,19 @@ export default {
           let symptomsItems = [];
           this.item1 = item;
           this.dialog1 = true;
-        await this.$http.get(this.$url+`/doctor/1/${item.id}/see_patient_symptoms`).then(res => {
+        await this.$http.get(this.$url+`/patient/${this.id}/see_app_symp`, {
+          params: {
+            appointment_id: item.id
+          }
+        }).then(res => {
           console.log(res)
-          /*res.data.forEach(x => {
+          res.data.forEach(x => {
             let temp = {
-              name: x.disease_name,
+              name: x.symptom_name,
               description: x.description,
             }
             symptomsItems.push(temp)
-          })*/
+          })
           this.overlay = false
         }).catch((err) => {
           console.log(err)
@@ -154,7 +157,7 @@ export default {
             { text: 'Description', value: 'description', class: 'datatablefontcolor--text' },
           ];
         this.group.items = symptomsItems;
-
+        this.group.tableInfo.tableTitle = 'Symptoms'
       },
       async handleDialog2(item){
         let diagnosisItems = [];
@@ -163,7 +166,6 @@ export default {
             appointment_id: item.id
           }
         }).then(res => {
-          console.log(res)
           res.data.forEach(x => {
             let temp = {
               name: x.disease_name,
@@ -182,19 +184,20 @@ export default {
           { text: 'Description', value: 'description', class: 'datatablefontcolor--text' },
         ];
         this.group.items = diagnosisItems
+        this.group.tableInfo.tableTitle = 'Diagnosis'
       },
     async handleDialog3(item){
       //waiting for backend
        let prescriptionItems = [];
-      await this.$http.get(this.$url+`/patient/${this.id}/see_app_diag`, {
+      await this.$http.get(this.$url+`/patient/${this.id}/see_presc`, {
         params: {
-          prescription_no: item.id
+          appointment_id: item.id
         }
       }).then(res => {
         res.data.forEach(x => {
           let temp = {
-            id: x.precription_id,
-            description: x.description
+            name: x.med_name,
+            description: x.usage_method
           }
           prescriptionItems.push(temp)
         })
@@ -209,6 +212,7 @@ export default {
             { text: 'Description', value: 'description', class: 'datatablefontcolor--text' },
           ];
           this.group.items = prescriptionItems
+        this.group.tableInfo.tableTitle = 'Prescriptions'
       },
   },
   mounted() {
