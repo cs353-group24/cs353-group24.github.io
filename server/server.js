@@ -1058,15 +1058,50 @@ app.get('/doctor/:id/get_medicines', (req,res)=>{
         "appointment_id" : "$"
     }
  */
-app.get('/doctor/:id/get_prescription', (req,res)=>{
+app.get('/doctor/:id/get_prescription_no', (req,res)=>{
 
-    let q = `SELECT precription_no FROM prescribed_by WHERE appointment_id = $1`
+    let q = `SELECT precription_no FROM prescribed_by WHERE appointment_id = $1;`
     let params = Object.values(req.query)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
         }
-        return res.status(200).send({"message":"successful insertion"})
+        return res.status(200).send(result.rows)
+    })
+})
+
+
+/*
+    /doctor/:id/get_prescription
+    {
+        "appointment_id" : "$"
+    }
+ */
+app.get('/doctor/:id/get_prescription', (req,res)=>{
+
+    let q = `SELECT * FROM prescription WHERE prescription_no = $1;`
+    let params = Object.values(req.query)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
+
+
+/*
+    "prescription_no": "$"
+ */
+app.get('/doctor/:id/get_presc_medicine', (req,res)=>{
+    let q = `SELECT * FROM prescribed_in WHERE prescription_no = $1;`
+    let params = Object.values(req.query)
+    console.log(params)
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
     })
 })
 
@@ -1098,19 +1133,28 @@ app.post('/doctor/:id/add_prescription', (req,res)=>{
 /*
     /doctor/:id/add_prescription
     {
-        "appointment_id" : "$";
+        "prescription_no" : "$",
+        "med_name":"$",
+        "qty": "$",
+        "usage_method": "$",
     }
 */
-app.post('/doctor/:id/i', (req,res)=>{
 
-    let q = `INSERT INTO prescription (prescription_no, prescription_type, date, status) VALUES ($1, 'A', current_date, 'waiting')`
+app.post('/doctor/:id/add_medicine_to_presc', (req,res)=>{
+
+    let q = `INSERT INTO prescribed_in (prescription_no, med_name, qty ,usage_method, med_status) 
+                VALUES ($1, $2, $3, $4,'filled')`
     let params = Object.values(req.body)
-    client.query(q, (err, result) =>{
+    client.query(q, params,(err, result) =>{
         if(err){
             return res.status(404).send(err)
         }
+        return res.status(200).send({"message":"successful insertion"})
     })
 })
+
+
+
 
 //--------------------------------------------LABORATORIAN ROUTES-------------------------------------------------//
 
@@ -1243,6 +1287,8 @@ app.post('/laboratorian/:id/post_test', (req,res)=>{
         return res.status(200).send({"MESSAGE" : "successfull"})
     })
 } )
+
+
 
 //--------------------------------------------PHARMACIST ROUTES-------------------------------------------------//
 
