@@ -32,6 +32,11 @@ Vue.mixin({
     {
       let last = (surname ? (' ' + surname.charAt(0).toUpperCase() + surname.slice(1)): "")
       return name.charAt(0).toUpperCase() + name.slice(1) + last
+    },
+    lower: function(name, surname = "")
+    {
+      let last = (surname ? (' ' + surname.charAt(0).toLowerCase() + surname.slice(1)): "")
+      return name.charAt(0).toLowerCase() + name.slice(1) + last
     }
   },
 })

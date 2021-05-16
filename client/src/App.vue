@@ -53,6 +53,7 @@ export default {
       { title: 'Home', icon: 'fas fa-home', route: '/pharmacist'},
       { title: 'Filled Prescriptions', icon: 'mdi-pill', route: '/pharmacist/prescriptions'},
       { title: 'Inventory', icon: 'mdi-truck-outline', route: '/pharmacist/inventory'},
+      { title: 'Stock Info', icon: 'mdi-text-box-search-outline', route: '/pharmacist/stockInfo'},
     ],
     adminList: [
       { title: 'Add Staff', icon: 'fas fa-home', route: '/admin'},

@@ -4,7 +4,7 @@
       <v-row>
         <v-col>
           <v-row>
-            <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Welcome Dr. Mohi</h1>
+            <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Welcome Dr. {{name}}</h1>
           </v-row>
           <v-row>
             <h4 class="ml-6 blue--text text--lighten-3">You have {{items.length}} waiting prescriptions</h4>
@@ -26,23 +26,28 @@
         </template>
       </Dialog>
       <v-snackbar
-        v-model="snackbar"
-        :vertical="vertical"
-        :timeout="5000"
-      >
-        Not enough stock left to fill order, you can order more in the inventory tab
+          v-model="snackbar"
+          :timeout="5000"
+        >
+          {{ errorMsg }}
 
-        <template v-slot:action="{ attrs }">
-          <v-btn
-            color="indigo"
-            text
-            v-bind="attrs"
-            @click="snackbar = false"
-          >
-            Close
-          </v-btn>
-        </template>
-      </v-snackbar>
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
+        <v-progress-circular
+          indeterminate
+          size="64"
+        ></v-progress-circular>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -54,52 +59,157 @@ export default {
   components:{PaginationTable, Dialog},
   data: ()=>({
     snackbar:false,
+    errorMsg: '',
+    overlay: false,
+    name: '',
     item:{},
+    id: '',
     dialog: false,
     buttonHeader: 'buttons',
     headers: [
       { text: 'Prescription ID', align: 'start', value: 'presid', class: 'datatablefontcolor--text' },
       { text: 'Appointment ID', value: 'apid', class: 'datatablefontcolor--text' },
+      { text: 'Doctor', value: 'doctor', class: 'datatablefontcolor--text' },
       { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
       { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
       { text: 'Interact', value: 'buttons', class: 'datatablefontcolor--text' },
     ],
-    items:[
-      { presid: 43, apid: 45, date: '2021-05-25', status: 'waiting'},
-      { presid: 44, apid: 46, date: '2021-06-25', status: 'waiting'},
-      { presid: 45, apid: 47, date: '2021-07-25', status: 'waiting'},
-      { presid: 46, apid: 48, date: '2021-08-25', status: 'waiting'},
-      { presid: 47, apid: 49, date: '2021-09-25', status: 'waiting'},
-    ],
+    items:[],
     tableInfo: {
         tableTitle: 'Waiting Prescriptions',
         itemsKey: 'presid',
         itemsPerPage: 6,
     },
     group: {
-        items:'',
-        headers:'',
-        tableInfo:'',
-        buttonHeader: ''
+        items: [],
+        headers: [
+          { text: 'Name', align: 'start', value: 'name', class: 'datatablefontcolor--text' },
+          { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
+          { text: 'Quantity', value: 'qty', class: 'datatablefontcolor--text' },
+          { text: 'Usage Description', value: 'usg', class: 'datatablefontcolor--text' },
+          { text: 'Actions', value: 'actions', class: 'datatablefontcolor--text' },
+        ],
+        tableInfo: {
+          tableTitle: 'Prescription Details',
+          itemsKey: 'name',
+          itemsPerPage: 5
+        },
+        buttonHeader: 'actions'
     },
   }),
   methods: {
-      handleDialog(item){
+      async handleDialog(item){
           this.item = item;
+          this.overlay = true
+          await this.$http.get(this.$url + `/pharmacist/${this.id}/get_prescription_details`, {
+            params: {
+              prescription_no: item.presid
+            }
+          }).then(res => {
+            console.log(res)
+            this.group.items = []
+            res.data.forEach(x => {
+              this.group.items.push({
+                name: this.capitalise(x.med_name),
+                status: this.capitalise(x.med_status),
+                qty: x.qty,
+                usg: x.usage_method
+              })
+            }) 
+          }).catch(err => {
+            console.log(err)
+            this.errorMsg = 'Unknown error, try again later'
+            this.snackbar = true
+          }).finally(() => {
+            this.overlay = false
+          })
           this.dialog = true;
       },
-      prescribe(item){
+      async prescribe(item){
         // this function will deduct item.qty from the medicine(item.name) stock left
         // will also have a check, if qty of medicine is less than order qty, this.snackbar=true
-        this.snackbar = true
-        console.log(item)
+        this.overlay = true
+        await this.$http.get(this.$url + `/pharmacist/this.id/def_medicine_search`, {
+          params: {
+            name: item.name
+          }
+        }).then(res => {
+          console.log(res)
+          if(item.qty <= res.data[0].stock){
+            this.$http.post(this.$url + `/pharmacist/${this.id}/fill_med`, {
+              prescription_id: this.item.presid,
+              status: 'filled',
+              qty: item.qty,
+              medicine_name: item.name
+            }).then(res => {
+              console.log(res)
+              item.status = 'Filled'
+              let temp = this.group.items.filter(x => (x.status !== 'filled' && x !== item))
+              console.log(temp)
+              if(temp.length === 0)
+              {
+                this.errorMsg = 'Filled prescription has been moved to the filled prescription tab'
+                this.snackbar = true
+                this.dialog = false
+                this.getItems()
+              }
+            }).catch(err => {
+              console.log(err.response)
+              this.errorMsg = 'Unknown error, try again'
+              this.snackbar = true
+              this.dialog = false
+            })
+          }
+          else{
+            throw new Error
+          }
+        }).catch(err => {
+          console.log(err)
+          if(err instanceof Error)
+          {
+            this.errorMsg = 'Not enough stock for this medicine, you have to order more'
+          }
+          else{
+            this.errorMsg = 'Unknown error, try again'
+          }
+          this.snackbar = true
+          this.dialog = false
+        }).finally(() => {
+          this.overlay = false
+        })
       },
+      async getItems(){
+        this.overlay = true
+        await this.$http.get(this.$url + `/pharmacist/${this.id}/get_all_prescriptions`).then(res => {
+          this.items = []
+          console.log(res)
+          res.data.forEach(x => {
+            if (x.status === 'waiting') {
+              this.items.push({
+                presid: x.prescription_no,
+                apid: x.appointment_id,
+                doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+                date: x.date_to_char,
+                status: this.capitalise(x.status)
+              })
+            }
+          })
+        }).catch(err => {
+          console.log(err.response)
+          this.errorMsg = 'Unknown Error, please try again later'
+          this.snackbar = true
+        }).finally(() => {
+          this.overlay = false
+        })
+      }
   },
   created() {
-      this.group.items = this.items
-      this.group.headers = this.headers
-      this.group.tableInfo = this.tableInfo
-      this.group.buttonHeader = this.buttonHeader
+      // console.log(this.$cookies.get('user'))
+      this.id = this.$cookies.get('user').national_id
+      let temp = this.$cookies.get('user').name
+      let temp1 = this.$cookies.get('user').surname
+      this.name = this.capitalise(temp, temp1)
+      this.getItems()
   }
 }
 </script>

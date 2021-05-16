@@ -8,7 +8,7 @@
           </v-row>
         </v-col>
       </v-row>
-       <PaginationTable :items="presItems" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
+       <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
           <template #buttons={item}>
             <v-btn @click="handleDialog(item)" class="font-weight-bold rounded-pill" outlined color="#5080DE">
               Order
@@ -32,7 +32,7 @@
               clearable
               :rules="[v => /^\d+$/.test(v) || 'Numbers only']"
               prepend-inner-icon="mdi-pill"
-              :items="presItems"
+              :items="items"
               label="Quantity to Order"
               outlined
             ></v-text-field>
@@ -57,6 +57,29 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+        >
+          {{ errorMsg }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
+        <v-progress-circular
+          indeterminate
+          size="64"
+        ></v-progress-circular>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -66,20 +89,26 @@ import PaginationTable from "@/components/PaginationTable"
 export default {
   components:{PaginationTable},
   data: ()=>({
+    errorMsg: '',
+    overlay: false,
+    snackbar: false,
     valid: false,
+    id: '', 
+    name: '',
     qty: '',
     item:{},
     dialog: false,
     buttonHeader: 'buttons',
     headers: [
-      { text: 'Prescription ID', align: 'start', value: 'name', class: 'datatablefontcolor--text' },
-      { text: 'Appointment ID', value: 'man', class: 'datatablefontcolor--text' },
+      { text: 'Name', align: 'start', value: 'name', class: 'datatablefontcolor--text' },
+      { text: 'Manufacturer', value: 'man', class: 'datatablefontcolor--text' },
+      { text: 'Stock', value: 'stock', class: 'datatablefontcolor--text' },
       { text: 'Actions', value: 'buttons', class: 'datatablefontcolor--text' },
     ],
-    presItems:[],
+    items:[],
     tableInfo: {
-        tableTitle: 'Waiting Prescriptions',
-        itemsKey: 'presid',
+        tableTitle: 'Medicine Stock',
+        itemsKey: 'name',
         itemsPerPage: 6,
     },
   }),
@@ -92,28 +121,54 @@ export default {
           this.item = item;
           this.dialog = true;
       },
-      prescribe(item){
-        // this function will deduct item.qty from the medicine(item.name) stock left
-        // will also have a check, if qty of medicine is less than order qty, this.snackbar=true
-        this.snackbar = true
-        console.log(item)
-      },
-      validateForm(){
+      async validateForm(){
         this.$refs.form.validate()
         if (this.valid) {
-          console.log(`${this.qty} order for ${this.item.name}`)
+          this.overlay = true
+          await this.$http.post(this.$url + `/pharmacist/${this.id}/add_stock`, {
+            stock: this.qty,
+            name: this.lower(this.item.name)
+          }).then(res => {
+            console.log(res)
+            this.getItems()
+            this.errorMsg = `${this.qty} stock added to ${this.item.name}`
+          }).catch(err => {
+            console.log(err)
+            this.errorMsg = 'Unknown error, try again later'
+          }).finally(() => {
+            this.snackbar = true
+            this.overlay = false
+            this.dialog = false
+          })
         }
+      },
+      async getItems() {
+        this.overlay = true
+        await this.$http.get(this.$url + `/pharmacist/${this.id}/check_stock`).then(res => {
+          console.log(res)
+          this.items = []
+          res.data.forEach(x => {
+            this.items.push({
+              name: this.capitalise(x.name),
+              man: this.capitalise(x.manufacturer),
+              stock: x.stock
+            })
+          })
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Unknown error, try again later'
+          this.snackbar = true
+        }).finally(() => {
+          this.overlay = false
+        })
       }
   },
   created() {
-      if (localStorage.getItem('presItems')) {
-          try {
-              this.presItems = JSON.parse(localStorage.getItem('presItems'));
-              // console.log(this.events)
-          } catch(e) {
-              localStorage.removeItem('presItems');
-          }
-      }
+      this.id = this.$cookies.get('user').national_id
+      let temp = this.$cookies.get('user').name
+      let temp1 = this.$cookies.get('user').surname
+      this.name = this.capitalise(temp, temp1)
+      this.getItems()
   }
 }
 </script>
