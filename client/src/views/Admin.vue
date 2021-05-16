@@ -149,7 +149,7 @@
                     required
                     outlined
                     clearable
-                    :disabled="personType === 'Doctor' ? false:true"
+                    :disabled="personType === 'doctor' ? false:true"
                     :rules="[v => (!!v || personType !== 'Doctor') || 'Room Number is required', v => (/^\d+$/.test(v) || personType !== 'Doctor') || 'Numbers only']"
                     v-model="roomNo"
                     label="Room Number"
@@ -172,6 +172,11 @@
                 <v-btn large color="#558EFE" class="white--text rounded-lg font-weight-bold mb-5 mr-5" @click="addStaff">
                     Add
                   </v-btn>
+              </v-row>
+              <v-row  class="d-flex justify-end">
+                <v-btn width="15%" large color="#558EFE" class="white--text rounded-lg font-weight-bold mr-5 mb-5" @click="addStaff">
+                  Add
+                </v-btn>
               </v-row>
             </v-form>
           </v-card-text>
@@ -213,6 +218,7 @@ export default {
     valid: false,
     id:'',
     types: ['Doctor', 'Pharmacist', 'Laboratorian'],
+    departments: [],
     personType: '',
     email: '',
     password: '',
@@ -221,6 +227,7 @@ export default {
     department: '',
     surname: '',
     phone: '',
+    department: '',
     modal: '',
     dob: '',
     roomNo: '',
