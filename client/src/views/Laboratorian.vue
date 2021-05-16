@@ -223,6 +223,8 @@ name: "Laboratorian",
           result_id : this.resultItem.resultID,
           comp_name: this.resultItem.component,
           comp_value: this.resultItem.value
+        }).then(() => {
+          this.getItems()
         }).catch(err => {
           console.log(err)
           this.errorMsg = 'Unexpected Error in posting comp_value'

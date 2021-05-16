@@ -188,7 +188,7 @@ name: "Laboratorian",
       this.resultItem = item
       this.editResultDialog = true
     },
-    validateForm(){
+    async validateForm(){
       this.$refs.form.validate()
       if (this.valid) {
         console.log(this.result)
@@ -210,8 +210,18 @@ name: "Laboratorian",
           this.snackbar = true
           this.dialog = false
         }
-        this.filteredTests = this.items.filter(x => x.status === 'preparing')
-      }
+        await this.$http.post(this.$url + `/laboratorian/{this.id}/post_spec_comps`, {
+          result_id : this.resultItem.resultID,
+          comp_name: this.resultItem.component,
+          comp_value: this.resultItem.value
+        }).then(() => {
+          this.getItems()
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error in posting comp_value'
+          this.overlay = false
+          this.snackbar = true
+        })      }
     },
     async getItems(){
       this.overlay = true
