@@ -446,7 +446,7 @@ WHERE prescription_no in (
     except
     (select distinct prescription_no
      from prescribed_in
-     where prescribed_in <> 'filled')
+     where med_status <> 'filled')
 );
 
 
