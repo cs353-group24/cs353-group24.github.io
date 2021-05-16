@@ -24,11 +24,11 @@
                 </v-col>
                 <v-col>
                   <v-autocomplete
-                  v-model="testDep"
+                  v-model="department"
                   clearable
                   :rules="[v => !!v || 'Test Department is required']"
                   prepend-inner-icon="mdi-domain"
-                  :items="deps"
+                  :items="departments"
                   label="Test Depatment"
                   outlined
                 ></v-autocomplete>
@@ -43,6 +43,29 @@
           </v-card-text>
         </v-card>
       </v-row>
+      <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+      >
+        {{ errorMsg }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+      <v-overlay :value="overlay">
+        <v-progress-circular
+            indeterminate
+            size="64"
+        ></v-progress-circular>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -50,22 +73,52 @@
 <script>
 export default {
   data: ()=>({
+    snackbar: false,
+    overlay: false,
+    errorMsg: '',
     valid: false,
-    testDep: '',
+    department: '',
     testName: '',
-    deps: ['Cardilogy', 'Radiology', 'Urology', 'I forgot'],
+    departments: [],
   }),
   methods: {
-    addTest(){
+    async addTest(){
       this.$refs.form.validate()
       if (this.valid) {
-        let temp = {name: this.testName, department: this.testDep}
-        console.log(temp)
-        this.testName = ''
-        this.testDep = ''
-        this.$refs.form.resetValidation()
+        this.overlay = true
+        await this.$http.post(this.$url+`/admin/add_test`, {
+          test_name: this.testName,
+          department: this.department
+        }).then( () => {
+          this.errorMsg = 'Test added.'
+          this.overlay = false
+          this.snackbar = true
+          this.testName = ''
+          this.testDep = ''
+          this.$refs.form.resetValidation()
+        }).catch((err) => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error, could not load data'
+          this.overlay = false
+          this.snackbar = true
+        })
       }
+    },
+    async loadDepartments(){
+      await this.$http.get(this.$url+`/patient/1/appointment/newappointment/departments`).then(res => {
+        res.data.forEach(x => {
+          this.departments.push(x.name)
+        })
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, try again later'
+        this.overlay = false
+        this.snackbar = true
+      })
     }
+  },
+  mounted() {
+    this.loadDepartments();
   }
 }
 </script>
