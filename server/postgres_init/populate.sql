@@ -110,10 +110,12 @@ INSERT INTO doctor_off_days (doctor_id, date) VALUES
 ('2', to_date('2021-05-18', 'YYYY-MM-DD'));
 
 INSERT INTO medicine (name, manufacturer,  stock) VALUES
+
 ('parol', 'pfizer', 50),
 ('asprin', 'novartis', 60),
 ('adderall', 'eczacibasi', 30),
 ('paracetamol', 'eczacibasi', 40);
+
 
 INSERT INTO prescribed_in (prescription_no, med_name, qty, usage_method) VALUES
 (3, 'paracetamol', 5, '1 tablet a day'),
