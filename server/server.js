@@ -1513,7 +1513,7 @@ app.post('/admin/add_staff', (req,res)=>{
         if (err){
             return res.status(404).send(err);
         }
-        else {
+        else{
             if (re.person_type === 'doctor') {
                 q = `INSERT INTO doctor (national_id, room_no, department)
                      VALUES ($1, $2, $3);`
@@ -1626,13 +1626,12 @@ app.post('/admin/add_disease', (req,res)=>{
     {
         "name" : "$",
         "manufacturer": "$",
-        "pharmacist_id": "$",
         "stock": "$"
     }
  */
 app.post('/admin/add_medicine', (req,res)=>{
 
-    let q = `INSERT INTO medicine (name, manufacturer, pharmacist_id, stock) VALUES ($1, $2, $3, $4)`
+    let q = `INSERT INTO medicine (name, manufacturer, stock) VALUES ($1, $2, $3)`
     let params = Object.values(req.body)
     client.query(q, params, (err, result) =>{
         if(err){

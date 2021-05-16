@@ -3,7 +3,7 @@
     <v-container class="">
       <v-row>
         <v-row>
-          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add staff</h1>
+          <h1 class="ml-5 pt-5 datatablefontcolor--text">Add staff</h1>
         </v-row>
       </v-row>
       <v-row>
@@ -156,15 +156,50 @@
                   ></v-text-field>
                 </v-col>
                 <v-col class="d-flex justify-end">
-                  <v-btn width="30%" height="62%" color="#558EFE" class="white--text rounded-lg font-weight-bold" @click="addStaff">
+                  <v-autocomplete
+                    v-model="department"
+                    clearable
+                    :rules="[v => (!!v || personType === 'Pharmacist') || 'Department is required']"
+                    :disabled="personType === 'Laboratorian' || personType === 'Doctor' ? false:true"
+                    prepend-inner-icon="mdi-domain"
+                    :items="deps"
+                    label="Department Name"
+                    outlined
+                  ></v-autocomplete>
+                </v-col>
+              </v-row>
+              <v-row class="d-flex justify-end">
+                <v-btn large color="#558EFE" class="white--text rounded-lg font-weight-bold mb-5 mr-5" @click="addStaff">
                     Add
                   </v-btn>
-                </v-col>
               </v-row>
             </v-form>
           </v-card-text>
         </v-card>
       </v-row>
+      <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+        >
+          {{ errorMsg }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
+        <v-progress-circular
+          indeterminate
+          size="64"
+        ></v-progress-circular>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -172,6 +207,9 @@
 <script>
 export default {
   data:()=>({
+    errorMsg: '',
+    overlay:false,
+    snackbar:false,
     valid: false,
     id:'',
     types: ['Doctor', 'Pharmacist', 'Laboratorian'],
@@ -180,31 +218,71 @@ export default {
     password: '',
     value:true,
     name: '',
+    department: '',
     surname: '',
     phone: '',
     modal: '',
     dob: '',
     roomNo: '',
+    deps: []
   }),
   methods: {
-    addStaff(){
+    async addStaff(){
       this.$refs.form.validate()
       if (this.valid) {
-        let temp = {id: this.id, type: this.personType, email: this.email, password: this.password, name: this.name,
-        surname: this.surname, phone: this.phone, dob: this.dob, roomNo: this.personType === 'Doctor' ? this.roomNo : undefined}
-        console.log(temp)
-        this.id = ''
-        this.personType = ''
-        this.email = ''
-        this.password = ''
-        this.name = ''
-        this.surname = ''
-        this.phone = ''
-        this.dob = ''
-        this.roomNo = ''
-        this.$refs.form.resetValidation()
+        this.overlay = true
+        await this.$http.post(this.$url + `/admin/add_staff`, {
+          national_id: this.id,
+          person_type: this.lower(this.personType),
+          email: this.email,
+          password: this.password,
+          name: this.name,
+          surname: this.surname,
+          phone: this.phone,
+          birthday: this.dob,
+          room_no: this.roomNo,
+          department: this.department
+        }).then(res => {
+          console.log(res)
+          this.errorMsg = `${this.personType} has been added to staff`
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Email or National ID already exists, please make sure both are unique'
+        }).finally(()=>{
+          this.overlay =false
+          this.snackbar = true
+          this.id = ''
+          this.personType = ''
+          this.email = ''
+          this.password = ''
+          this.name = ''
+          this.surname = ''
+          this.phone = ''
+          this.dob = ''
+          this.roomNo = ''
+          this.department = ''
+          this.$refs.form.resetValidation()
+        })
       }
-    }
+    },
+    async getDeps(){
+      this.overlay = true
+      await this.$http.get(this.$url + '/patient/0/appointment/newappointment/departments').then(res => {
+        console.log(res)
+        res.data.forEach(x => {
+          this.deps.push(x.name)
+        })
+      }).catch(err => {
+        console.log(err)
+        this.errorMsg = 'Error in getting departments, try again'
+        this.snackbar = true
+      }).finally(()=> {
+        this.overlay = false
+      })
+    },
+  },
+  created() {
+    this.getDeps()
   }
 }
 </script>

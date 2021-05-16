@@ -3,7 +3,7 @@
     <v-container class="">
       <v-row>
         <v-row>
-          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add test</h1>
+          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add Disease</h1>
         </v-row>
       </v-row>
       <v-row>
@@ -14,28 +14,27 @@
                 <v-col>
                   <v-text-field
                     outlined
-                    v-model="testName"
+                    v-model="dName"
                     clearable
-                    :prepend-inner-icon="'fas fa-flask'"
-                    :rules="[v => !!v || 'Test Name is required']"
-                    label="Test Name"
+                    :prepend-inner-icon="'fas fa-disease'"
+                    :rules="[v => !!v || 'Disease Name is required']"
+                    label="Disease Name"
                     required
                   ></v-text-field>
                 </v-col>
                 <v-col>
-                  <v-autocomplete
-                  v-model="testDep"
-                  clearable
-                  :rules="[v => !!v || 'Test Department is required']"
-                  prepend-inner-icon="mdi-domain"
-                  :items="deps"
-                  label="Test Depatment"
-                  outlined
-                ></v-autocomplete>
+                  <v-textarea
+                    outlined
+                    v-model="dDesc"
+                    clearable
+                    :rules="[v => !!v || 'Disease Description is required']"
+                    label="Disease Description"
+                    required
+                  ></v-textarea>
                 </v-col>
               </v-row>
               <v-row  class="d-flex justify-end">
-                <v-btn width="15%" large color="#558EFE" class="white--text rounded-lg font-weight-bold mr-5 mb-5" @click="addTest">
+                <v-btn width="15%" large color="#558EFE" class="white--text rounded-lg font-weight-bold mr-5 mb-5" @click="addDisease">
                     Add
                   </v-btn>
               </v-row>
@@ -43,6 +42,29 @@
           </v-card-text>
         </v-card>
       </v-row>
+      <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+        >
+          {{ errorMsg }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
+        <v-progress-circular
+          indeterminate
+          size="64"
+        ></v-progress-circular>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -50,20 +72,34 @@
 <script>
 export default {
   data: ()=>({
+    errorMsg: '',
+    overlay:false,
+    snackbar:false,
     valid: false,
-    testDep: '',
-    testName: '',
-    deps: ['Cardilogy', 'Radiology', 'Urology', 'I forgot'],
+    dDesc: '',
+    dName: '',
   }),
   methods: {
-    addTest(){
+    async addDisease(){
       this.$refs.form.validate()
       if (this.valid) {
-        let temp = {name: this.testName, department: this.testDep}
-        console.log(temp)
-        this.testName = ''
-        this.testDep = ''
-        this.$refs.form.resetValidation()
+        this.overlay = true
+        await this.$http.post(this.$url + `/admin/add_disease`, {
+          name: this.dName,
+          description: this.dDesc
+        }).then(res => {
+          console.log(res)
+          this.errorMsg = `${this.dName} has been added to diseases`
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = "Unknown Error, try again later"
+        }).finally(() => {
+          this.overlay = false
+          this.snackbar = true
+          this.dDesc = ''
+          this.dName = ''
+          this.$refs.form.resetValidation()
+        })
       }
     }
   }
