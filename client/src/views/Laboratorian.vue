@@ -208,7 +208,6 @@ name: "Laboratorian",
         this.dialog=false
         this.snackbar = true
 
-        this.errorMsg = `Test: ${this.item.id} moved to the preparing tests page`
         if (this.resultItem.l_interval !== '-') {
           if (Number(this.result) >= this.resultItem.l_interval && Number(this.result) <= this.resultItem.h_interval) {
             this.resultItem.result = 'Normal'
@@ -223,11 +222,12 @@ name: "Laboratorian",
           result_id : this.resultItem.resultID,
           comp_name: this.resultItem.component,
           comp_value: this.resultItem.value
+        }).then(() => {
+          this.getItems()
         }).catch(err => {
           console.log(err)
           this.errorMsg = 'Unexpected Error in posting comp_value'
           this.overlay = false
-          this.snackbar = true
         })
       }
     },
