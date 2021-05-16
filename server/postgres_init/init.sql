@@ -465,13 +465,13 @@ CREATE TRIGGER prescription_no
 --- INDEX
 
 CREATE INDEX person_password_idx
-ON person (pasword);
+ON person (password);
 
 CREATE INDEX doctor_dep_idx
 ON doctor (department);
 
 CREATE INDEX app_status_idx
-ON appointment (app_status)
+ON appointment (status);
 
 CREATE INDEX med_man_idx
 ON medicine (manufacturer);
