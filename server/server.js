@@ -154,7 +154,7 @@ app.get('/logout', (req, res)=>{
 
 
 
-//also two page split up ??
+
 
 /*
 /signup
@@ -185,6 +185,53 @@ app.post('/signup', (req,res)=>{
         return res.status(200).send({"message": "insertion successful"})
     });
 })
+
+/*
+Returns the number of finalized test number per patient
+ */
+app.get('/report1', (req,res)=>{
+
+        let q = `SELECT patient_id, count(result_id)
+                 FROM test_result natural join appointment
+                 WHERE result_id in(
+                         (select distinct result_id from comp_result)
+                         except
+                         (select distinct result_id
+                          from comp_result
+                          where comp_status <> 'finalized')
+                 )
+                 group by patient_id;`
+
+        let params = Object.values(req.query)
+        client.query(q, params ,(err, result) =>{
+            if(err){
+                return res.status(404).send(err)
+            }
+            return res.status(200).send(result.rows)
+        })
+
+} )
+
+/*
+Query above reports give total number of appointments in the last month
+ */
+app.get('/report2', (req,res)=>{
+
+    let q = `select doctor_id, count(patient_id)
+             from appointment
+             where extract(month from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(month from current_date)
+               and extract(year from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(year from current_date)
+             group by doctor_id`
+
+    let params = Object.values(req.query)
+    client.query(q, params ,(err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+
+} )
 
 //--------------------------------------------PATIENT ROUTES-------------------------------------------------//
 
