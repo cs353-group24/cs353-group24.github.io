@@ -109,6 +109,11 @@ const routes = [
     component: () => import('../views/PharmacistInventory.vue')
   },
   {
+    path: '/pharmacist/stockInfo',
+    name: 'Pharmacist StockInfo',
+    component: () => import('../views/PharmacistStockInfo.vue')
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/Admin.vue')
