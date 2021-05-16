@@ -13,7 +13,7 @@
           >
             <v-card>
               <v-card-title class="headline datatablefontcolor--text text-center">
-                New Appointment
+                {{ this.edit ? 'Edit Appointment' : 'New Appointment' }}
               </v-card-title>
               <v-card-text class="mt-4">
                 <!-- maybe use cached items prop -->
@@ -113,7 +113,7 @@
             <v-col class="d-flex justify-center mx-n6">
                 <v-btn icon @click="editApt(item)" color="datatablefontcolor"><v-icon>mdi-pencil-outline</v-icon></v-btn>
             </v-col>
-            <v-col v-if="item.status === 'upcoming'" class="d-flex justify-center ml-n8">
+            <v-col  class="d-flex justify-center ml-n8">
                 <v-btn icon @click="deleteApt(item)" color="datatablefontcolor"><v-icon>mdi-delete</v-icon></v-btn>
             </v-col>
             </v-row>
@@ -209,7 +209,7 @@ export default {
       await this.$http.get(this.$url+`/patient/${this.id}/appointments`).then(res => {
         console.log(res)
         this.items = []
-        res.data.forEach(x => {
+        res.data.filter(x => x.status === 'upcoming').forEach(x => {
           let temp = {
             id: x.appointment_id,
             doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
@@ -232,31 +232,61 @@ export default {
       if (this.valid) {
         this.dialog = false
         this.overlay = true
-        await this.$http.post(this.$url + `/patient/${this.id}/appointment/newappointment`, {
-          date: this.appointment.date,
-          doctor_id: this.appointment.doctor.id
-        }).then(() => {
-          // console.log(res)
-          this.$http.post(this.$url + `/doctor/${this.appointment.doctor.id}/create_off_days`, {
-            date: this.appointment.date
+        if(this.edit == true){
+          await this.$http.post(this.$url + `/patient/${this.id}/appointment/edit`, {
+            date: this.appointment.date,
+            doctor_id: this.appointment.doctor.id,
+            appointment_id: this.appointment.id
           }).then(() => {
             // console.log(res)
-            this.errorMsg = 'Appointment Created'
-            this.overlay = false
-            this.snackbar = true
-            this.getItems()
+            this.$http.post(this.$url + `/doctor/${this.appointment.doctor.id}/create_off_days`, {
+              date: this.appointment.date
+            }).then(() => {
+              // console.log(res)
+              this.errorMsg = 'Appointment Created'
+              this.overlay = false
+              this.snackbar = true
+              this.getItems()
+            }).catch(err => {
+              console.log(err)
+              this.errorMsg = 'Unexpected Error in creating Appointment, try again later'
+              this.overlay = false
+              this.snackbar = true
+            })
           }).catch(err => {
-            console.log(err)
-            this.errorMsg = 'Unexpected Error in creating Appointment, try again later'
+            console.log(err.response)
+            this.errorMsg = 'Unexpected Error in disbaling date for others'
             this.overlay = false
             this.snackbar = true
           })
-        }).catch(err => {
-          console.log(err.response)
-          this.errorMsg = 'Unexpected Error in disbaling date for others'
-          this.overlay = false
-          this.snackbar = true
-        })
+        }else{
+          await this.$http.post(this.$url + `/patient/${this.id}/appointment/newappointment`, {
+            date: this.appointment.date,
+            doctor_id: this.appointment.doctor.id
+          }).then(() => {
+            // console.log(res)
+            this.$http.post(this.$url + `/doctor/${this.appointment.doctor.id}/create_off_days`, {
+              date: this.appointment.date
+            }).then(() => {
+              // console.log(res)
+              this.errorMsg = 'Appointment Created'
+              this.overlay = false
+              this.snackbar = true
+              this.getItems()
+            }).catch(err => {
+              console.log(err)
+              this.errorMsg = 'Unexpected Error in creating Appointment, try again later'
+              this.overlay = false
+              this.snackbar = true
+            })
+          }).catch(err => {
+            console.log(err.response)
+            this.errorMsg = 'Unexpected Error in disbaling date for others'
+            this.overlay = false
+            this.snackbar = true
+          })
+        }
+
         this.appointment.department = ''
         this.appointment.date = ''
         this.appointment.doctor = ''
@@ -268,13 +298,10 @@ export default {
       this.edit = true;
       this.appointment.id = item.id
       this.appointment.department = item.department
-      // console.log(this.appointment.department)
       this.appointment.date = item.date
       await this.getDocs(item.department)
-      // console.log(this.appointment.department)
       let temp = this.doctors.filter(x => x.name === item.doctor)
       this.appointment.doctor = temp[0]
-      // console.log(this.appointment.department)
       this.overlay = false
       this.dialog = true
     },
