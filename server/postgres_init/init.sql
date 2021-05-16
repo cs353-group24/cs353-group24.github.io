@@ -248,6 +248,8 @@ ALTER TABLE comp_result
 ALTER TABLE prescription_assigned_to
     ADD CONSTRAINT presc_pharma FOREIGN KEY (pharmacist_id) REFERENCES pharmacist (national_id) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT presc_presc FOREIGN KEY (prescription_no) REFERENCES prescription (prescription_no) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
 /*
 create triggers and functions for insertion into patient, doctor, laboratorian and pharmacist  tables
 to make insert additional values
