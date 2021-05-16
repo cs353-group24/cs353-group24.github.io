@@ -14,6 +14,29 @@
           </template>
       </PaginationTable>
       <Dialog :tableData="group" :item="item" :itemHeader="headers" :dialog="dialog" :dialogMode="'cols'" :title="'Prescriptions'" @close="dialog=false"></Dialog>
+      <v-snackbar
+          v-model="snackbar"
+          :timeout="5000"
+      >
+        {{ errorMsg }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+              color="indigo"
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+      <v-overlay :value="overlay">
+        <v-progress-circular
+            indeterminate
+            size="64"
+        ></v-progress-circular>
+      </v-overlay>
     </v-container>
   </v-app>
 </template>
@@ -27,6 +50,10 @@ export default {
   },
 
   data: () => ({
+    snackbar: false,
+    overlay: false,
+    errorMsg: '',
+    id:'',
     item:{},
     group: {
         items:'',
@@ -42,43 +69,15 @@ export default {
         align: 'start',
         // sortable: false,
         // filterable: false,
-        value: 'name',
+        value: 'id',
         class: 'datatablefontcolor--text'
     },
-    { text: 'Prescription No', value: 'calories', class: 'datatablefontcolor--text' },
-    { text: 'Prescription Type', value: 'fat', class: 'datatablefontcolor--text' },
-    { text: 'Pharmacist', value: 'carbs', class: 'datatablefontcolor--text' },
-    { text: 'Date', value: 'protein', class: 'datatablefontcolor--text' },
-    { text: 'Extra', value: 'iron', class: 'datatablefontcolor--text' },
+    { text: 'Prescription No', value: 'pres_no', class: 'datatablefontcolor--text' },
+    { text: 'Prescription Type', value: 'pres_type', class: 'datatablefontcolor--text' },
+    { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
-    items: [
-    {
-        name: 1010,
-        calories: 'Dr Mohla',
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        iron: '1%',
-    },
-    {
-        name: 1100,
-        calories: 'Dr Royim',
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        iron: '1%',
-    },
-    {
-        name: 1141,
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        iron: '7%',
-    },
-    
-    ],
+    items: [],
     tableInfo: {
         tableTitle: 'Prescriptions',
         itemsKey: 'name',
@@ -86,11 +85,74 @@ export default {
     },
   }),
   methods: {
-      handleDialog1: function(item){
-          // console.log(this.group);
+    async getItems(){
+      this.overlay = true
+      if(this.$cookies.get('user'))
+      {
+        this.id = this.$cookies.get('user').national_id
+      }
+      await this.$http.get(this.$url+`/patient/${this.id}/see_all_presc`).then(res => {
+        // console.log(res)
+        this.items = []
+        res.data.forEach(x => {
+          let temp = {
+            id: x.appointment_id,
+            pres_no: x.prescription_no,
+            pres_type: x.prescription_type,
+            date: x.date_to_char
+          }
+          this.items.push(temp)
+        })
+        this.overlay = false
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
+    },
+      async handleDialog1(item){
+        this.overlay = true
+        await this.$http.get(this.$url+`/patient/${this.id}/see_presc`, {
+          params:{
+            appointment_id: item.id
+          }
+        }).then(res => {
+          // console.log(res)
+          this.group.items = []
+          res.data.forEach(x => {
+            let temp = {
+              name: x.med_name,
+              qty: x.qty,
+              desc: x.usage_method,
+            }
+            this.group.items.push(temp)
+            this.group.headers =[
+              {
+                text: 'Name',
+                align: 'start',
+                // sortable: false,
+                // filterable: false,
+                value: 'name',
+                class: 'datatablefontcolor--text'
+              },
+              { text: 'Quantity', value: 'qty', class: 'datatablefontcolor--text' },
+              { text: 'Description', value: 'desc', class: 'datatablefontcolor--text' },
+            ]
+          })
+          this.overlay = false
+        }).catch((err) => {
+          console.log(err)
+          this.errorMsg = 'Unexpected Error, could not load data'
+          this.overlay = false
+          this.snackbar = true
+        })
           this.item = item;
           this.dialog = true;
       },
+  },
+  mounted() {
+    this.getItems()
   },
   created: function() {
       this.group.items = this.items

@@ -488,8 +488,8 @@ app.get('/patient/:id/see_app_tests', (req,res)=>{
 app.get('/patient/:id/see_app_comps', (req,res)=>{
     let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date_to_char, 
                 to_char(t.result_date, 'YYYY-MM-DD') as result_date_to_char, *
-             FROM appointment AS a NATURAL JOIN test_result AS t NATURAL JOIN comp_result
-             WHERE patient_id = $1 and appointment_id = $2 ; `
+             FROM appointment AS a ,test_result AS t , comp_result AS c
+             WHERE a.patient_id = $1 and a.appointment_id = $2 and a.appointment_id = t.appointment_id and t.result_id = c.result_id; `
     let params1 = req.params
     let params2 = req.query
     let params = [params1.id, params2.appointment_id]
@@ -552,10 +552,9 @@ app.get('/patient/:id/see_test_comps', (req,res)=>{
     let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date_to_char, 
                 to_char(t.result_date, 'YYYY-MM-DD') as result_date_to_char, *
              FROM appointment AS a NATURAL JOIN test_result AS t NATURAL JOIN comp_result
-             WHERE result_id = $1 `
+             WHERE result_id = $1 ;`
     let params1 = req.query
-    let params = [result_id]
-
+    let params = [params1.result_id]
 
     client.query(q, params, (err, result) =>{
         if(err){
@@ -654,11 +653,11 @@ app.get('/patient/:id/see_app_diag', (req,res)=>{
 // /patient/:id/prescriptions
 app.get('/patient/:id/see_all_presc', (req,res)=>{
 
-    let q = ` SELECT to_char(a.date, 'YYYY-MM-DD') as date_to_char, 
-                to_char(p.date, 'YYYY-MM-DD') as prescription_date_to_char, *
-              FROM appointment a, prescribed_by pb, prescription p, prescribed_in pi
-              WHERE a.appointment_id = pb.appointment_id and pb.prescription_no = p.prescription_no and p.prescription_no = pi.prescription_no  
-               and patient_id = $1`
+    let q = ` SELECT to_char(a.date, 'YYYY-MM-DD') as date_to_char,
+                     to_char(p.date, 'YYYY-MM-DD') as prescription_date_to_char, *
+              FROM appointment a, prescribed_by pb, prescription p
+              WHERE a.appointment_id = pb.appointment_id and pb.prescription_no = p.prescription_no
+                and patient_id = $1`
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
         if(err){
@@ -697,12 +696,14 @@ app.get('/patient/:id/see_presc', (req,res)=>{
     }
  */
 app.get("/patient/:id/see_app_symp", (req,res)=>{
-    let q = ` SELECT  * FROM diagnosis d , symptom s, disease_symptoms ds
+    let q = ` SELECT  ds.symptom_name as symptom_name, s.description as description
+              FROM diagnosis d , symptom s, disease_symptoms ds
               where d.disease_name = ds.disease_name and s.name = ds.symptom_name and appointment_id = $1; `
 
     let params = Object.values(req.query)
     client.query(q, params, (err, result) =>{
         if(err){
+            console.log(err)
             return res.status(404).send(err)
         }
         return res.status(200).send(result.rows)
