@@ -188,9 +188,10 @@ name: "Laboratorian",
       this.resultItem = item
       this.editResultDialog = true
     },
-    async validateForm(){
+    validateForm(){
       this.$refs.form.validate()
       if (this.valid) {
+        console.log(this.result)
         this.resultItem.value = this.result
         this.editResultDialog = false
         if (this.resultItem.l_interval !== '-') {
@@ -205,21 +206,12 @@ name: "Laboratorian",
         let temp = this.compItems.filter(x => x.value === '-')
         if (temp.length === 0) {
           this.item.status = 'Finalised'
+          this.msg = 'All results have been finalised, test is moved to the finalised tests tab'
           this.snackbar = true
           this.dialog = false
         }
-        await this.$http.post(this.$url + `/laboratorian/{this.id}/post_spec_comps`, {
-          result_id : this.resultItem.resultID,
-          comp_name: this.resultItem.component,
-          comp_value: this.resultItem.value
-        }).then(() => {
-          this.getItems()
-        }).catch(err => {
-          console.log(err)
-          this.errorMsg = 'Unexpected Error in posting comp_value'
-          this.overlay = false
-          this.snackbar = true
-        })      }
+        this.filteredTests = this.items.filter(x => x.status === 'preparing')
+      }
     },
     async getItems(){
       this.overlay = true
