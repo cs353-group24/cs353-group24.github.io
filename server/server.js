@@ -137,8 +137,29 @@ app.get('/login_second', (req,res,next)=>{
         }
     });
 });
+/*
+*   Signup validation
+*   {
+*       "national_id": "$1"
+*       "email": "$2"
+*       "password": "$3"
+*   }
+* */
+app.get('/signup_validate', (req,res,next)=>{
+    let q = 'SELECT count(*) as dup_id FROM person p WHERE national_id=$1 union all SELECT count(*) as dup_email FROM person where email=$2'
+    let params =   req.query
+   // console.log(params)
 
-
+    client.query(q, [params.national_id, params.email],(err, result)=>{
+        if (err){
+            console.log(err)
+            return res.status(404).send(err);
+        }
+        else{
+            return res.status(200).send(result)
+        }
+    });
+});
 /*
     /logout
     no info required
