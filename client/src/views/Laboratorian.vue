@@ -171,7 +171,7 @@ name: "Laboratorian",
                 h_interval: (x.upper_normality_interval == null) ? '-': x.upper_normality_interval,
                 value: (x.comp_value == null) ? '-' : x.comp_value,
               }
-              this.compItems.push(comp)
+              this.group.items.push(comp)
             })
       }).catch(e => {
         if (e.response) {
@@ -193,7 +193,6 @@ name: "Laboratorian",
       }
       this.resultItem = item
       this.editLabel = this.capitalise(this.resultItem.component)
-      console.log(this.resultItem)
       this.editResultDialog = true
 
     },
@@ -214,13 +213,15 @@ name: "Laboratorian",
           }
         }
         this.result = ''
-        await this.$http.post(this.$url + `/laboratorian/{this.id}/post_spec_comps`, {
+        await this.$http.post(this.$url + `/laboratorian/{this.id}/update_comp`, {
           result_id : this.resultItem.resultID,
           comp_name: this.resultItem.component,
-          comp_value: this.resultItem.value
+          comp_value: this.resultItem.value,
+          comp_result: this.resultItem.result
         }).then(() => {
           this.errorMsg = 'Value is updated.'
           this.overlay = false
+          this.snackbar = true
           this.snackbar = true
           this.getItems()
         }).catch(err => {
@@ -247,7 +248,6 @@ name: "Laboratorian",
         this.laboratorianName = temp.charAt(0).toUpperCase() + temp.slice(1)
       }
       await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
-        console.log(res)
         this.items = []
         res.data.filter(x => x.test_status === 'assigned' ).forEach(x => {
           let temp = {

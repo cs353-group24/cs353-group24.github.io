@@ -1286,6 +1286,32 @@ app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
 })
 
 /*
+    /laboratorian/:id/post_spec_comps:
+    /laboratorian/$/post_spec_comps
+    {
+        "result_id" : "$",
+        "comp_name" : "$",
+        "comp_value": "$"
+        "comp_result": "$",
+    }
+ */
+app.post('/laboratorian/:id/update_comp', (req,res)=>{
+    let q = `UPDATE comp_result
+             SET  comp_value = $1, comp_status = 'finalized', comp_result = $4
+             WHERE result_id = $2 and comp_name = $3;  `
+
+    let re = req.body
+    let params = [re.comp_value, re.result_id, re.comp_name, re.comp_result]
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"MESSAGE" : "successfull"})
+    })
+})
+
+/*
     /laboratorian/:id/post_test:
     /laboratorian/$/post_test
     {
