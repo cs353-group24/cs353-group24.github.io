@@ -187,7 +187,7 @@ export default {
           this.overlay = true
           await this.$http.get(this.$url+`/patient/${this.id}/see_prev_test_comps`,{
                 params:{
-                  comp_name: item.name.toLo
+                  comp_name: item.name
                 }
               }
           ).then(res => {

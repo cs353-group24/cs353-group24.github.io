@@ -796,9 +796,9 @@ app.get('/patient/:id/see_presc', (req,res)=>{
     }
  */
 app.get("/patient/:id/see_app_symp", (req,res)=>{
-    let q = ` SELECT  ds.symptom_name as symptom_name, s.description as description
-              FROM diagnosis d , symptom s, disease_symptoms ds
-              where d.disease_name = ds.disease_name and s.name = ds.symptom_name and appointment_id = $1; `
+    let q = ` SELECT  *
+              FROM symptom s, patient_symptoms ps
+              where ps.appointment_id = $1 and s.name = symptom_name; `
 
     let params = Object.values(req.query)
     client.query(q, params, (err, result) =>{

@@ -145,8 +145,8 @@ export default {
                 status: x.comp_status,
                 result: (x.comp_result === null? '-': x.comp_result),
                 value: x.comp_value,
-                u_interval: x.upper_normality_interval,
-                l_interval: x.lower_normality_interval,
+                u_interval: (x.upper_normality_interval === null? '-':x.upper_normality_interval),
+                l_interval: (x.lower_normality_interval === null? '-':x.lower_normality_interval),
               })
             })
             this.dialog1 =true
@@ -166,7 +166,7 @@ export default {
             console.log(res)
             this.items = []
             res.data.forEach(x => {
-              if (x.date.substring(8, 10) === this.toIsoString(new Date()).substring(8, 10)) {
+              if (x.date.substring(8, 10) === this.toIsoString(new Date()).substring(8, 10) && x.status !== 'finalized') {
                 let temp = {
                   id: x.appointment_id,
                   patient: this.capitalise(x.name, x.surname),
