@@ -395,7 +395,7 @@ export default {
           // console.log(res)
           this.dateArray = []
           res.data.forEach(x => {
-            this.dateArray.push(x.date.substring(0,10))
+            this.dateArray.push(x.date_to_char)
           })
         }).catch(err => {
           console.log(err)

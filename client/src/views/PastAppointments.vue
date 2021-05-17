@@ -43,8 +43,8 @@
         ></v-progress-circular>
       </v-overlay>
       <Dialog :tableData="group" :item="item1" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog1" :title="'Symptoms'" @close="dialog1=false"></Dialog>
-      <Dialog :tableData="group" :item="item2" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog2" :title="'Diagnosis'" @close="dialog2=false"></Dialog>
-      <Dialog :tableData="group" :item="item3" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog3" :title="'Prescription'" @close="dialog3=false"></Dialog>
+      <Dialog :tableData="group" :item="item2" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog2" :title="'Diseases Diagnosed'" @close="dialog2=false"></Dialog>
+      <Dialog :tableData="group" :item="item3" :itemHeader="headers" :dialogMode="'cols'" :dialog="dialog3" :title="'Medicines Prescribed'" @close="dialog3=false"></Dialog>
     </v-container>
   </v-app>
 </template>
@@ -67,9 +67,9 @@ export default {
     item2:{},
     item3:{},
     group: {
-        items:'',
-        headers:'',
-        tableInfo:'',
+        items:[],
+        headers:[],
+        tableInfo:{},
         buttonHeader: ''
     },
     dialog1: false,
@@ -219,10 +219,10 @@ export default {
     this.getItems()
   },
   created: function() {
-      this.group.items = this.items
-      this.group.headers = this.headers
-      this.group.tableInfo = this.tableInfo
-      this.group.buttonHeader = this.buttonHeader
+      // this.group.items = this.items
+      // this.group.headers = this.headers
+      // this.group.tableInfo = this.tableInfo
+      // this.group.buttonHeader = this.buttonHeader
   }
 };
 </script>
