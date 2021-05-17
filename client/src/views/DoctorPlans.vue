@@ -345,10 +345,10 @@ import Dialog from "@/components/Dialog"
             this.items = []
             res.data.forEach(x => {
               let temp = {
-                  id: x.appointment_id,
-                  patient: this.capitalise(x.name, x.surname),
-                  date: x.date,
-                  status: x.status
+                  name: this.appointment.id,
+                  start: x.date,
+                  color: 'datatablefontcolor',
+                  details: x
                 }
                 this.events.push(temp)
             })
