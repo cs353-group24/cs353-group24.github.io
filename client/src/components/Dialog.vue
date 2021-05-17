@@ -58,7 +58,7 @@
                             <span class="text-h6 datatablefontcolor--text font-weight-bold">{{itemHeader[itemHeader.findIndex(x => x.value === name)].text}}:</span>
                         </v-row>
                         <v-row align="start">
-                            <span class="text-subtitle-1 datatablefontcolor--text">{{value}}</span>
+                            <span class="text-subtitle-1 datatablefontcolor--text">{{ (value == null) ? '-' : value}}</span>
                         </v-row>
                     </div>
                 </v-col>
