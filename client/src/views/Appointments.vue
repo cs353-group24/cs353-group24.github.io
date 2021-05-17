@@ -309,7 +309,17 @@ export default {
       this.overlay = true
       await this.$http.post(this.$url + `/patient/${item.id}/appointment/cancel`).then(res => {
         console.log(res)
-        this.errorMsg = 'Appointment ' + res.data.message +'.'
+      }).catch((err) => {
+        console.log(err)
+        this.errorMsg = 'Unexpected Error, could not load data'
+        this.overlay = false
+        this.snackbar = true
+      })
+      await this.$http.post(this.$url + `/doctor/${item.id}/delete_off_days`, {
+        date: item.date
+      }).then(res => {
+        console.log(res)
+        this.errorMsg = 'Appointment deleted'
         this.snackbar = true
         this.getItems()
         this.overlay = false
@@ -319,6 +329,7 @@ export default {
         this.overlay = false
         this.snackbar = true
       })
+
     },
     async resetValidation () {
       this.overlay = true

@@ -191,16 +191,17 @@ Returns the number of finalized test number per patient
  */
 app.get('/report1', (req,res)=>{
 
-        let q = `SELECT patient_id, count(result_id)
-                 FROM test_result natural join appointment
-                 WHERE result_id in(
-                         (select distinct result_id from comp_result)
-                         except
-                         (select distinct result_id
-                          from comp_result
-                          where comp_status <> 'finalized')
-                 )
-                 group by patient_id;`
+        let q = `SELECT pe.name, pe.surname, patient_id, sum(case when  result_id in(
+                (select distinct result_id from comp_result)
+                except
+                (select distinct result_id
+                        from comp_result
+                        where comp_status <> 'finalized')
+                ) then 1 else 0 end  ) no_of_finalised_tests,
+                count (   result_id ) as total_no_of_tests
+                FROM person pe natural join patient pa, appointment a, test_result tr
+                where pa.national_id = a.patient_id and a.appointment_id = tr.appointment_id
+                group by patient_id, name, surname;;`
 
         let params = Object.values(req.query)
         client.query(q, params ,(err, result) =>{
@@ -217,11 +218,12 @@ Query above reports give total number of appointments in the last month
  */
 app.get('/report2', (req,res)=>{
 
-    let q = `select doctor_id, count(patient_id)
-             from appointment
-             where extract(month from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(month from current_date)
-               and extract(year from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(year from current_date)
-             group by doctor_id`
+    let q = `select doctor_id, name ,surname  ,count(patient_id) as no_of_appointments_last_month
+            from appointment, person
+            where extract(month from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(month from current_date)
+            and extract(year from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(year from current_date)
+            and doctor_id = national_id
+            group by doctor_id, name, surname`
 
     let params = Object.values(req.query)
     client.query(q, params ,(err, result) =>{
