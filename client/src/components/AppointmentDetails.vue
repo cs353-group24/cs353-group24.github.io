@@ -8,6 +8,7 @@
                             <v-col>
                                 <v-tabs v-model="tabs">
                                     <v-tab>Overview</v-tab>
+                                    <v-tab v-if="appointment.status==='finalized'">Diagnosis</v-tab>
                                     <v-tab>Symptoms</v-tab>
                                     <v-tab>Tests</v-tab>
                                     <v-tab>Prescriptions</v-tab>
@@ -31,14 +32,6 @@
                                     <v-row>
                                         <v-col>
                                             <v-row class="headline">
-                                                Patient ID:
-                                            </v-row>
-                                            <v-row>
-                                                {{appointment.pid}}
-                                            </v-row>
-                                        </v-col>
-                                        <v-col>
-                                            <v-row class="headline">
                                                 Patient Name:
                                             </v-row>
                                             <v-row>
@@ -55,10 +48,10 @@
                                         </v-col>
                                         <v-col>
                                             <v-row class="headline">
-                                                Age:
+                                                Status:
                                             </v-row>
                                             <v-row>
-                                                {{appointment.age}}
+                                                {{appointment.status}}
                                             </v-row>
                                         </v-col>
                                         <v-spacer></v-spacer>
@@ -66,6 +59,27 @@
                                             <v-btn @click="diagDialog = true" :disabled="checkDisabled" color="#5080DE" outlined large class="rounded-pill font-weight-bold mt-n3">Diagnose</v-btn>
                                         </v-col>
                                     </v-row>
+                                </v-card-text>
+                            </v-card>
+                        </v-tab-item>
+                        <v-tab-item v-if="appointment.status==='finalized'">
+                            <v-card tile class="pa-5">
+                                <v-card-title class="text-h4 datatablefontcolor--text font-weight-bold">
+                                    <v-row>
+                                        <v-col>Diagnosis</v-col>
+                                        <v-col class="d-flex justify-end">
+                                            <v-btn @click="showDesc=!showDesc" color="datatablefontcolor" class="white--text rounded-lg font-weight-bold">{{showDesc?"Hide Description": "Show Description"}}</v-btn>
+                                        </v-col>
+                                    </v-row>
+                                </v-card-title>
+                                <v-card-text class="ml-5 mt-5 datatablefontcolor--text">
+                                    <PaginationTable v-if="!showDesc" :tableInfo="DiagTableInfo" :items="tableInfo.diagItems" :headers="diagHeaders">
+                                    </PaginationTable>
+                                    <v-card v-if="showDesc">
+                                        <v-card-text class="datatablefontcolor--text">
+                                            {{diag}}
+                                        </v-card-text>
+                                    </v-card>
                                 </v-card-text>
                             </v-card>
                         </v-tab-item>
@@ -79,7 +93,7 @@
                                         <template #buttons={item}>
                                             <v-tooltip bottom>
                                                 <template v-slot:activator="{ on, attrs }">
-                                                    <v-btn icon v-bind="attrs" v-on="on" @click="$emit('removeSymptom', item)" color="datatablefontcolor"><v-icon>mdi-delete</v-icon></v-btn>
+                                                    <v-btn icon v-bind="attrs" v-on="on" @click="removeSymptom(item)" color="datatablefontcolor"><v-icon>mdi-delete</v-icon></v-btn>
                                                 </template>
                                                 <span>Delete</span>
                                             </v-tooltip>
@@ -91,7 +105,7 @@
                                             </v-autocomplete>   
                                         </v-col>
                                         <v-col lg="2">
-                                            <v-btn @click="$emit('symptomAdd', symptoms); symptoms = null"  :disabled="(!!symptoms ? false : true)" width="100%" height="64%" large color="#558EFE" class="white--text rounded-lg font-weight-bold">
+                                            <v-btn @click="symptomAdd(symptoms)" :disabled="(!!symptoms ? false : true)" width="100%" height="64%" large color="#558EFE" class="white--text rounded-lg font-weight-bold">
                                                 Add
                                             </v-btn>
                                         </v-col>
@@ -109,19 +123,13 @@
                                         <template #buttons={item}>
                                             <v-tooltip bottom>
                                                 <template v-slot:activator="{ on, attrs }">
-                                                    <v-btn icon v-bind="attrs" v-on="on" @click="$emit('removeTest', item)" color="datatablefontcolor" class="mr-3"><v-icon>mdi-delete</v-icon></v-btn>
+                                                    <v-btn icon v-bind="attrs" v-on="on" @click="removeTest(item)" color="datatablefontcolor" class="mr-3"><v-icon>mdi-delete</v-icon></v-btn>
                                                 </template>
                                                 <span>Delete</span>
                                             </v-tooltip>
                                             <v-tooltip bottom>
                                                 <template v-slot:activator="{ on, attrs }">
-                                                    <v-btn icon v-bind="attrs" v-on="on" color="datatablefontcolor" class="mr-3"><v-icon>mdi-collapse-all-outline</v-icon></v-btn>
-                                                </template>
-                                                <span>View Components</span>
-                                            </v-tooltip>
-                                            <v-tooltip bottom>
-                                                <template v-slot:activator="{ on, attrs }">
-                                                    <v-btn icon v-bind="attrs" v-on="on" color="datatablefontcolor" class="mr-3"><v-icon>mdi-clipboard-text-outline</v-icon></v-btn>
+                                                    <v-btn @click="$emit('viewResult', item)" :disabled="item.status === 'assigned'? true:false" icon v-bind="attrs" v-on="on" color="datatablefontcolor" class="mr-3"><v-icon>mdi-clipboard-text-outline</v-icon></v-btn>
                                                 </template>
                                                 <span>View Results</span>
                                             </v-tooltip>
@@ -129,11 +137,11 @@
                                     </PaginationTable>
                                     <v-row class="mt-5">
                                         <v-col>
-                                            <v-autocomplete outlined clearable prepend-inner-icon="mdi-magnify" v-model="tests" :items="lists.testsList" label="Pick Tests to Add" multiple>
+                                            <v-autocomplete outlined clearable return-object item-text="test_name" prepend-inner-icon="mdi-magnify" v-model="tests" :items="lists.testsList" label="Pick Tests to Add" multiple>
                                             </v-autocomplete>   
                                         </v-col>
                                         <v-col lg="2">
-                                            <v-btn @click="$emit('testAdd', tests); tests = null" :disabled="(!!tests ? false : true)" width="100%" height="64%" large color="#558EFE" class="white--text rounded-lg font-weight-bold">
+                                            <v-btn @click="testAdd" :disabled="(!!tests ? false : true)" width="100%" height="64%" large color="#558EFE" class="white--text rounded-lg font-weight-bold">
                                                 Add
                                             </v-btn>
                                         </v-col>
@@ -151,7 +159,7 @@
                                         <template #buttons={item}>
                                             <v-tooltip bottom>
                                                 <template v-slot:activator="{ on, attrs }">
-                                                    <v-btn icon v-bind="attrs" v-on="on" @click="$emit('removePres', item)" color="datatablefontcolor" class="mr-3"><v-icon>mdi-delete</v-icon></v-btn>
+                                                    <v-btn icon v-bind="attrs" v-on="on" @click="removePres(item)" color="datatablefontcolor" class="mr-3"><v-icon>mdi-delete</v-icon></v-btn>
                                                 </template>
                                                 <span>Delete</span>
                                             </v-tooltip>
@@ -159,7 +167,7 @@
                                     </PaginationTable>
                                     <v-row class="mt-5">
                                         <v-col>
-                                            <v-autocomplete outlined clearable prepend-inner-icon="mdi-magnify" return-object item-text="name" v-model="pres" :items="lists.presList" label="Pick Medicines to Add">
+                                            <v-autocomplete outlined clearable prepend-inner-icon="mdi-magnify" return-object item-text="name" v-model="pres" :items="lists.medList" label="Pick Medicines to Add">
                                             </v-autocomplete>   
                                         </v-col>
                                         <v-col lg="2">
@@ -294,6 +302,9 @@
 import PaginationTable from "@/components/PaginationTable"
 export default {
     data:()=>({
+        showDesc: false,
+        id: '',
+        doctor:'',
         disease: [],
         diagDialog: false,
         qty: '',
@@ -321,6 +332,19 @@ export default {
             tableTitle: 'Medicines',
             itemsKey: 'name',
             itemsPerPage: 3,
+        },
+        DiagTableInfo: {
+            tableTitle: 'Diagnosis',
+            itemsKey: 'name',
+            itemsPerPage: 3,
+        },
+        lists: {
+          symptomsList: [],
+          medList: [],
+          testsList: [],
+          compList: [],
+          labsList: [], 
+          diseaseList: [],
         },
         symptomHeaders: [
             {
@@ -357,8 +381,21 @@ export default {
             { text: 'Usage Method', value: 'usg', class: 'datatablefontcolor--text' },
             { text: 'Actions', value: 'actions', class: 'datatablefontcolor--text' },
         ],
+        diagHeaders: [
+            {
+                text: 'Disease Name',
+                align: 'start',
+                value: 'name',
+                class: 'datatablefontcolor--text'
+            },
+            { text: 'Description', value: 'desc', class: 'datatablefontcolor--text' },
+        ],
     }),
     props:{
+        diag: {
+            type: String,
+            default: ''
+        },
         appointment:{
             type: Object,
             default: () => {
@@ -366,12 +403,6 @@ export default {
             }
         },
         tableInfo:{
-            type: Object,
-            default: () => {
-                return {}
-            }
-        },
-        lists:{
             type: Object,
             default: () => {
                 return {}
@@ -390,32 +421,250 @@ export default {
                 this.$refs.form.resetValidation()   
             }
         },
-        validateForm(){
+        async symptomAdd(){
+            this.$emit('overlay')
+            await this.symptoms.forEach(x => {
+                let temp = this.tableInfo.symptomItems.filter(y => y.name === x.name)
+                if (temp.length === 0) {
+                    this.$http.post(this.$url + `/doctor/${this.id}/insert_patient_symptoms`, {
+                        appointment_id: this.appointment.id,
+                        symptom_name: x.name
+                    }).then(res => {
+                        console.log(res)
+                        this.$emit('err', `Symptom(s) has been added to patient symptoms`);
+                    }).catch(err => {
+                        console.log(err)
+                        this.$emit('err', 'Unexpected Error, could not load data');
+                    }).finally(()=>{
+                        
+                    })
+                }
+            })
+            this.$emit('overlay')
+            this.$emit('snackbar')
+            this.$emit('symptomAdd')
+            this.symptoms = null
+        },
+        async removeSymptom(item){
+            this.$emit('overlay')
+            await this.$http.post(this.$url+`/doctor/${this.id}/delete_symptom`, {
+                appointment_id: this.appointment.id,
+                symptom_name: item.name
+            }).then(res => {
+                console.log(res)
+                this.$emit('err', `${item.name} has been deleted`);
+            }).catch(err => {
+                console.log(err)
+                this.$emit('err', 'Unexpected Error, could not delete item');
+            })
+            this.$emit('overlay')
+            this.$emit('snackbar')
+            this.$emit('symptomAdd')
+        },
+        async testAdd() {
+            this.$emit('overlay')
+            await this.tests.forEach(x => {
+                let temp = this.tableInfo.testItems.filter(y => y.name === x.name)
+                if (temp.length === 0) {
+                    let temp = this.lists.labsList.filter(y => y.department === x.department)
+                    this.$http.post(this.$url + `/doctor/${this.id}/ask_for_tests`, {
+                        appointment_id: this.appointment.id,
+                        laboratorian_id: temp[this.rnd(0, temp.length -1)].id,
+                        test_name: x.test_name,
+                        date: this.toIsoString(new Date()).substring(0, 10)
+                    }).then(res => {
+                        console.log(res)
+                        this.$emit('err', `Test(s) has been added to patient tests`);
+                    }).catch(err => {
+                        console.log(err.response)
+                        this.$emit('err', 'Unexpected Error, could not load data');
+                    }).finally(()=>{
+                        
+                    })
+                }
+            })
+            this.$emit('overlay')
+            this.$emit('snackbar')
+            this.$emit('testAdd')
+            this.tests = null
+        },
+        async removeTest(item){
+            this.$emit('overlay')
+            await this.$http.post(this.$url+`/doctor/${this.id}/delete_assigned_test`, {
+                appointment_id: this.appointment.id,
+                test_name: item.name
+            }).then(res => {
+                console.log(res)
+                this.$emit('err', `${item.name} has been deleted`);
+            }).catch(err => {
+                console.log(err)
+                this.$emit('err', 'Unexpected Error, could not delete item');
+            })
+            this.$emit('overlay')
+            this.$emit('snackbar')
+            this.$emit('testAdd')
+        },
+        async validateForm(){
             this.$refs.form.validate()
             if (this.valid) {
-                this.$emit('validateForm', {pres: this.pres, qty: this.qty, usage: this.usage})
-                this.dialog = false;
-                this.pres = null
-                this.qty = ''
-                this.usage = ''
+                this.$emit('overlay')
+                let temp = this.tableInfo.presItems.filter(y => y.name === this.pres.name)
+                console.log(temp)
+                if (temp.length === 0) {
+                    await this.$http.post(this.$url + `/doctor/${this.id}/add_medicine_to_presc`, {
+                        prescription_no: this.appointment.id,
+                        med_name: this.pres.name,
+                        qty: this.qty,
+                        usage_method: this.usage
+                    }).then(res => {
+                        console.log(res)
+                        this.pres = null
+                        this.qty = ''
+                        this.usage= ''
+                        this.$emit('err', `Medicine has been added to prescription`);
+                    }).catch(err => {
+                        console.log(err.response)
+                        this.$emit('err', 'Unexpected Error, could not load data');
+                    }).finally(()=>{
+                        this.$emit('snackbar')
+                    })
+                }
+                this.dialog = false
+                this.$emit('overlay')
+                this.$emit('validateForm')
             }
         },
-        validatedisease(){
+        async removePres(item){
+            this.$emit('overlay')
+            await this.$http.post(this.$url+`/doctor/${this.id}/delete_medicine`, {
+                appointment_id: this.appointment.id,
+                med_name: item.name
+            }).then(res => {
+                console.log(res)
+                this.$emit('err', `${item.name} has been deleted`);
+            }).catch(err => {
+                console.log(err)
+                this.$emit('err', 'Unexpected Error, could not delete item');
+            })
+            this.$emit('overlay')
+            this.$emit('snackbar')
+            this.$emit('validateForm')
+        },
+        async validatedisease(){
             this.$refs.form1.validate()
             if (this.valid1) {
-                this.$emit('diagnosis', {disease: this.disease, details: this.deets})
-                this.diagDialog=false
-                this.disease = [],
-                this.deets = ''
+                this.$emit('overlay')
+                await this.disease.forEach(x => {
+                    this.$http.post(this.$url + `/doctor/${this.id}/make_diagnosis`, {
+                        appointment_id: this.appointment.id,
+                        disease_name: x.name,
+                        description: this.deets  
+                    }).then(res => {
+                        console.log(res)
+                        this.$emit('err', `Diagnosis Added`);
+                    }).catch(err => {
+                        console.log(err)
+                        this.$emit('err', `Unknown error, try again`);
+                    }).finally(()=>{
+
+                    })
+                })
+                this.diagDialog = false
+                this.$emit('overlay')
+                this.$emit('snackbar')
+                this.$emit('diagnosis')
             }
-        }
+        },
+        async getLists(){
+            this.$emit('overlay')
+            await this.$http.get(this.$url+`/doctor/${this.id}/get_disease_names`).then(res => {
+            res.data.forEach(x => {
+              let temp = {
+                name: x.name,
+                description: x.description
+              }
+              this.lists.diseaseList.push(temp)
+            })
+          }).catch((err) => {
+            console.log(err)
+            this.$emit('err', 'Unexpected Error, could not load data'); 
+            this.$emit('overlay')
+            this.$emit('snackbar')
+          })
+          //get symptom list
+          await this.$http.get(this.$url+`/doctor/${0}/get_symptom_names`).then(res => {
+            res.data.forEach(x => {
+              let temp = {
+                name: x.name,
+                description: x.description
+              }
+              this.lists.symptomsList.push(temp)
+            })
+          }).catch((err) => {
+            console.log(err)
+            this.$emit('err', 'Unexpected Error, could not load data');
+            this.$emit('overlay')
+            this.$emit('snackbar')
+          })
+          //get test list
+          await this.$http.get(this.$url+`/doctor/${this.id}/get_test_types`).then(res => {
+              console.log(res)
+            res.data.forEach(x => {
+              this.lists.testsList.push(x)
+            })
+          }).catch((err) => {
+            console.log(err)
+            this.$emit('err', 'Unexpected Error, could not load data');
+            this.$emit('overlay')
+            this.$emit('snackbar')
+          })
+          //med, comp, labs
+          await this.$http.get(this.$url+`/doctor/${0}/get_medicines`).then(res => {
+              console.log(res)
+            res.data.forEach(x => {
+              this.lists.medList.push(x)
+            })
+          }).catch((err) => {
+            console.log(err)
+            this.$emit('err', 'Unexpected Error, could not load data');
+            this.$emit('overlay')
+            this.$emit('snackbar')
+          })
+
+          await this.$http.get(this.$url+`/doctor/${this.id}/get_laboratorians`).then(res => {
+            console.log(res)
+            res.data.forEach(x => {
+                this.lists.labsList.push({
+                    id: x.national_id,
+                    name: this.capitalise(x.name, x.surname),
+                    department: x.department
+                })
+            })
+          }).catch((err) => {
+            console.log(err)
+            this.$emit('err', 'Unexpected Error, could not load data');
+            this.$emit('overlay')
+            this.$emit('snackbar')
+          })
+        //   console.log(this.lists.labsList)
+        },
+        rnd (a, b) {
+            return Math.floor((b - a + 1) * Math.random()) + a
+        },
+    },
+    created(){
+        this.id = this.$cookies.get('user').national_id
+        let temp = this.$cookies.get('user').name
+        let temp1 = this.$cookies.get('user').surname
+        this.doctor = this.capitalise(temp, temp1)
+        this.getLists()
     },
     computed:{
         getModel(){
             return this.model
         },
         checkDisabled(){
-            let temp = this.tableInfo.testItems.filter(x => x.status !== 'Finalised')
+            let temp = this.tableInfo.testItems.filter(x => x.status !== 'finalized')
             if (temp.length === 0) {
                 return false
             }

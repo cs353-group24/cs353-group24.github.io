@@ -56,9 +56,9 @@ export default {
     id:'',
     item:{},
     group: {
-        items:'',
-        headers:'',
-        tableInfo:'',
+        items:[],
+        headers:[],
+        tableInfo:{},
         buttonHeader: ''
     },
     dialog: false,
@@ -118,16 +118,8 @@ export default {
             appointment_id: item.id
           }
         }).then(res => {
-          // console.log(res)
-          this.group.items = []
-          res.data.forEach(x => {
-            let temp = {
-              name: x.med_name,
-              qty: x.qty,
-              desc: x.usage_method,
-            }
-            this.group.items.push(temp)
-            this.group.headers =[
+          console.log(res)
+          this.group.headers =[
               {
                 text: 'Name',
                 align: 'start',
@@ -139,6 +131,19 @@ export default {
               { text: 'Quantity', value: 'qty', class: 'datatablefontcolor--text' },
               { text: 'Description', value: 'desc', class: 'datatablefontcolor--text' },
             ]
+            this.group.tableInfo = {
+              tableTitle: 'Medicines',
+              itemsKey: 'name',
+              itemsPerPage: 5
+            }
+          this.group.items = []
+          res.data.forEach(x => {
+            let temp = {
+              name: x.med_name,
+              qty: x.qty,
+              desc: x.usage_method,
+            }
+            this.group.items.push(temp)
           })
           this.overlay = false
         }).catch((err) => {
@@ -155,10 +160,10 @@ export default {
     this.getItems()
   },
   created: function() {
-      this.group.items = this.items
-      this.group.headers = this.headers
-      this.group.tableInfo = this.tableInfo
-      this.group.buttonHeader = this.buttonHeader
+      // this.group.items = this.items
+      // this.group.headers = this.headers
+      // this.group.tableInfo = this.tableInfo
+      // this.group.buttonHeader = this.buttonHeader
   }
 };
 </script>

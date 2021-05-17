@@ -43,6 +43,7 @@ export default {
       { title: 'Home', icon: 'fas fa-home', route: '/doctor'},
       { title: 'Past Appointments', icon: 'far fa-calendar-alt', route: '/doctor/appointments'},
       { title: 'Calendar', icon: 'mdi-calendar-edit', route: '/doctor/plans'},
+      { title: 'Reports', icon: 'mdi-file-chart', route: '/doctor/reports'},
     ],
     laboratorianList: [
       { title: 'Home', icon: 'fas fa-home', route: '/laboratorian'},
@@ -57,6 +58,7 @@ export default {
     ],
     adminList: [
       { title: 'Add Staff', icon: 'fas fa-home', route: '/admin'},
+      { title: 'Add Departments', icon: 'mdi-domain', route: '/admin/departments'},
       { title: 'Add Tests', icon: 'fas fa-flask', route: '/admin/tests'},
       { title: 'Add Components', icon: 'mdi-flask-plus-outline', route: '/admin/components'},
       { title: 'Add Diseases', icon: 'fas fa-disease', route: '/admin/diseases'},

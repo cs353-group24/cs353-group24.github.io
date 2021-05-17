@@ -137,8 +137,29 @@ app.get('/login_second', (req,res,next)=>{
         }
     });
 });
+/*
+*   Signup validation
+*   {
+*       "national_id": "$1"
+*       "email": "$2"
+*       "password": "$3"
+*   }
+* */
+app.get('/signup_validate', (req,res,next)=>{
+    let q = 'SELECT count(*) as dup_id FROM person p WHERE national_id=$1 union all SELECT count(*) as dup_email FROM person where email=$2'
+    let params =   req.query
+   // console.log(params)
 
-
+    client.query(q, [params.national_id, params.email],(err, result)=>{
+        if (err){
+            console.log(err)
+            return res.status(404).send(err);
+        }
+        else{
+            return res.status(200).send(result)
+        }
+    });
+});
 /*
     /logout
     no info required
@@ -191,16 +212,17 @@ Returns the number of finalized test number per patient
  */
 app.get('/report1', (req,res)=>{
 
-        let q = `SELECT patient_id, count(result_id)
-                 FROM test_result natural join appointment
-                 WHERE result_id in(
-                         (select distinct result_id from comp_result)
-                         except
-                         (select distinct result_id
-                          from comp_result
-                          where comp_status <> 'finalized')
-                 )
-                 group by patient_id;`
+        let q = `SELECT pe.name, pe.surname, patient_id, sum(case when  result_id in(
+                (select distinct result_id from comp_result)
+                except
+                (select distinct result_id
+                        from comp_result
+                        where comp_status <> 'finalized')
+                ) then 1 else 0 end  ) no_of_finalised_tests,
+                count (   result_id ) as total_no_of_tests
+                FROM person pe natural join patient pa, appointment a, test_result tr
+                where pa.national_id = a.patient_id and a.appointment_id = tr.appointment_id
+                group by patient_id, name, surname;;`
 
         let params = Object.values(req.query)
         client.query(q, params ,(err, result) =>{
@@ -217,11 +239,12 @@ Query above reports give total number of appointments in the last month
  */
 app.get('/report2', (req,res)=>{
 
-    let q = `select doctor_id, count(patient_id)
-             from appointment
-             where extract(month from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(month from current_date)
-               and extract(year from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(year from current_date)
-             group by doctor_id`
+    let q = `select doctor_id, name ,surname  ,count(patient_id) as no_of_appointments_last_month
+            from appointment, person
+            where extract(month from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(month from current_date)
+            and extract(year from to_date(cast(date as TEXT),'YYYY-MM-DD') ) = extract(year from current_date)
+            and doctor_id = national_id
+            group by doctor_id, name, surname`
 
     let params = Object.values(req.query)
     client.query(q, params ,(err, result) =>{
@@ -250,7 +273,7 @@ app.get('/report2', (req,res)=>{
      naming conventions presented above should be followed
  */
 app.get('/patient/:id/homepage', (req, res) =>{
-    let q = `SELECT a.appointment_id, p.name, p.surname, TO_CHAR(a.date,'YYYY-MM-DD' ) as date, d.department
+    let q = `SELECT a.appointment_id, p.name, p.surname, TO_CHAR(a.date,'YYYY-MM-DD' ) as date, d.department, a.status
              FROM appointment as  a, doctor as d, person as p
              WHERE a.patient_id = $1 and d.national_id = p.national_id and d.national_id = a.doctor_id and a.status = 'upcoming'
              ORDER BY  date ASC ; `
@@ -350,6 +373,24 @@ app.post('/patient/:id/appointment/edit', (req,res)=>{
 })
 
 
+app.post('/patient/:id/appointment/status', (req,res)=>{
+
+    let person_q = ` UPDATE  appointment 
+                     SET status = 'finalized' 
+                      WHERE appointment_id = $1  `
+
+    let params = Object.values(req.body) // will get id
+
+    client.query(person_q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        else {
+            return res.status(200).send({"message": "edited successfully"})
+        }
+    })
+})
+
 /*
     gives tests for a given appointment
      {
@@ -393,12 +434,12 @@ app.post('/patient/:id/appointment/cancel_appointment', (req,res)=>{
  */
 app.post('/patient/:id/appointment/newappointment', (req,res)=>{
 
-    let q = ` INSERT INTO appointment ( date, patient_id, doctor_id) VALUES
-        ( to_date($1, 'YYYY-MM-DD'), $2, $3); `
+    let q = ` INSERT INTO appointment ( date, patient_id, doctor_id, status) VALUES
+        ( to_date($1, 'YYYY-MM-DD'), $2, $3, $4); `
 
     let params1 = req.params // will give national id
     let params2 = req.body
-    let params = [ params2.date, params1.id, params2.doctor_id]
+    let params = [ params2.date, params1.id, params2.doctor_id, params2.status]
 
     console.log(params)
 
@@ -755,9 +796,9 @@ app.get('/patient/:id/see_presc', (req,res)=>{
     }
  */
 app.get("/patient/:id/see_app_symp", (req,res)=>{
-    let q = ` SELECT  ds.symptom_name as symptom_name, s.description as description
-              FROM diagnosis d , symptom s, disease_symptoms ds
-              where d.disease_name = ds.disease_name and s.name = ds.symptom_name and appointment_id = $1; `
+    let q = ` SELECT  *
+              FROM symptom s, patient_symptoms ps
+              where ps.appointment_id = $1 and s.name = symptom_name; `
 
     let params = Object.values(req.query)
     client.query(q, params, (err, result) =>{
@@ -788,10 +829,10 @@ app.get("/patient/:id/see_app_symp", (req,res)=>{
 
 // returns appointment_id, save it and then give it as a parameter in the following three requests as aid.
 app.get('/doctor/:id/homepage', (req,res)=>{
-    let q = ` SELECT appointment_id, P.name, P.surname, to_char(date, 'YYYY-MM-DD') as date
+    let q = ` SELECT appointment_id, P.name, P.surname, to_char(date, 'YYYY-MM-DD') as date, status
               FROM appointment, person as P
               WHERE doctor_id = $1
-                and P.national_id = patient_id and status = 'upcoming'
+                and P.national_id = patient_id
               ORDER BY date DESC ;`
     let params = Object.values(req.params)
     client.query(q, params, (err, result) =>{
@@ -882,7 +923,7 @@ app.post('/doctor/:id/delete_off_days', (req,res)=>{
     id: doctor_id, aid: appointment_id
  */
 app.get('/doctor/:id/:aid/see_patient_symptoms', (req,res)=>{
-    let q = `SELECT symptom_name FROM patient_symptoms WHERE appointment_id = $1`
+    let q = `SELECT * FROM patient_symptoms NATURAL JOIN symptom WHERE appointment_id = $1 and symptom_name = name`
     let re = req.params
     let params = [re.aid]
     client.query(q, params, (err,result)=>{
@@ -953,7 +994,7 @@ app.get('/doctor/:id/get_test_types',(req,res)=>{
     returns all the laboratorians, choose one with same department in frontend
  */
 app.get('/doctor/:id/get_laboratorians',(req,res)=>{
-    let q = ` SELECT * FROM laboratorian; `
+    let q = ` SELECT * FROM laboratorian NATURAL JOIN person; `
     client.query(q,  (err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -973,11 +1014,11 @@ app.get('/doctor/:id/get_laboratorians',(req,res)=>{
      naming conventions presented above should be followed
  */
 app.post('/doctor/:id/ask_for_tests',(req,res)=>{
-    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_name) 
-            VALUES ($1, $2, $3) `
+    let q = `INSERT INTO test_assigned_to (appointment_id, laboratorian_id, test_name, date) 
+            VALUES ($1, $2, $3, $4) `
     let par = req.body
-    let params = [par.appointment_id, par.laboratorian_id, par.test_name]
-
+    let params = [par.appointment_id, par.laboratorian_id, par.test_name, par.date]
+    console.log(params)
     client.query(q, params, (err, result) =>{
         if(err){
             console.log(err)
@@ -993,12 +1034,13 @@ app.post('/doctor/:id/ask_for_tests',(req,res)=>{
     save the result_id's and use them to see component results etc.
  */
 app.get('/doctor/:id/:aid/see_tests', (req,res)=>{
-    let q = ` SELECT to_char(result_date, 'YYYY-MM-DD') as result_date_to_char, *
-              FROM appointment a , test_result tr  , test_assigned_to tat
+    let q = ` SELECT to_char(tat.date, 'YYYY-MM-DD') as date_to_char, *
+              FROM appointment a , test_result tr  , test_assigned_to tat, person p
               where a.appointment_id = tr.appointment_id and tr.appointment_id = tat.appointment_id
-                and tr.test_name = tat.test_name and appointment_id = $1;`
+                and tr.test_name = tat.test_name and a.appointment_id = $1 and tat.laboratorian_id = p.national_id;`
     let re = req.params
     let params = [re.aid]
+    console.log(re, params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -1014,9 +1056,10 @@ app.get('/doctor/:id/:aid/see_tests', (req,res)=>{
     }
  */
 app.get('/doctor/:id/:aid/see_test_components', (req,res)=>{
-    let q = ` SELECT * FROM comp_result WHERE result_id = $1;`
+    let q = ` SELECT * FROM comp_result NATURAL JOIN component WHERE result_id = $1;`
     let re = req.query
     let params = [re.result_id]
+    console.log(params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -1039,6 +1082,16 @@ app.get('/doctor/:id/get_disease_names', (req,res)=>{
     })
 })
 
+app.get('/doctor/:id/get_symptom_names', (req,res)=>{
+    let q = `SELECT * FROM symptom `
+    client.query(q,  (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
+
 
 // see diagnosis for the given aid
 
@@ -1049,7 +1102,20 @@ app.get('/doctor/:id/get_disease_names', (req,res)=>{
 */
 
 app.get('/doctor/:id/:aid/see_diagnosis', (req,res)=>{
-    let q = ` SELECT disease_name, description
+    let q = ` SELECT *
+              FROM diagnosis dg, disease d WHERE dg.appointment_id = $1 and dg.disease_name = d.name;`
+    let re = req.params
+    let params = [re.aid]
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send(result.rows)
+    })
+})
+
+app.get('/doctor/:id/:aid/see_diagnosis_desc', (req,res)=>{
+    let q = ` SELECT DISTINCT description
               FROM diagnosis WHERE appointment_id = $1;`
     let re = req.params
     let params = [re.aid]
@@ -1129,6 +1195,7 @@ app.get('/doctor/:id/get_prescription', (req,res)=>{
 
     let q = `SELECT * FROM prescription WHERE prescription_no = $1;`
     let params = Object.values(req.query)
+    console.log(params, req.query)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -1142,7 +1209,7 @@ app.get('/doctor/:id/get_prescription', (req,res)=>{
     "prescription_no": "$"
  */
 app.get('/doctor/:id/get_presc_medicine', (req,res)=>{
-    let q = `SELECT * FROM prescribed_in WHERE prescription_no = $1;`
+    let q = `SELECT * FROM prescribed_in NATURAL JOIN medicine WHERE prescription_no = $1 and med_name = name;`
     let params = Object.values(req.query)
     console.log(params)
     client.query(q, params, (err, result) =>{
@@ -1154,6 +1221,59 @@ app.get('/doctor/:id/get_presc_medicine', (req,res)=>{
 })
 
 /*
+{
+    "appointment_id" : "$",
+    "symptom_name":"$"
+}
+ */
+
+app.post('/doctor/:id/delete_symptom', (req,res)=>{
+    let q = `DELETE From patient_symptoms where  appointment_id = $1 and symptom_name LIKE $2  ESCAPE '#' ;`
+    let params = Object.values(req.body)
+    client.query(q, params,(err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"message":"successful deletion"})
+    })
+})
+
+/*
+{
+    "appointment_id" : "$",
+    "test_name":"$"
+}
+ */
+
+app.post('/doctor/:id/delete_assigned_test', (req,res)=>{
+    let q = `DELETE From test_assigned_to where  appointment_id = $1 and test_name LIKE $2  ESCAPE '#' ;`
+    let params = Object.values(req.body)
+    client.query(q, params,(err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"message":"successful deletion"})
+    })
+})
+
+/*
+{
+    "prescription_no" : "$",
+    "med_name":"$"
+}
+ */
+app.post('/doctor/:id/delete_medicine', (req,res)=>{
+    let q = `DELETE From prescribed_in where  prescription_no = $1 and med_name LIKE $2  ESCAPE '#' ;`
+    let params = Object.values(req.body)
+    client.query(q, params,(err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"message":"successful deletion"})
+    })
+})
+
+/*
     /doctor/:id/add_prescription
     {
         "appointment_id" : "$"
@@ -1161,8 +1281,9 @@ app.get('/doctor/:id/get_presc_medicine', (req,res)=>{
 */
 app.post('/doctor/:id/add_prescription', (req,res)=>{
 
-    let q = `INSERT INTO prescription (prescription_no, prescription_type, date, status) VALUES ($1, 'A', current_date, 'waiting')`
+    let q = `INSERT INTO prescription (prescription_no, date, status) VALUES ($1, current_date, 'waiting')`
     let params = Object.values(req.body)
+    console.log(params)
     client.query(q, params, (err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -1171,7 +1292,7 @@ app.post('/doctor/:id/add_prescription', (req,res)=>{
         let params2 = [req.body.appointment_id, req.body.appointment_id]
         client.query(q, params2, (err, result) =>{
             if(err){
-                return res.status(404).send(err)
+                return res.status(405).send(err)
             }
             return res.status(200).send({"message":"successful insertion"})
         })
@@ -1191,8 +1312,9 @@ app.post('/doctor/:id/add_prescription', (req,res)=>{
 app.post('/doctor/:id/add_medicine_to_presc', (req,res)=>{
 
     let q = `INSERT INTO prescribed_in (prescription_no, med_name, qty ,usage_method, med_status) 
-                VALUES ($1, $2, $3, $4,'filled')`
+                VALUES ($1, $2, $3, $4,'waiting')`
     let params = Object.values(req.body)
+    console.log(params)
     client.query(q, params,(err, result) =>{
         if(err){
             return res.status(404).send(err)
@@ -1302,6 +1424,32 @@ app.post('/laboratorian/:id/post_spec_comps', (req,res)=>{
 
     let re = req.body
     let params = [re.comp_value, re.result_id, re.comp_name]
+
+    client.query(q, params, (err, result) =>{
+        if(err){
+            return res.status(404).send(err)
+        }
+        return res.status(200).send({"MESSAGE" : "successfull"})
+    })
+})
+
+/*
+    /laboratorian/:id/post_spec_comps:
+    /laboratorian/$/post_spec_comps
+    {
+        "result_id" : "$",
+        "comp_name" : "$",
+        "comp_value": "$"
+        "comp_result": "$",
+    }
+ */
+app.post('/laboratorian/:id/update_comp', (req,res)=>{
+    let q = `UPDATE comp_result
+             SET  comp_value = $1, comp_status = 'finalized', comp_result = $4
+             WHERE result_id = $2 and comp_name = $3;  `
+
+    let re = req.body
+    let params = [re.comp_value, re.result_id, re.comp_name, re.comp_result]
 
     client.query(q, params, (err, result) =>{
         if(err){
@@ -1592,7 +1740,7 @@ app.post('/admin/add_staff', (req,res)=>{
             console.log(err)
             return res.status(404).send(err);
         }
-        else {
+        else{
             if (re.person_type === 'doctor') {
                 q = `INSERT INTO doctor (national_id, room_no, department)
                      VALUES ($1, $2, $3);`

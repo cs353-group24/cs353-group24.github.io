@@ -69,6 +69,11 @@ const routes = [
     component: () => import('../views/Doctor.vue')                                           
   },
   {
+    path: '/doctor/reports',
+    name: 'Doctor Reports',
+    component: () => import('../views/DoctorReports.vue')                                           
+  },
+  {
     path: '/doctor/appointments',
     name: 'Doctor Appointments',
     component: () => import('../views/DAppointments.vue')                                           
@@ -142,6 +147,11 @@ const routes = [
     path: '/admin/components',
     name: 'Admin Components',
     component: () => import('../views/AdminComponents.vue')
+  },
+  {
+    path: '/admin/departments',
+    name: 'Admin Departments',
+    component: () => import('../views/AdminDepartments.vue')
   },
 ]
 

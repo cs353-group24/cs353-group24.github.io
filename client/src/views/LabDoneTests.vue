@@ -71,22 +71,6 @@ name: "Laboratorian",
       itemsPerPage: 6,
     },
     compItems:[
-      {
-        component: 'Creatin Kinase',
-        resultID: 6745,
-        l_interval: 0,
-        h_interval: 190,
-        value: '23',
-        result: 'Normal'
-      },
-      {
-        component: 'Creatin Kinase',
-        resultID: 6745,
-        l_interval: 0,
-        h_interval: 190,
-        value: '25',
-        result: 'normal'
-      }
     ],
 
   }),

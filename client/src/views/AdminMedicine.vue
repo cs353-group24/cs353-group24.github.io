@@ -3,7 +3,7 @@
     <v-container class="">
       <v-row>
         <v-row>
-          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add Medicine</h1>
+          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add Medicines</h1>
         </v-row>
       </v-row>
       <v-row>
@@ -13,44 +13,30 @@
               <v-row class="mt-5">
                 <v-col>
                   <v-text-field
-                      outlined
-                      v-model="medicineName"
-                      clearable
-                      :prepend-inner-icon="'fas fa-disease'"
-                      :rules="[v => !!v || 'Medicine name is required']"
-                      label="Medicine Name"
-                      required
+                    outlined
+                    v-model="medName"
+                    clearable
+                    :prepend-inner-icon="'mdi-pill'"
+                    :rules="[v => !!v || 'Medicine Name is required']"
+                    label="Medicine Name"
+                    required
                   ></v-text-field>
                 </v-col>
                 <v-col>
                   <v-text-field
-                      outlined
-                      v-model="manufacturer"
-                      clearable
-                      :prepend-inner-icon="'fas fa-industry'"
-                      :rules="[v => !!v || 'Manufacturer name is required']"
-                      label="Manufacturer"
-                      required
+                    outlined
+                    v-model="medMan"
+                    clearable
+                    :rules="[v => !!v || 'Medicine Manufacturer is required']"
+                    label="Medicine Manufacturer"
+                    required
                   ></v-text-field>
                 </v-col>
               </v-row>
-              <v-row class="mt-n5">
-                <v-col>
-                  <v-text-field
-                      outlined
-                      v-model="stock"
-                      label="Stock"
-                      clearable
-                      rows="4"
-                      :rules="[v => !!v || 'Provide stock number']"
-                      requred
-                  ></v-text-field>
-                </v-col>
-                <v-col class="d-flex justify-end">
-                  <v-btn width="15%" large color="#558EFE" class="white--text rounded-lg font-weight-bold mr-5 mb-5" @click="addMedicine">
+              <v-row  class="d-flex justify-end">
+                <v-btn width="15%" large color="#558EFE" class="white--text rounded-lg font-weight-bold mr-5 mb-5" @click="addMed">
                     Add
                   </v-btn>
-                </v-col>
               </v-row>
             </v-form>
           </v-card-text>
@@ -59,24 +45,24 @@
       <v-snackbar
           v-model="snackbar"
           :timeout="5000"
-      >
-        {{ errorMsg }}
+        >
+          {{ errorMsg }}
 
-        <template v-slot:action="{ attrs }">
-          <v-btn
+          <template v-slot:action="{ attrs }">
+            <v-btn
               color="indigo"
               text
               v-bind="attrs"
               @click="snackbar = false"
-          >
-            Close
-          </v-btn>
-        </template>
-      </v-snackbar>
-      <v-overlay :value="overlay">
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
         <v-progress-circular
-            indeterminate
-            size="64"
+          indeterminate
+          size="64"
         ></v-progress-circular>
       </v-overlay>
     </v-container>
@@ -85,41 +71,36 @@
 
 <script>
 export default {
-  data:()=>({
-    snackbar: false,
-    overlay: false,
-    errorMsg: '',
-    medicineName: '',
-    manufacturer: '',
-    stock: '',
+  data: ()=>({
     valid: false,
+    errorMsg: '',
+    overlay:false,
+    snackbar:false,
+    medName: '',
+    medMan: '',
   }),
-  methods:{
-    async addMedicine(){
+  methods: {
+      async addMed(){
       this.$refs.form.validate()
       if (this.valid) {
         this.overlay = true
-        await this.$http.post(this.$url+`/admin/add_medicine`, {
-          name: this.medicineName,
-          manufacturer: this.manufacturer,
-          stock: this.stock
-        }).then( () => {
-          this.errorMsg = 'Medicine added.'
-          this.overlay = false
-          this.snackbar = true
-          this.testName = ''
-          this.testDep = ''
-          this.$refs.form.resetValidation()
-        }).catch((err) => {
+        await this.$http.post(this.$url + `/admin/add_medicine`, {
+          name: this.capitalise(this.medName),
+          manufacturer: this.capitalise(this.medMan),
+          stock: 0
+        }).then(res => {
+          console.log(res)
+          this.errorMsg = `${this.medName} has been added to medicines`
+        }).catch(err => {
           console.log(err)
-          this.errorMsg = 'Unexpected Error, could not load data'
+          this.errorMsg = "Unknown Error, try again later"
+        }).finally(() => {
           this.overlay = false
           this.snackbar = true
+          this.medMan = ''
+          this.medName = ''
+          this.$refs.form.resetValidation()
         })
-        this.medicineName = ''
-        this.manufacturer = ''
-        this.stock = ''
-        this.$refs.form.resetValidation()
       }
     }
   }

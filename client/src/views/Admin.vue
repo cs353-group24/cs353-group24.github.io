@@ -3,7 +3,7 @@
     <v-container class="">
       <v-row>
         <v-row>
-          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add staff</h1>
+          <h1 class="ml-5 pt-5 datatablefontcolor--text">Add Staff</h1>
         </v-row>
       </v-row>
       <v-row>
@@ -149,25 +149,26 @@
                     required
                     outlined
                     clearable
-                    :disabled="personType === 'doctor' ? false:true"
+                    :disabled="personType === 'Doctor' ? false:true"
                     :rules="[v => (!!v || personType !== 'Doctor') || 'Room Number is required', v => (/^\d+$/.test(v) || personType !== 'Doctor') || 'Numbers only']"
                     v-model="roomNo"
                     label="Room Number"
                   ></v-text-field>
                 </v-col>
-                <v-col>
-                  <v-select
-                      v-model="department"
-                      clearable
-                      :disabled="personType === 'pharmacist' ? true:false"
-                      :rules="[v => !!v || 'Department is required']"
-                      :items="departments"
-                      label="Department"
-                      outlined
-                  ></v-select>
+                <v-col class="d-flex justify-end">
+                  <v-autocomplete
+                    v-model="department"
+                    clearable
+                    :rules="[v => (!!v || personType === 'Pharmacist') || 'Department is required']"
+                    :disabled="personType === 'Laboratorian' || personType === 'Doctor' ? false:true"
+                    prepend-inner-icon="mdi-domain"
+                    :items="deps"
+                    label="Department Name"
+                    outlined
+                  ></v-autocomplete>
                 </v-col>
               </v-row>
-              <v-row  class="d-flex justify-end">
+             <v-row  class="d-flex justify-end">
                 <v-btn width="15%" large color="#558EFE" class="white--text rounded-lg font-weight-bold mr-5 mb-5" @click="addStaff">
                   Add
                 </v-btn>
@@ -179,24 +180,24 @@
       <v-snackbar
           v-model="snackbar"
           :timeout="5000"
-      >
-        {{ errorMsg }}
+        >
+          {{ errorMsg }}
 
-        <template v-slot:action="{ attrs }">
-          <v-btn
+          <template v-slot:action="{ attrs }">
+            <v-btn
               color="indigo"
               text
               v-bind="attrs"
               @click="snackbar = false"
-          >
-            Close
-          </v-btn>
-        </template>
-      </v-snackbar>
-      <v-overlay :value="overlay">
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
         <v-progress-circular
-            indeterminate
-            size="64"
+          indeterminate
+          size="64"
         ></v-progress-circular>
       </v-overlay>
     </v-container>
@@ -206,12 +207,12 @@
 <script>
 export default {
   data:()=>({
-    snackbar: false,
-    overlay: false,
     errorMsg: '',
+    overlay:false,
+    snackbar:false,
     valid: false,
     id:'',
-    types: ['doctor', 'pharmacist', 'laboratorian'],
+    types: ['Doctor', 'Pharmacist', 'Laboratorian'],
     departments: [],
     personType: '',
     email: '',
@@ -224,26 +225,32 @@ export default {
     modal: '',
     dob: '',
     roomNo: '',
+    deps: []
   }),
   methods: {
     async addStaff(){
       this.$refs.form.validate()
       if (this.valid) {
         this.overlay = true
-        await this.$http.post(this.$url+`/admin/add_staff`, {
+        await this.$http.post(this.$url + `/admin/add_staff`, {
           national_id: this.id,
-          person_type: this.personType,
+          person_type: this.lower(this.personType),
           email: this.email,
           password: this.password,
           name: this.name,
           surname: this.surname,
           phone: this.phone,
           birthday: this.dob,
-          room_no: this.personType === 'Doctor' ? this.roomNo : undefined,
-          department: this.personType !== 'Pharmacist' ? this.department : undefined
-        }).then( () => {
-          this.errorMsg = 'Staff added.'
-          this.overlay = false
+          room_no: this.roomNo,
+          department: this.department
+        }).then(res => {
+          console.log(res)
+          this.errorMsg = `${this.personType} has been added to staff`
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Email or National ID already exists, please make sure both are unique'
+        }).finally(()=>{
+          this.overlay =false
           this.snackbar = true
           this.id = ''
           this.personType = ''
@@ -254,30 +261,29 @@ export default {
           this.phone = ''
           this.dob = ''
           this.roomNo = ''
+          this.department = ''
           this.$refs.form.resetValidation()
-        }).catch((err) => {
-          console.log(err)
-          this.errorMsg = 'Unexpected Error, could not load data'
-          this.overlay = false
-          this.snackbar = true
         })
       }
     },
-    async loadDepartments(){
-      await this.$http.get(this.$url+`/patient/1/appointment/newappointment/departments`).then(res => {
+    async getDeps(){
+      this.overlay = true
+      await this.$http.get(this.$url + '/patient/0/appointment/newappointment/departments').then(res => {
+        console.log(res)
         res.data.forEach(x => {
-          this.departments.push(x.name)
+          this.deps.push(x.name)
         })
-      }).catch((err) => {
+      }).catch(err => {
         console.log(err)
-        this.errorMsg = 'Unexpected Error, try again later'
-        this.overlay = false
+        this.errorMsg = 'Error in getting departments, try again'
         this.snackbar = true
+      }).finally(()=> {
+        this.overlay = false
       })
-    }
+    },
   },
-  mounted() {
-    this.loadDepartments();
+  created() {
+    this.getDeps()
   }
 }
 </script>

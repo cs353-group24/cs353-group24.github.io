@@ -151,6 +151,7 @@ name: "Laboratorian",
           test_name: this.item.testName
         }
       }).then((res) => {
+        this.group.items = []
         res.data.forEach(x => {
           let comp = {
             component: x.comp_name,
@@ -161,7 +162,7 @@ name: "Laboratorian",
             result: (x.comp_result == null) ? '-' : x.comp_result,
             status: (x.comp_status == null) ? '-' : x.comp_status
           }
-          this.compItems.push(comp)
+          this.group.items.push(comp)
         })
       }).catch(e => {
         if (e.response) {
@@ -227,7 +228,6 @@ name: "Laboratorian",
         this.laboratorianName = temp.charAt(0).toUpperCase() + temp.slice(1)
       }
       await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
-        console.log(res)
         this.items = []
         res.data.filter(x => x.test_status === 'preparing' ).forEach(x => {
           let temp = {

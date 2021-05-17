@@ -395,6 +395,7 @@ WHERE result_id in(
      where comp_status <> 'finalized')
 );
 
+
 RETURN NEW;
 END;
 $$
@@ -460,27 +461,6 @@ CREATE TRIGGER prescription_no
     AFTER UPDATE ON prescribed_in
     FOR EACH ROW
     EXECUTE PROCEDURE update_status3();
-
-CREATE or REPLACE FUNCTION update_status4()
-RETURNS trigger
-AS $$
-BEGIN
-
-UPDATE appointment SET status = 'waiting-tests'
-WHERE to_date(cast(date as TEXT),'YYYY-MM-DD') < current_date
-  AND status <> 'finalized';
-
-
-RETURN NEW;
-END;
-$$
-LANGUAGE 'plpgsql';
-
-CREATE TRIGGER update_status4
-    AFTER update of date
-    ON appointment
-    FOR EACH ROW
-    EXECUTE PROCEDURE update_status4();
 
 --- INDEX
 

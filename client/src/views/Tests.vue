@@ -187,7 +187,7 @@ export default {
           this.overlay = true
           await this.$http.get(this.$url+`/patient/${this.id}/see_prev_test_comps`,{
                 params:{
-                  comp_name: item.name.toLo
+                  comp_name: item.name
                 }
               }
           ).then(res => {
@@ -239,10 +239,10 @@ export default {
     this.getItems()
   },
   created: function() {
-        this.group.items = this.items
-        this.group.headers = this.headers
-        this.group.tableInfo = this.tableInfo
-        this.group.buttonHeader = this.buttonHeader
+        // this.group.items = this.items
+        // this.group.headers = this.headers
+        // this.group.tableInfo = this.tableInfo
+        // this.group.buttonHeader = this.buttonHeader
     }
 };
 </script>
