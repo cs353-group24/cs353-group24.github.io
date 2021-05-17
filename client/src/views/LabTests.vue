@@ -8,7 +8,7 @@
           </v-row>
         </v-col>
       </v-row>
-      <PaginationTable :items="filteredTests" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
+      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
         <template #buttons="{item}">
           <v-row>
             <v-col class="d-flex justify-center mx-n8">
@@ -144,8 +144,6 @@ name: "Laboratorian",
   }),
   methods:{
     async editTest(item){
-      this.overlay = true
-
       this.item = item;
       await this.$http.get(this.$url+`/laboratorian/${this.id}/get_spec_comps`, {
         params: {
@@ -157,29 +155,27 @@ name: "Laboratorian",
           let comp = {
             component: x.comp_name,
             resultID: x.result_id,
-            l_interval: x.lower_normality_interval,
-            h_interval: x.upper_normality_interval,
-            value: x.comp_value,
-            result: x.comp_result,
-            status: x.comp_status
+            l_interval: (x.lower_normality_interval == null) ? '-' : x.lower_normality_interval,
+            h_interval: (x.upper_normality_interval == null) ? '-': x.upper_normality_interval,
+            value: (x.comp_value == null) ? '-' : x.comp_value,
+            result: (x.comp_result == null) ? '-' : x.comp_result,
+            status: (x.comp_status == null) ? '-' : x.comp_status
           }
           this.compItems.push(comp)
         })
       }).catch(e => {
         if (e.response) {
           if (e.response.status === 403) {
-            this.errorMsg = 'No such email, try again'
+            this.msg = 'No such email, try again'
           } else if (e.response.status === 402) {
-            this.errorMsg = 'Wrong password, try again'
+            this.msg = 'Wrong password, try again'
           }
         } else {
-          this.errorMsg = 'Unknown error'
+          this.msg = 'Unknown error'
         }
       })
       this.compItems = []
       this.dialog = true
-      this.snackbar = true
-      this.overlay = false
     },
     editResult(item){
       if (this.$refs.form) {
@@ -204,19 +200,20 @@ name: "Laboratorian",
         this.result = ''
         let temp = this.compItems.filter(x => x.value === '-')
         if (temp.length === 0) {
-          this.item.status = 'Finalised'
-          this.snackbar = true
-          this.dialog = false
+          this.item.status = 'finalized'
         }
         await this.$http.post(this.$url + `/laboratorian/{this.id}/post_spec_comps`, {
           result_id : this.resultItem.resultID,
           comp_name: this.resultItem.component,
           comp_value: this.resultItem.value
         }).then(() => {
+          this.msg = 'Value is saved.'
+          this.overlay = false
+          this.snackbar = true
           this.getItems()
         }).catch(err => {
           console.log(err)
-          this.errorMsg = 'Unexpected Error in posting comp_value'
+          this.msg = 'Unexpected Error in posting comp_value'
           this.overlay = false
           this.snackbar = true
         })      }
@@ -230,9 +227,9 @@ name: "Laboratorian",
         this.laboratorianName = temp.charAt(0).toUpperCase() + temp.slice(1)
       }
       await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
-        // console.log(res)
+        console.log(res)
         this.items = []
-        res.data.forEach(x => {
+        res.data.filter(x => x.test_status === 'preparing' ).forEach(x => {
           let temp = {
             id: x.appointment_id,
             patient: this.capitalise(x.name, x.surname),
@@ -246,7 +243,7 @@ name: "Laboratorian",
         this.overlay = false
       }).catch((err) => {
         console.log(err)
-        this.errorMsg = 'Unexpected Error, could not load data'
+        this.msg = 'Unexpected Error, could not load data'
         this.overlay = false
         this.snackbar = true
       })

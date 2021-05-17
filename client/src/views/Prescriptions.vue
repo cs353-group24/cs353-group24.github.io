@@ -73,8 +73,8 @@ export default {
         class: 'datatablefontcolor--text'
     },
     { text: 'Prescription No', value: 'pres_no', class: 'datatablefontcolor--text' },
-    { text: 'Prescription Type', value: 'pres_type', class: 'datatablefontcolor--text' },
     { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
+      { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
     items: [],
@@ -92,14 +92,14 @@ export default {
         this.id = this.$cookies.get('user').national_id
       }
       await this.$http.get(this.$url+`/patient/${this.id}/see_all_presc`).then(res => {
-        // console.log(res)
+        console.log(res)
         this.items = []
         res.data.forEach(x => {
           let temp = {
             id: x.appointment_id,
             pres_no: x.prescription_no,
-            pres_type: x.prescription_type,
-            date: x.date_to_char
+            date: x.date_to_char,
+            status: x.status
           }
           this.items.push(temp)
         })

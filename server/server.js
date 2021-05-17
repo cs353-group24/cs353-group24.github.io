@@ -608,10 +608,10 @@ app.get('/patient/:id/see_app_test_comps', (req,res)=>{
 
  */
 app.get('/patient/:id/see_test_comps', (req,res)=>{
-    let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date_to_char, 
-                to_char(t.result_date, 'YYYY-MM-DD') as result_date_to_char, *
-             FROM appointment AS a NATURAL JOIN test_result AS t NATURAL JOIN comp_result
-             WHERE result_id = $1 ;`
+    let q = `SELECT to_char(a.date, 'YYYY-MM-DD') as date_to_char,
+                    to_char(t.result_date, 'YYYY-MM-DD') as result_date_to_char, *
+             FROM appointment AS a NATURAL JOIN test_result AS t NATURAL JOIN comp_result NATURAL JOIN component c
+             WHERE result_id = $1 and comp_result.comp_name = c.comp_name ;`
     let params1 = req.query
     let params = [params1.result_id]
 
@@ -638,10 +638,10 @@ app.get('/patient/:id/see_test_comps', (req,res)=>{
 
  */
 app.get('/patient/:id/see_prev_test_comps', (req,res)=>{
-    let q = `SELECT to_char(t.result_date, 'YYYY-MM-DD') as result_date, 
-                a.appointment_id, c.result_id, c.comp_value, c.comp_result, c.comp_status, c.comp_name
-             FROM appointment as a  NATURAL JOIN test_result as t NATURAL JOIN comp_result as c
-             WHERE a.patient_id = $1 and c.comp_name = $2 `
+    let q = `SELECT to_char(t.result_date, 'YYYY-MM-DD') as result_date,
+                    a.appointment_id, cr.result_id, cr.comp_value, cr.comp_result, cr.comp_status, cr.comp_name, c.lower_normality_interval, c.upper_normality_interval
+             FROM appointment as a  NATURAL JOIN test_result as t NATURAL JOIN comp_result as cr NATURAL JOIN component c
+             WHERE a.patient_id = $1 and c.comp_name = $2 and cr.comp_name = c.comp_name ;`
 
 
     let params1 = req.params
