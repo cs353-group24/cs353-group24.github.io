@@ -243,14 +243,25 @@ import Dialog from "@/components/Dialog"
         this.selectedDay = event
         this.modal = true
       },
-      handleDayOff(){
+      async handleDayOff(){
         if(!this.dateArray.includes(this.selectedDay.date))
         {
-          this.dateArray.push(this.selectedDay.date)
-          const newItem = {name: 'Day Off', start: this.selectedDay.date, color: 'green darken-1'}
-          this.events.push(newItem)
-          const parsedArray = JSON.stringify(this.dateArray);
-          localStorage.setItem('dataArray', parsedArray);
+          this.overlay = true
+          await this.$http.post(this.$url +  `/doctor/${this.id}/create_off_days`, {
+            date: this.selectedDay.date
+          }).then(res => {
+            console.log(res)
+            this.errorMsg = 'Day off added'
+          }).catch(err => {
+            console.log(err)
+            this.errorMsg = 'Unknown error, try again later'
+          }).finally(() => {
+            this.overlay = false
+            this.snackbar = true
+          })
+          this.getItemsData()
+          // const newItem = {name: 'Day Off', start: this.selectedDay.date, color: 'green darken-1'}
+          // this.events.push(newItem)
         }
         else{
           if(this.events.some(e => (e.start === this.selectedDay.date)&&(e.name.includes('Appointment')))){
@@ -261,18 +272,22 @@ import Dialog from "@/components/Dialog"
         
         this.modal = false
       },
-      removeDayOff(){
-        console.log(this.selectedEvent.start)
-        let index = this.dateArray.findIndex((x) => x === this.selectedEvent.start)
-        this.dateArray.splice(index, 1)
-        let findObj = (value) => {
-          let temp = value.findIndex((x) => x.start === this.selectedEvent.start)
-          return temp
-        }
-        index = findObj(this.events)
-        this.events.splice(index, 1)
-        const parsedArray = JSON.stringify(this.dateArray);
-        localStorage.setItem('dataArray', parsedArray);
+      async removeDayOff(){
+        // console.log(this.selectedEvent.start)
+        this.overlay = true
+        await this.$http.post(this.$url +  `/doctor/${this.id}/delete_off_days`, {
+          date: this.selectedEvent.start
+        }).then(res => {
+          console.log(res)
+          this.errorMsg = 'Day off removed'
+        }).catch(err => {
+          console.log(err)
+          this.errorMsg = 'Unknown error, try again later'
+        }).finally(() => {
+          this.overlay = false
+          this.snackbar = true
+        })
+        this.getItemsData()
         this.selectedOpen = false
       },
       getEventColor (event) {
@@ -342,10 +357,10 @@ import Dialog from "@/components/Dialog"
           this.overlay = true
           await this.$http.get(this.$url+`/doctor/${this.id}/homepage`).then(res => {
             console.log(res)
-            this.items = []
+            this.events = []
             res.data.forEach(x => {
               let temp = {
-                  name: this.appointment.id,
+                  name: "Appointment: " + String(x.appointment_id),
                   start: x.date,
                   color: 'datatablefontcolor',
                   details: x
@@ -359,6 +374,30 @@ import Dialog from "@/components/Dialog"
             this.overlay = false
             this.snackbar = true
           })
+          await this.getDate()
+          this.dateArray.forEach(x =>{
+            if(!this.events.some(y => y.start === x))
+            {
+              this.events.push({name: 'Day Off', start: x, color: 'green darken-1'})
+            }
+          })
+        },
+        async getDate(){
+          this.overlay = true
+          await this.$http.get(this.$url+`/doctor/${this.id}/off_days`).then(res => {
+            console.log(res)
+            this.dateArray = []
+            res.data.forEach(x => {
+              this.dateArray.push(x.date_to_char)
+            })
+            this.overlay = false
+          }).catch((err) => {
+            console.log(err)
+            this.errorMsg = 'Unexpected Error, could not load data'
+            this.overlay = false
+            this.snackbar = true
+          })
+          // console.log(this.dateArray)
         },
         async validateForm(){
             this.overlay = true
@@ -461,10 +500,10 @@ import Dialog from "@/components/Dialog"
         },
         async getDetails(item){
           this.overlay = true
-          this.appointment.id = item.id
-          this.appointment.name= item.patient
-          this.appointment.date= item.date
-          this.appointment.status= item.status
+          this.appointment.id = item.details.appointment_id
+          this.appointment.name= this.capitalise(item.details.name, item.details.surname)
+          this.appointment.date= item.details.date
+          this.appointment.status= item.details.status
           this.tableInfo.symptomItems = [];
           this.tableInfo.testItems = [];
           this.tableInfo.presItems = [];
