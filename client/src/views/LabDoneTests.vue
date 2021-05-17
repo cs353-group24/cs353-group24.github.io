@@ -8,7 +8,7 @@
           </v-row>
         </v-col>
       </v-row>
-      <PaginationTable :items="filteredTests" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
+      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
         <template #buttons="{item}">
           <v-row>
             <v-col class="d-flex justify-center mx-n8">
@@ -105,11 +105,11 @@ name: "Laboratorian",
           let comp = {
             component: x.comp_name,
             resultID: x.result_id,
-            l_interval: x.lower_normality_interval,
-            h_interval: x.upper_normality_interval,
-            value: x.comp_value,
-            result: x.comp_result,
-            date: x.result_date_to_char
+            l_interval: (x.lower_normality_interval == null) ? '-' : x.lower_normality_interval,
+            h_interval: (x.upper_normality_interval == null) ? '-': x.upper_normality_interval,
+            value: (x.comp_value == null) ? '-' : x.comp_value,
+            result: (x.comp_result == null) ? '-' : x.comp_result,
+            date: (x.result_date_to_char == null)? '-': x.result_date_to_char
           }
           this.compItems.push(comp)
         })
@@ -163,19 +163,18 @@ name: "Laboratorian",
         this.laboratorianName = temp.charAt(0).toUpperCase() + temp.slice(1)
       }
       await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
-        // console.log(res)
+        console.log(res)
         this.items = []
-        res.data.forEach(x => {
+        res.data.filter(x => x.test_status === 'finalized' ).forEach(x => {
           let temp = {
             id: x.appointment_id,
             patient: this.capitalise(x.name, x.surname),
-            date: x.assign_date_to_char,
+            date: (x.assign_date_to_char == null) ? '-' : x.assign_date_to_char,
             testName: x.test_name,
-            status: x.test_status
+            status: (x.test_status == null) ? '-' : x.test_status
           }
           this.items.push(temp)
         })
-        this.filteredTests = this.items.filter(x => x.status === 'finalized')
         this.overlay = false
       }).catch((err) => {
         console.log(err)
@@ -195,7 +194,7 @@ name: "Laboratorian",
     this.group.headers = this.compHeaders
     this.group.tableInfo = this.compTableInfo
     this.group.buttonHeader = this.buttonHeader
-    this.filteredTests = this.items.filter(x => x.status === 'Finalised')
+    this.filteredTests = this.items.filter(x => x.status === 'Finalized')
   },
   computed: {
     

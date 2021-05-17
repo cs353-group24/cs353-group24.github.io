@@ -11,7 +11,7 @@
           </v-row>
         </v-col>
       </v-row>
-      <PaginationTable :items="filteredTests" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
+      <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
         <template #buttons="{item}">
           <v-row>
             <v-col class="d-flex justify-center mx-n8">
@@ -34,7 +34,7 @@
       >
         <v-card>
           <v-card-title class="headline datatablefontcolor--text text-center">
-            Edit {{resultItem.component}} Result
+            Edit {{editLabel}} Result
           </v-card-title>
           <v-card-text class="mt-4">
             <!-- maybe use cached items prop -->
@@ -44,7 +44,7 @@
               clearable
               :rules="[v => !!v || 'Value is required']"
               prepend-inner-icon="mdi-pencil"
-              :label="resultLabel"
+              :label="editLabel"
               outlined
             ></v-text-field>
             </v-form>
@@ -110,6 +110,7 @@ name: "Laboratorian",
     id:'',
     result: '',
     editResultDialog: false,
+    editLabel: '',
     valid: false,
     dialog:false,
     laboratorianName: '',
@@ -155,8 +156,6 @@ name: "Laboratorian",
   }),
   methods:{
     async editTest(item){
-      this.overlay = true
-
       this.item = item;
       await this.$http.get(this.$url+`/laboratorian/${this.id}/get_spec_comps`, {
         params: {
@@ -168,9 +167,9 @@ name: "Laboratorian",
               let comp = {
                 component: x.comp_name,
                 resultID: x.result_id,
-                l_interval: x.lower_normality_interval,
-                h_interval: x.upper_normality_interval,
-                value: x.comp_value,
+                l_interval: (x.lower_normality_interval == null) ? '-' : x.lower_normality_interval,
+                h_interval: (x.upper_normality_interval == null) ? '-': x.upper_normality_interval,
+                value: (x.comp_value == null) ? '-' : x.comp_value,
               }
               this.compItems.push(comp)
             })
@@ -187,14 +186,13 @@ name: "Laboratorian",
       })
       this.compItems = []
       this.dialog = true
-      this.snackbar = true
-      this.overlay = false
     },
     async editResult(item){
       if (this.$refs.form) {
         this.$refs.form.resetValidation()
       }
       this.resultItem = item
+      this.editLabel = this.capitalise(this.resultItem.component)
       console.log(this.resultItem)
       this.editResultDialog = true
 
@@ -206,8 +204,7 @@ name: "Laboratorian",
         this.resultItem.value = this.result
         this.editResultDialog = false
         this.dialog=false
-        this.snackbar = true
-
+        this.overlay = true
         if (this.resultItem.l_interval !== '-') {
           if (Number(this.result) >= this.resultItem.l_interval && Number(this.result) <= this.resultItem.h_interval) {
             this.resultItem.result = 'Normal'
@@ -217,12 +214,14 @@ name: "Laboratorian",
           }
         }
         this.result = ''
-        this.overlay = false
         await this.$http.post(this.$url + `/laboratorian/{this.id}/post_spec_comps`, {
           result_id : this.resultItem.resultID,
           comp_name: this.resultItem.component,
           comp_value: this.resultItem.value
         }).then(() => {
+          this.errorMsg = 'Value is updated.'
+          this.overlay = false
+          this.snackbar = true
           this.getItems()
         }).catch(err => {
           console.log(err)
@@ -248,19 +247,19 @@ name: "Laboratorian",
         this.laboratorianName = temp.charAt(0).toUpperCase() + temp.slice(1)
       }
       await this.$http.get(this.$url+`/laboratorian/${this.id}/homepage`).then(res => {
-        // console.log(res)
+        console.log(res)
         this.items = []
-        res.data.forEach(x => {
+        res.data.filter(x => x.test_status === 'assigned' ).forEach(x => {
           let temp = {
             id: x.appointment_id,
             patient: this.capitalise(x.name, x.surname),
-            date: x.assign_date_to_char,
+            date: (x.assign_date_to_char == null) ? '-' : x.assign_date_to_char,
             testName: x.test_name,
-            status: x.test_status
+            status: (x.test_status == null) ? '-' : x.test_status
           }
+
           this.items.push(temp)
         })
-        this.filteredTests = this.items.filter(x => x.status === 'assigned')
         this.overlay = false
       }).catch((err) => {
         console.log(err)
@@ -281,11 +280,6 @@ name: "Laboratorian",
     this.group.tableInfo = this.compTableInfo
     this.group.buttonHeader = this.buttonHeader
     this.filteredTests = this.items.filter(x => x.status === 'assigned')
-  },
-  computed: {
-    resultLabel(){
-      return this.resultItem.component + ' Value'
-    }
   }
 }
 </script>

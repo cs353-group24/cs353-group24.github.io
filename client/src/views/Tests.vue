@@ -41,7 +41,7 @@
             <v-btn @click="handleDialog2(item)" class="rounded-pill font-weight-bold" outlined color="#5080DE">History</v-btn>
         </template>
       </Dialog>
-      <Dialog :tableData="group" back @back="handleBack" :dialog="dialog2" :title="item1.name" @close="dialog2=false"></Dialog>
+      <Dialog :subtitle="subtitle" :tableData="group1" back @back="handleBack" :dialog="dialog2" :title="item1.name" @close="dialog2=false"></Dialog>
     </v-container>
   </v-app>
 </template>
@@ -67,6 +67,12 @@ export default {
         tableInfo:'',
         buttonHeader: ''
     },
+    group1: {
+      items:'',
+      headers:'',
+      tableInfo:'',
+      buttonHeader: ''
+    },
     dialog1:false,
     dialog2:false,
     buttonHeader: 'details',
@@ -84,6 +90,7 @@ export default {
     { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
     { text: 'Details', value: 'details', sortable:false, class: 'datatablefontcolor--text' },
     ],
+    subtitle: '',
     items: [],
     tableInfo: {
         tableTitle: 'Tests',
@@ -137,9 +144,11 @@ export default {
               let temp = {
                 id: x.result_id,
                 name: x.comp_name,
-                value: x.comp_value,
-                result: x.comp_result,
-                status: x.comp_status,
+                value: (x.comp_value == null) ? '-' : x.comp_value,
+                result: (x.comp_result == null) ? '-' : x.comp_result,
+                status: (x.comp_status == null) ? '-' : x.comp_status,
+                higher: (x.upper_normality_interval == null) ? '-' : x.upper_normality_interval ,
+                lower: (x.lower_normality_interval == null) ? '-' : x.lower_normality_interval,
               }
               componentItems.push(temp)
             })
@@ -163,6 +172,8 @@ export default {
                 class: 'datatablefontcolor--text'
               },
               { text: 'Component Name', value: 'name', class: 'datatablefontcolor--text' },
+              { text: 'Lower Normality Level', value: 'lower', class: 'datatablefontcolor--text' },
+              { text: 'Upper Normality Level', value: 'higher', class: 'datatablefontcolor--text' },
               { text: 'Component Value', value: 'value', class: 'datatablefontcolor--text' },
               { text: 'Component Result', value: 'result', class: 'datatablefontcolor--text' },
               { text: 'Component Status', value: 'status', class: 'datatablefontcolor--text' },
@@ -176,19 +187,23 @@ export default {
           this.overlay = true
           await this.$http.get(this.$url+`/patient/${this.id}/see_prev_test_comps`,{
                 params:{
-                  comp_name: item.name
+                  comp_name: item.name.toLo
                 }
               }
           ).then(res => {
+            console.log(res)
             res.data.forEach(x => {
               let temp = {
-                date: x.result_date,
-                aId: x.appointment_id,
-                rId: x.result_id,
-                value: x.comp_value,
-                result: x.comp_result,
+                date: (x.result_date == null) ? '-': x.result_date,
+                aId: (x.appointment_id == null) ? '-' : x.appointment_id,
+                rId: (x.result_id == null) ? '-' : x.result_id,
+                value: (x.comp_value == null) ? '-' : x.comp_value,
+                result: (x.comp_result == null)? '-' : x.comp_result,
+                higher: (x.upper_normality_interval == null) ? '-' : x.upper_normality_interval ,
+                lower: (x.lower_normality_interval == null) ? '-' : x.lower_normality_interval,
               }
               prevValues.push(temp)
+              this.subtitle = 'Expected Interval: ' + String(temp.lower) + ' - ' + String(temp.higher)
             })
             this.overlay = false
           }).catch((err) => {
@@ -199,8 +214,8 @@ export default {
           })
           this.item = item;
           this.dialog1 = true;
-          this.group.items = prevValues;
-          this.group.headers = [
+          this.group1.items = prevValues;
+          this.group1.headers = [
             {
               text: 'Date',
               align: 'start',
@@ -211,6 +226,8 @@ export default {
             },
             { text: 'Appointment ID', value: 'aId', class: 'datatablefontcolor--text' },
             { text: 'Result ID', value: 'rId', class: 'datatablefontcolor--text' },
+            { text: 'Lower Normality Level', value: 'lower', class: 'datatablefontcolor--text' },
+            { text: 'Upper Normality Level', value: 'higher', class: 'datatablefontcolor--text' },
             { text: 'Component Value', value: 'value', class: 'datatablefontcolor--text' },
             { text: 'Component Result', value: 'result', class: 'datatablefontcolor--text' },
           ];
