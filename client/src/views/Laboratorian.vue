@@ -126,7 +126,7 @@ name: "Laboratorian",
     headers: [
       { text: 'Appointment ID', align: 'start',  value: 'id', class: 'datatablefontcolor--text'},
       { text: 'Patient Name', value: 'patient', class: 'datatablefontcolor--text' },
-      { text: 'Date Due', value: 'date', class: 'datatablefontcolor--text' },
+      { text: 'Date Assigned', value: 'date', class: 'datatablefontcolor--text' },
       { text: 'Test Name', value: 'testName', class: 'datatablefontcolor--text' },
       { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
       { text: 'Actions', value: 'Edit',sortable:false, class: 'datatablefontcolor--text' }

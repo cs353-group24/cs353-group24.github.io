@@ -62,7 +62,7 @@
                                 </v-card-text>
                             </v-card>
                         </v-tab-item>
-                        <v-tab-item>
+                        <v-tab-item v-if="appointment.status==='finalized'">
                             <v-card tile class="pa-5">
                                 <v-card-title class="text-h4 datatablefontcolor--text font-weight-bold">
                                     <v-row>
