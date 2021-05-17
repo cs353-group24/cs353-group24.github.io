@@ -3,7 +3,7 @@
     <v-container class="">
       <v-row>
         <v-row>
-          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add Disease</h1>
+          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add Diseases</h1>
         </v-row>
       </v-row>
       <v-row>

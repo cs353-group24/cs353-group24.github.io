@@ -3,7 +3,7 @@
     <v-container class="">
       <v-row>
         <v-row>
-          <h1 class="ml-5 pt-5 datatablefontcolor--text">Add staff</h1>
+          <h1 class="ml-5 pt-5 datatablefontcolor--text">Add Staff</h1>
         </v-row>
       </v-row>
       <v-row>
@@ -149,7 +149,7 @@
                     required
                     outlined
                     clearable
-                    :disabled="personType === 'doctor' ? false:true"
+                    :disabled="personType === 'Doctor' ? false:true"
                     :rules="[v => (!!v || personType !== 'Doctor') || 'Room Number is required', v => (/^\d+$/.test(v) || personType !== 'Doctor') || 'Numbers only']"
                     v-model="roomNo"
                     label="Room Number"
@@ -168,12 +168,7 @@
                   ></v-autocomplete>
                 </v-col>
               </v-row>
-              <v-row class="d-flex justify-end">
-                <v-btn large color="#558EFE" class="white--text rounded-lg font-weight-bold mb-5 mr-5" @click="addStaff">
-                    Add
-                  </v-btn>
-              </v-row>
-              <v-row  class="d-flex justify-end">
+             <v-row  class="d-flex justify-end">
                 <v-btn width="15%" large color="#558EFE" class="white--text rounded-lg font-weight-bold mr-5 mb-5" @click="addStaff">
                   Add
                 </v-btn>
@@ -224,7 +219,6 @@ export default {
     password: '',
     value:true,
     name: '',
-    department: '',
     surname: '',
     phone: '',
     department: '',

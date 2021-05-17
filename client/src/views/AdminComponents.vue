@@ -3,7 +3,7 @@
     <v-container class="">
       <v-row>
         <v-row>
-          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add Test Component</h1>
+          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add Test Components</h1>
         </v-row>
       </v-row>
       <v-row>
@@ -16,7 +16,7 @@
                       v-model="testName"
                       clearable
                       :rules="[v => !!v || 'Test name is required']"
-                      prepend-inner-icon="mdi-domain"
+                      prepend-inner-icon="fas fa-flask"
                       :items="tests"
                       label="Test Name"
                       outlined
@@ -113,8 +113,8 @@ export default {
         await this.$http.post(this.$url+`/admin/add_component`, {
           test_name: this.testName,
           comp_name: this.compName,
-          lower_normality_interval: this.l_interval? Number(this.l_interval) : '-',
-          upper_normality_interval: this.u_interval? Number(this.u_interval) : '-'
+          lower_normality_interval: Number(this.l_interval),
+          upper_normality_interval: Number(this.u_interval)
         }).then( () => {
           this.errorMsg = 'Component added.'
           this.overlay = false
@@ -133,6 +133,7 @@ export default {
       }
     },
     async loadTestTypes(){
+      this.overlay = true
       await this.$http.get(this.$url+`/doctor/1/get_test_types`).then(res => {
         res.data.forEach(x => {
           this.tests.push(x.test_name)
@@ -140,9 +141,9 @@ export default {
       }).catch((err) => {
         console.log(err)
         this.errorMsg = 'Unexpected Error, try again later'
-        this.overlay = false
         this.snackbar = true
       })
+        this.overlay = false
     }
   },
   mounted() {
