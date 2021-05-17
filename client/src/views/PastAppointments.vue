@@ -7,13 +7,13 @@
       <PaginationTable :items="items" :headers="headers" :tableInfo="tableInfo" :buttonHeader="buttonHeader" style="margin-top:1.5rem" class="mx-2">
           <template #buttons="{item}">
             <v-row>
-            <v-col class="d-flex justify-center mx-n5">
+            <v-col class="d-flex justify-center">
                 <v-btn @click.stop="handleDialog1(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Symptoms</v-btn>
             </v-col>
-            <v-col class="d-flex justify-center ml-n8">
+            <v-col class="d-flex justify-center ml-n5">
                 <v-btn @click.stop="handleDialog2(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Diagnosis</v-btn>
             </v-col>
-            <v-col class="d-flex justify-center ml-n10">
+            <v-col class="d-flex justify-center ml-n4">
                 <v-btn @click.stop="handleDialog3(item)" class="rounded-lg font-weight-bold rounded-pill" outlined color="#5080DE">Prescription</v-btn>
             </v-col>
             </v-row>

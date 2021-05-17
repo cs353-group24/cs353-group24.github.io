@@ -7,7 +7,7 @@
             <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Welcome {{patientName}}</h1>
           </v-row>
           <v-row>
-            <h4 class="ml-6 blue--text text--lighten-3">You have {{items.length}} upcoming appointments</h4>
+            <h4 class="ml-6 blue--text text--lighten-3">You have {{items.length}} upcoming appointments today</h4>
           </v-row>
         </v-col>
         <v-col class="d-flex justify-end mt-16 pt-5">
@@ -160,7 +160,8 @@ export default {
     appointment:{
       department: '',
       date: '',
-      doctor: ''
+      doctor: '',
+      status: ''
     },
     dialog:false,
     patientName: '',
@@ -179,6 +180,7 @@ export default {
     { text: 'Doctor Name', value: 'doctor', class: 'datatablefontcolor--text' },
     { text: 'Date', value: 'date', class: 'datatablefontcolor--text' },
     { text: 'Department', value: 'department', class: 'datatablefontcolor--text' },
+    { text: 'Status', value: 'status', class: 'datatablefontcolor--text' },
     ],
     items: [],
     tableInfo: {
@@ -198,7 +200,8 @@ export default {
           this.overlay = true
           await this.$http.post(this.$url + `/patient/${this.id}/appointment/newappointment`, {
             date: this.appointment.date,
-            doctor_id: this.appointment.doctor.id
+            doctor_id: this.appointment.doctor.id,
+            status: 'upcoming'
           }).then(() => {
             // console.log(res)
             this.$http.post(this.$url + `/doctor/${this.appointment.doctor.id}/create_off_days`, {
@@ -224,6 +227,7 @@ export default {
           this.appointment.department = ''
           this.appointment.date = ''
           this.appointment.doctor = ''
+          this.appointment.status = ''
       }
     },
     async resetValidation () {
@@ -260,13 +264,16 @@ export default {
         // console.log(res)
         this.items = []
         res.data.forEach(x => {
-          let temp = {
-            id: x.appointment_id,
-            doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
-            date: x.date,
-            department: x.department
-          }
-          this.items.push(temp)
+          if (x.date.substring(9, 10) === this.toIsoString(new Date()).substring(9, 10)) {
+            let temp = {
+              id: x.appointment_id,
+              doctor: 'Dr. ' + this.capitalise(x.name, x.surname),
+              date: x.date,
+              department: x.department,
+              status: x.status
+            }
+            this.items.push(temp)
+            }
         })
         this.overlay = false
       }).catch((err) => {

@@ -239,10 +239,10 @@ export default {
     this.getItems()
   },
   created: function() {
-        this.group.items = this.items
-        this.group.headers = this.headers
-        this.group.tableInfo = this.tableInfo
-        this.group.buttonHeader = this.buttonHeader
+        // this.group.items = this.items
+        // this.group.headers = this.headers
+        // this.group.tableInfo = this.tableInfo
+        // this.group.buttonHeader = this.buttonHeader
     }
 };
 </script>

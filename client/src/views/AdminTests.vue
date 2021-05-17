@@ -3,7 +3,7 @@
     <v-container class="">
       <v-row>
         <v-row>
-          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add test</h1>
+          <h1 class="ml-5 mt-10 pt-5 datatablefontcolor--text">Add Tests</h1>
         </v-row>
       </v-row>
       <v-row>
@@ -105,6 +105,7 @@ export default {
       }
     },
     async loadDepartments(){
+      this.overlay = true
       await this.$http.get(this.$url+`/patient/1/appointment/newappointment/departments`).then(res => {
         res.data.forEach(x => {
           this.departments.push(x.name)
@@ -112,9 +113,9 @@ export default {
       }).catch((err) => {
         console.log(err)
         this.errorMsg = 'Unexpected Error, try again later'
-        this.overlay = false
         this.snackbar = true
       })
+        this.overlay = false
     }
   },
   mounted() {
