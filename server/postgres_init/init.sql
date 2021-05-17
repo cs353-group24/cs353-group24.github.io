@@ -8,178 +8,178 @@ CREATE TYPE comp_status as ENUM ('assigned', 'finalized');
 
 --tables
 CREATE TABLE person (
-                        national_id int ,
-                        name varchar ,
-                        surname varchar ,
-                        email varchar UNIQUE ,
-                        password varchar ,
-                        person_type person_type,
-                        phone varchar ,
-                        birthday date ,
-                        PRIMARY KEY (national_id)
+    national_id int ,
+    name varchar ,
+    surname varchar ,
+    email varchar UNIQUE ,
+    password varchar ,
+    person_type person_type,
+    phone varchar ,
+    birthday date ,
+    PRIMARY KEY (national_id)
 );
 
 CREATE TABLE doctor (
-                        national_id int ,
-                        room_no int ,
-                        department varchar ,
-                        PRIMARY KEY (national_id)
+    national_id int ,
+    room_no int ,
+    department varchar ,
+    PRIMARY KEY (national_id)
 
-);
+ );
 
 CREATE TABLE appointment (
-                             appointment_id serial ,
-                             date date ,
-                             status app_status DEFAULT 'upcoming',
-                             patient_id int ,
-                             doctor_id int ,
-                             PRIMARY KEY (appointment_id) ,
-                             UNIQUE (date, patient_id) ,
-                             UNIQUE (date, doctor_id)
-);
+  appointment_id serial ,
+  date date ,
+  status app_status DEFAULT 'upcoming',
+  patient_id int ,
+  doctor_id int ,
+  PRIMARY KEY (appointment_id) ,
+  UNIQUE (date, patient_id) ,
+  UNIQUE (date, doctor_id)
+  );
 
 
 CREATE TABLE department (
-                            name varchar ,
-                            date_est varchar ,
-                            building varchar ,
-                            PRIMARY KEY (name)
+  name varchar ,
+  date_est varchar ,
+  building varchar ,
+  PRIMARY KEY (name)
 );
 
 CREATE TABLE diagnosis (
-                           appointment_id int ,
-                           disease_name varchar ,
-                           description text ,
-                           PRIMARY KEY (appointment_id,disease_name)
+  appointment_id int ,
+  disease_name varchar ,
+  description text ,
+  PRIMARY KEY (appointment_id,disease_name)
 
-);
+  );
 
 CREATE TABLE disease (
-                         name varchar ,
-                         description text ,
-                         PRIMARY KEY (name)
+  name varchar ,
+  description text ,
+  PRIMARY KEY (name)
 );
 
 
 CREATE TABLE disease_symptoms (
-                                  disease_name varchar ,
-                                  symptom_name varchar ,
-                                  PRIMARY KEY (disease_name,symptom_name)
+  disease_name varchar ,
+  symptom_name varchar ,
+  PRIMARY KEY (disease_name,symptom_name)
 
-);
+  );
 
 
 
 CREATE TABLE laboratorian (
-                              national_id int ,
-                              department varchar ,
-                              PRIMARY KEY (national_id)
-);
+  national_id int ,
+  department varchar ,
+  PRIMARY KEY (national_id)
+  );
 
 CREATE TABLE medicine (
-                          name varchar ,
-                          manufacturer varchar ,
-                          stock int DEFAULT 0,
-                          PRIMARY KEY (name)
-);
+  name varchar ,
+  manufacturer varchar ,
+  stock int DEFAULT 0,
+  PRIMARY KEY (name)
+  );
 
 CREATE TABLE patient (
-                         national_id int ,
-                         PRIMARY KEY (national_id)
-);
+  national_id int ,
+  PRIMARY KEY (national_id)
+  );
 
 CREATE TABLE patient_symptoms (
-                                  appointment_id int ,
-                                  symptom_name varchar ,
-                                  PRIMARY KEY (symptom_name,appointment_id)
-);
+  appointment_id int ,
+  symptom_name varchar ,
+  PRIMARY KEY (symptom_name,appointment_id)
+  );
 
 CREATE TABLE pharmacist (
-                            national_id int ,
-                            PRIMARY KEY (national_id)
-);
+  national_id int ,
+  PRIMARY KEY (national_id)
+  );
 
 CREATE TABLE prescribed_by (
-                               prescription_no int ,
-                               appointment_id int  ,
-                               PRIMARY KEY (prescription_no, appointment_id)
-);
+  prescription_no int ,
+  appointment_id int  ,
+  PRIMARY KEY (prescription_no, appointment_id)
+  );
 
 CREATE TABLE prescribed_in (
-                               prescription_no int ,
-                               med_name varchar ,
-                               qty int ,
-                               usage_method text ,
-                               med_status presc_type DEFAULT 'waiting' ,
-                               PRIMARY KEY (prescription_no,med_name)
-);
+  prescription_no int ,
+  med_name varchar ,
+  qty int ,
+  usage_method text ,
+  med_status presc_type DEFAULT 'waiting' ,
+  PRIMARY KEY (prescription_no,med_name)
+  );
 
 CREATE TABLE prescription (
-                              prescription_no integer ,
-                              prescription_type varchar ,
-                              date date ,
-                              status presc_type DEFAULT 'waiting',
-                              PRIMARY KEY (prescription_no)
+  prescription_no integer ,
+  prescription_type varchar ,
+  date date ,
+  status presc_type DEFAULT 'waiting',
+  PRIMARY KEY (prescription_no)
 );
 
 CREATE TABLE test_result (
-                             test_name varchar ,
-                             result_id serial ,
-                             result_date date ,
-                             appointment_id int ,
-                             test_status test_status DEFAULT 'assigned',
-                             PRIMARY KEY (result_id) ,
-                             UNIQUE (test_name, appointment_id)
-);
+  test_name varchar ,
+  result_id serial ,
+  result_date date ,
+  appointment_id int ,
+  test_status test_status DEFAULT 'assigned',
+  PRIMARY KEY (result_id) ,
+  UNIQUE (test_name, appointment_id)
+  );
 
 CREATE TABLE comp_result (
-                             result_id int,
-                             comp_name varchar,
-                             comp_value varchar,
-                             comp_result varchar DEFAULT NULL,
-                             comp_status comp_status  DEFAULT 'assigned',
-                             PRIMARY KEY (result_id, comp_name)
+    result_id int,
+    comp_name varchar,
+    comp_value varchar,
+    comp_result varchar DEFAULT NULL,
+    comp_status comp_status  DEFAULT 'assigned',
+    PRIMARY KEY (result_id, comp_name)
 );
 
 CREATE TABLE component (
-                           test_name varchar,
-                           comp_name varchar UNIQUE ,
-                           upper_normality_interval int DEFAULT NULL,
-                           lower_normality_interval int DEFAULT NULL,
-                           PRIMARY KEY (test_name,comp_name)
+   test_name varchar,
+   comp_name varchar UNIQUE ,
+   upper_normality_interval int DEFAULT NULL,
+   lower_normality_interval int DEFAULT NULL,
+   PRIMARY KEY (test_name,comp_name)
 );
 
 
 CREATE TABLE symptom (
-                         name varchar ,
-                         description text ,
-                         PRIMARY KEY (name)
+  name varchar ,
+  description text ,
+  PRIMARY KEY (name)
 );
 
 CREATE TABLE test (
-                      test_name varchar ,
-                      department varchar,
-                      PRIMARY KEY (test_name)
+  test_name varchar ,
+  department varchar,
+  PRIMARY KEY (test_name)
 );
 
 CREATE TABLE test_assigned_to (
-                                  appointment_id int ,
-                                  laboratorian_id int ,
-                                  test_name varchar ,
-                                  date date ,
-                                  PRIMARY KEY (appointment_id,laboratorian_id,test_name)
-);
+  appointment_id int ,
+  laboratorian_id int ,
+  test_name varchar ,
+  date date ,
+  PRIMARY KEY (appointment_id,laboratorian_id,test_name)
+  );
 
 CREATE TABLE doctor_off_days (
-                                 doctor_id int,
-                                 date date ,
-                                 PRIMARY KEY (doctor_id,date)
+    doctor_id int,
+    date date ,
+    PRIMARY KEY (doctor_id,date)
 );
 
 CREATE TABLE prescription_assigned_to (
-                                          pharmacist_id int ,
-                                          prescription_no int ,
-                                          PRIMARY KEY (pharmacist_id,prescription_no)
+    pharmacist_id int ,
+    prescription_no int ,
+    PRIMARY KEY (pharmacist_id,prescription_no)
 );
 
 --- foreign-key constraints
@@ -268,7 +268,7 @@ BEGIN
     IF NEW.person_type = 'patient' THEN
     INSERT INTO patient  (national_id)
      VALUES (NEW.national_id);
-END IF;
+    END IF;
 
 /*
      IF NEW.person_type = 'doctor' THEN
@@ -298,8 +298,8 @@ returns trigger
 as $$
 BEGIN
 
-INSERT INTO test_result (test_name, appointment_id)
-VALUES (NEW.test_name, NEW.appointment_id);
+    INSERT INTO test_result (test_name, appointment_id)
+    VALUES (NEW.test_name, NEW.appointment_id);
 
 RETURN NEW;
 END;
@@ -313,9 +313,9 @@ as $$
 BEGIN
 
 INSERT INTO comp_result (result_id, comp_name)
-SELECT t.result_id, c.comp_name
-FROM test_result t, component c
-WHERE result_id = NEW.result_id and t.test_name = c.test_name;
+    SELECT t.result_id, c.comp_name
+        FROM test_result t, component c
+            WHERE result_id = NEW.result_id and t.test_name = c.test_name;
 
 RETURN NEW;
 END;
@@ -328,7 +328,7 @@ as $$
 BEGIN
 
 DELETE FROM test_result
-WHERE appointment_id = OLD.appointment_id and test_name = OLD.test_name;
+    WHERE appointment_id = OLD.appointment_id and test_name = OLD.test_name;
 RETURN OLD;
 END;
 $$
@@ -364,7 +364,7 @@ CREATE TRIGGER  addition2
     EXECUTE PROCEDURE insert2();
 
 CREATE TRIGGER addition3
-    AFTER INSERT ON test_result
+     AFTER INSERT ON test_result
     FOR EACH  ROW
     EXECUTE PROCEDURE insert3();
 
@@ -395,6 +395,7 @@ WHERE result_id in(
      where comp_status <> 'finalized')
 );
 
+
 RETURN NEW;
 END;
 $$
@@ -419,8 +420,8 @@ WHERE result_id in(
      where comp_status = 'finalized')
     except
     (select distinct result_id
-     from test_result
-     where test_status = 'finalized'
+    from test_result
+    where test_status = 'finalized'
     )
 );
 
@@ -460,27 +461,6 @@ CREATE TRIGGER prescription_no
     AFTER UPDATE ON prescribed_in
     FOR EACH ROW
     EXECUTE PROCEDURE update_status3();
-
-CREATE or REPLACE FUNCTION update_status4()
-RETURNS trigger
-AS $$
-BEGIN
-
-UPDATE appointment SET status = 'waiting-tests'
-WHERE to_date(cast(date as TEXT),'YYYY-MM-DD') < current_date
-  AND status <> 'finalized';
-
-
-RETURN NEW;
-END;
-$$
-LANGUAGE 'plpgsql';
-
-CREATE TRIGGER update_status4
-    AFTER update of date
-    ON appointment
-    FOR EACH ROW
-    EXECUTE PROCEDURE update_status4();
 
 --- INDEX
 
