@@ -125,6 +125,29 @@
             </v-card>
           </v-col>
         </v-row>
+        <v-snackbar
+            v-model="snackbar"
+            :timeout="5000"
+        >
+          {{ errorMsg }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+                color="indigo"
+                text
+                v-bind="attrs"
+                @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-overlay :value="overlay">
+          <v-progress-circular
+              indeterminate
+              size="64"
+          ></v-progress-circular>
+        </v-overlay>
       </v-container>
     </v-main>
   </v-app>
@@ -133,6 +156,9 @@
 <script>
   export default {
     data: () => ({
+      snackbar: false,
+      overlay: false,
+      errorMsg: '',
       valid: false,
       dialog: false,
       email: '',
@@ -161,13 +187,37 @@
             this.dialog = true;
         }
       },
-      signupNext(){
+      async signupNext(){
           this.$refs.form.validate();
-          if (this.valid) {
-            let temp = {email: this.email, id: this.id, password: this.password}
-            this.$cookies.set('signup', temp, '0')
-            this.$router.push({name:'Signup2'});
+       //this.overlay =true
+        await this.$http.get(this.$url+"/signup_validate",  {
+          params:{
+            national_id: this.id,
+            email: this.email
           }
+
+        }).then((result) => {
+          if(result.data.rows[0].dup_id > 0){
+            this.errorMsg = 'National ID already exists.'
+            this.overlay = false
+            this.snackbar = true
+          }
+          if(result.data.rows[1].dup_id > 0){
+            this.errorMsg = 'Email already exists'
+            this.overlay = false
+            this.snackbar = true
+          }
+          if( (result.data.rows[0].dup_id == 0) && (result.data.rows[1].dup_id == 0)){
+            if (this.valid) {
+              let temp = {email: this.email, id: this.id, password: this.password}
+              this.$cookies.set('signup', temp, '0')
+              this.$router.push({name:'Signup2'});
+            }
+          }
+        }).catch((e) => {
+          console.log(e.response)
+        })
+
       }
     }
   }
